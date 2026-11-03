@@ -42,12 +42,18 @@ test('Appium autosave is isolated from manual config, persists and rejects inval
     const base = `http://127.0.0.1:${address.port}`;
     const post = (path: string, body: unknown) => fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const initial = await (await fetch(base + '/api/config')).json() as AppConfig;
+    assert.equal(initial.appium.flowNodeColor, '#ffffff');
+    assert.equal(initial.appium.flowNodeBorderColor, '#dfe8f3');
     assert.equal(initial.appium.flowLineStyle, 'curved');
-    const appium = { ...initial.appium, flowLineStyle: 'curved', flowLineColor: '#AbC', model: { baseUrl: 'https://example.invalid', apiKey: 'test', name: 'new-model' } };
+    assert.equal(initial.appium.flowLayoutDirection, 'vertical');
+    const appium = { ...initial.appium, flowLineStyle: 'curved', flowLayoutDirection: 'horizontal', flowLineColor: '#AbC', flowNodeColor: '#dEf', flowNodeBorderColor: '#123', model: { baseUrl: 'https://example.invalid', apiKey: 'test', name: 'new-model' } };
     assert.equal((await post('/api/config/appium', { appium, runtime: { androidSdkPath: 'invalid-draft' }, midscene: { model: { name: 'unsaved' } } })).status, 200);
     let stored = await (await fetch(base + '/api/config')).json() as AppConfig;
     assert.equal(stored.appium.flowLineColor, '#aabbcc');
+    assert.equal(stored.appium.flowNodeColor, '#ddeeff');
+    assert.equal(stored.appium.flowNodeBorderColor, '#112233');
     assert.equal(stored.appium.flowLineStyle, 'curved');
+    assert.equal(stored.appium.flowLayoutDirection, 'horizontal');
     assert.deepEqual(stored.runtime, initial.runtime);
     assert.deepEqual(stored.midscene, initial.midscene);
     const { appium: _appium, ...manual } = structuredClone(initial);
@@ -58,10 +64,17 @@ test('Appium autosave is isolated from manual config, persists and rejects inval
     assert.equal(stored.midscene.model.name, initial.midscene.model.name, 'runtime save must not persist an untested model');
     assert.equal((await post('/api/config/appium', { appium: { ...appium, flowLineColor: 'invalid' } })).status, 400);
     assert.equal((await post('/api/config/appium', { appium: { ...appium, flowLineStyle: 'invalid' } })).status, 400);
+    assert.equal((await post('/api/config/appium', { appium: { ...appium, flowLayoutDirection: 'diagonal' } })).status, 400);
+    for (const key of ['flowNodeColor', 'flowNodeBorderColor']) {
+      assert.equal((await post('/api/config/appium', { appium: { ...appium, [key]: 'invalid' } })).status, 400);
+    }
     assert.equal((await post('/api/config/appium', { appium: null })).status, 400);
     const { loadModelConfigFromDb } = await import('./config-store');
     assert.equal(loadModelConfigFromDb()?.appium?.flowLineColor, '#aabbcc');
+    assert.equal(loadModelConfigFromDb()?.appium?.flowNodeColor, '#ddeeff');
+    assert.equal(loadModelConfigFromDb()?.appium?.flowNodeBorderColor, '#112233');
     assert.equal(loadModelConfigFromDb()?.appium?.flowLineStyle, 'curved');
+    assert.equal(loadModelConfigFromDb()?.appium?.flowLayoutDirection, 'horizontal');
 
     for (const key of ['midscene', 'scriptOptimizer', 'appium'] as const) {
       const before = await (await fetch(base + '/api/config')).json() as AppConfig;

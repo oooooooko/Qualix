@@ -76,7 +76,7 @@ appium driver install uiautomator2
 ### 3. 启动项目
 
 ```sh
-npx --yes android-midscene-automation@latest
+npx --yes qualix@latest
 ```
 
 或源码开发：

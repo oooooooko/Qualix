@@ -45,7 +45,12 @@ export async function createAppiumScriptExport(
       appActivity: script.appActivity,
       deviceId: script.deviceId,
       variables: clearSecrets(script.variables),
-      steps: script.steps.map(step => ({ ...step, mergeUndo: undefined, ...(step.parameters ? { parameters: clearSecrets(step.parameters) } : {}) })),
+      steps: script.steps.map(step => ({ ...step, mergeUndo: undefined,
+        ...(step.parameters ? { parameters: clearSecrets(step.parameters) } : {}),
+        ...(step.randomValue && (step.randomValue.sensitive || sensitiveVariableName(step.randomValue.name)
+          || script.variables?.find(item => item.name === step.randomValue?.name)?.sensitive)
+          ? { randomValue: { ...step.randomValue, text: '', sourceName: undefined, sensitive: true } } : {}),
+      })),
     },
   }), null, 2);
   };

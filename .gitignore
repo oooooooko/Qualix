@@ -55,6 +55,7 @@ blob-report/
 tmp/
 
 # Local reference projects and internal documents
+/examples/
 demo/
 docs/
 testmini/

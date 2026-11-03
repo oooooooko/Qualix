@@ -1,6 +1,8 @@
 import type { AiInvalidResultBranch, AiObservationConfig } from './ai-recognition';
 import type { TestVariable, VariableExtraction, ScriptReturn } from './variables';
 import type { ImageCheckConfig } from './image-check';
+import type { RandomValueConfig } from './random-value';
+import type { StopwatchConfig } from './stopwatch';
 
 export type AppiumBounds = {
   left: number;
@@ -108,6 +110,8 @@ export type AppiumRecordedStep = {
     | 'runScript'
     | 'noop'
     | 'extractVariable'
+    | 'randomValue'
+    | 'stopwatch'
     | 'log'
     | 'visualChange';
   label: string;
@@ -119,6 +123,8 @@ export type AppiumRecordedStep = {
   value?: string;
   logPrefix?: string;
   extractVariable?: VariableExtraction;
+  randomValue?: RandomValueConfig;
+  stopwatch?: StopwatchConfig;
   parameters?: TestVariable[];
   returns?: ScriptReturn[];
   keyCode?: number;

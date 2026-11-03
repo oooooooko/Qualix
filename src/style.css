@@ -2668,7 +2668,7 @@ select {
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(circle at 1px 1px, #cbd5e1 1px, transparent 0) 0 0 / 22px 22px,
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--flow-background) 75%, var(--ui-text-muted)) 1px, transparent 0) 0 0 / 22px 22px,
     var(--flow-background, var(--ui-bg-soft));
 }
 
@@ -2703,7 +2703,7 @@ select {
 .appium-vue-flow .vue-flow__edge-path,
 .appium-vue-flow .vue-flow__connection-path {
   stroke: var(--appium-flow-line-color, #94a3b8);
-  stroke-width: 2.5;
+  stroke-width: 2.25;
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
@@ -2752,12 +2752,15 @@ select {
   pointer-events: none;
 }
 
-.appium-flow-handle--top {
-  top: 0;
-}
-
-.appium-flow-handle--bottom {
-  bottom: 0;
+.appium-flow-graph-node--step .appium-flow-handle {
+  width: 7px;
+  height: 7px;
+  min-width: 7px;
+  min-height: 7px;
+  border: 1px solid var(--ui-surface);
+  border-radius: 50%;
+  background: var(--appium-flow-line-color, #94a3b8);
+  opacity: 1;
 }
 
 /* Invisible split handles share one point; Vue Flow's 5px minimum creates a gap. */
@@ -2768,6 +2771,8 @@ select {
   min-height: 0;
   top: 50%;
   bottom: auto;
+  left: 50%;
+  right: auto;
   transform: translate(-50%, -50%);
 }
 
@@ -2778,9 +2783,9 @@ select {
   width: 180px;
   height: 62px;
   padding: 10px 14px;
-  border: 1px solid #e6edf5;
+  border: 1px solid var(--ui-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--ui-surface);
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
 }
 
@@ -2803,14 +2808,14 @@ select {
 }
 
 .appium-flow-start-card strong {
-  color: #1f2937;
+  color: var(--ui-text);
   font-size: 14px;
   line-height: 1.2;
 }
 
 .appium-flow-start-card small {
   margin-top: 4px;
-  color: #64748b;
+  color: var(--ui-text-muted);
   font-size: 12px;
 }
 
@@ -2885,9 +2890,9 @@ select {
   width: 340px;
   min-height: 78px;
   padding: 10px 14px;
-  border: 1px solid #dfe8f3;
+  border: 1px solid var(--ui-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--ui-surface);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
   color: inherit;
   text-align: left;
@@ -2909,18 +2914,20 @@ select {
 }
 
 .appium-flow-step-shell--condition .appium-flow-step-card {
-  border-color: #f6a23a;
-  background: #fffbf4;
+  border-color: var(--ui-border);
+  border-left: 3px solid #f6a23a;
+  background: color-mix(in srgb, var(--ui-surface) 94%, #f6a23a);
 }
 
 .appium-flow-step-shell--assertion .appium-flow-step-card {
-  border-color: #95d475;
-  background: #f7fff5;
+  border-color: var(--ui-border);
+  border-left: 3px solid #95d475;
+  background: color-mix(in srgb, var(--ui-surface) 94%, #95d475);
 }
 
 .appium-flow-step-shell--selected .appium-flow-step-card {
   border-color: #2f7df6;
-  background: #eaf2ff;
+  background: color-mix(in srgb, var(--ui-surface) 90%, var(--ui-primary));
   box-shadow: 0 0 0 3px rgba(47, 125, 246, 0.16);
 }
 
@@ -2944,21 +2951,21 @@ select {
 }
 
 .appium-flow-step-card__content strong {
-  color: #1f2937;
+  color: var(--ui-text);
   font-size: 14px;
   line-height: 1.35;
 }
 
 .appium-flow-step-card__content small {
   margin-top: 3px;
-  color: #64748b;
+  color: var(--ui-text-muted);
   font-size: 12px;
   line-height: 1.35;
 }
 
 .appium-flow-step-card__content em {
   margin-top: 3px;
-  color: #1f2937;
+  color: var(--ui-text);
   font-style: normal;
   font-size: 12px;
   line-height: 1.35;
@@ -2979,16 +2986,16 @@ select {
   width: 22px;
   height: 22px;
   margin: 0;
-  color: #64748b;
+  color: var(--ui-text-muted);
 }
 
 .appium-flow-step-editor {
   grid-area: 2 / 1;
   width: 340px;
   margin-top: 8px;
-  border-color: #dfe8f3;
+  border-color: var(--ui-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--ui-surface);
 }
 
 .appium-action-dropdown .el-dropdown-menu {
@@ -3137,7 +3144,8 @@ body {
   font-weight: 600;
 }
 
-.layout-menu .el-sub-menu .el-menu-item {
+.layout-menu .el-sub-menu .el-menu-item,
+.layout-menu .el-sub-menu .el-sub-menu > .el-sub-menu__title {
   min-width: 0;
   padding-left: 48px !important;
 }
@@ -3746,8 +3754,12 @@ body {
   display: flex;
   flex-direction: column;
   height: 86dvh;
+  min-width: min(420px, calc(100vw - 32px));
+  min-height: min(280px, calc(100dvh - 32px));
+  max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 32px);
   overflow: hidden;
+  resize: both;
   padding: 0;
   border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius);
@@ -4166,4 +4178,11 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
   :is(.layout, .el-dialog, .el-message-box) .el-button,
   .el-input .el-input__wrapper, .el-select .el-select__wrapper,
   .el-textarea .el-textarea__inner { transition: none; }
+}
+
+/* Dark flow palettes are scoped to the canvas; the surrounding app keeps its theme. */
+.appium-flow-canvas--dark-nodes {
+  --ui-shadow-card: 0 2px 10px rgb(0 0 0 / 20%);
+  --ui-shadow-control: 0 2px 5px rgb(0 0 0 / 20%);
+  --ui-shadow-inset: inset 0 1px 3px rgb(0 0 0 / 15%);
 }

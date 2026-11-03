@@ -1,5 +1,6 @@
 import type { AppiumRecordedStep } from './types';
 import { insertBeforeSharedStep } from './flow-insert';
+import { remapStopwatchIds } from './stopwatch';
 
 export type FlowBranch = 'yes' | 'no';
 
@@ -178,7 +179,7 @@ export function pasteFlowClipboard(
     const pairId = createId();
     visualChangePairKeys(step).forEach((key) => pairMap.set(key, pairId));
   });
-  const copies = clipboard.steps.map((source) => {
+  const copies = remapStopwatchIds(clipboard.steps.map((source) => {
     const step = clone(source);
     // 合并记录引用原流程 ID，不能随节点复制到另一条流程。
     delete step.mergeUndo;
@@ -221,7 +222,7 @@ export function pasteFlowClipboard(
       };
     }
     return step;
-  });
+  }));
 
   const copiedBySourceId = new Map(clipboard.steps.map((step, index) => [step.id, copies[index]]));
   const copiedRoots = clipboard.rootIds

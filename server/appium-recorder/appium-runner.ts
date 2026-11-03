@@ -1,6 +1,8 @@
 import { resolveReportSummary } from '../../src/appium-recorder/report-summary';
 import { execFile } from 'node:child_process';
 import { VariableScope, variableContext, resolveVariableStep } from './variables';
+import { RandomValueGenerator } from './random-value';
+import { ReplayStopwatches } from './stopwatch';
 import { getPresetVariables } from './variable-store';
 import { validateExtraction, validateVariables, type TestVariable } from '../../src/appium-recorder/variables';
 import { captureHistoryFrames, readAppVersion } from './history-capture';
@@ -71,6 +73,8 @@ type PendingVisualChangeCheck = {
 };
 
 const replayContext = new AsyncLocalStorage<{
+  randomValues: RandomValueGenerator;
+  stopwatches: ReplayStopwatches;
   signal?: AbortSignal;
   appiumLog: (line: string) => void;
   serverUrl: string;
@@ -925,6 +929,17 @@ async function runStep(
 ): Promise<RunStepResult | void> {
   throwIfReplayStopped();
   step = resolveVariableStep(step);
+  if (step.type === 'stopwatch') {
+    const context = replayContext.getStore();
+    if (!context || !step.stopwatch) throw new Error('计时打点配置未初始化');
+    return `TIMER:${JSON.stringify(context.stopwatches.record(step.stopwatch, step.label))}`;
+  }
+  if (step.type === 'randomValue') {
+    const scope = variableContext.getStore();
+    const context = replayContext.getStore();
+    if (!scope || !context) throw new Error('随机值变量作用域未初始化');
+    return context.randomValues.write(scope, JSON.stringify([meta.scriptName, step.id]), step.randomValue);
+  }
   if (step.type === 'aiRecognition') {
     const recognition = await recognizeDeviceScreen({
       deviceId, prompt: step.value, aiBranchEnabled: step.aiBranchEnabled, aiObservation: step.aiObservation,
@@ -1705,6 +1720,11 @@ export async function replayAppiumScript(
     for (const step of current.steps) {
       (step.parameters || []).forEach(item => scope.track(item));
       if (step.extractVariable) scope.track({ ...step.extractVariable, value: '' });
+      if (step.randomValue) {
+        const name = step.randomValue.name;
+        scope.track({ name, value: step.randomValue.text || '', sensitive: step.randomValue.sensitive
+          || current.variables?.find(item => item.name === name)?.sensitive || scope.locals.get(name)?.sensitive || scope.globals.get(name)?.sensitive });
+      }
       if (step.type === 'runScript' && step.value) {
         const child = scripts.get(step.value);
         if (child) registerSecrets(child);
@@ -1732,6 +1752,8 @@ export async function replayAppiumScript(
     return length;
   };
   const context = {
+    randomValues: new RandomValueGenerator(),
+    stopwatches: new ReplayStopwatches(),
     screenshotReport: (runOptions.screenshotReport ?? loadConfig().appium.screenshotReport) === true,
     visualCaptureNodes: new Set([script, ...scripts.values()].flatMap(item => item.steps.flatMap(step =>
       step.visualChange ? [step.id, step.visualChange.startStepId || '', step.visualChange.endStepId || ''] : []))),

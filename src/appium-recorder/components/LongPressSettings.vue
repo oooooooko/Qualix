@@ -23,7 +23,7 @@ function changeCoordinate(key: 'centerX' | 'centerY', value: number | undefined)
 </script>
 
 <template>
-  <div>
+  <div class="appium-flow-editor__section">
     <el-form-item label="长按方式">
       <el-radio-group :model-value="mode" :disabled="disabled" @update:model-value="changeMode($event as AppiumRecordedStep['longPressMode'])">
         <el-radio-button value="element">长按元素</el-radio-button>

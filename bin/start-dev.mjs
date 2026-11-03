@@ -82,7 +82,6 @@ async function startArtemis() {
     });
     const data = await response.json();
     if (response.ok && data.model_info) {
-      console.log(`复用已运行的 Artemis：${env.ARTEMIS_URL}`);
       return;
     }
   } catch { /* No running Artemis; try the local launcher below. */ }

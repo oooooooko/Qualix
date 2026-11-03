@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, h, nextTick, onMounted, onUnmounted, provide, reactive, shallowRef, useTemplateRef, watch } from 'vue';
-import { flowBackgroundKey, normalizeFlowBackground, flowLineColorKey, normalizeFlowLineColor, flowLineStyleKey, normalizeFlowLineStyle, type FlowLineStyle } from './flow-appearance';
+import { flowBackgroundKey, normalizeFlowBackground, flowLineColorKey, normalizeFlowLineColor, flowLineStyleKey, normalizeFlowLineStyle, type FlowLineStyle, flowLayoutDirectionKey, normalizeFlowLayoutDirection, type FlowLayoutDirection, flowNodeColorKey, normalizeFlowNodeColor, flowNodeBorderColorKey, normalizeFlowNodeBorderColor } from './flow-appearance';
 import { useCoordinatePicker } from './coordinate-preview';
 import { DEFAULT_NODE_TIMEOUT_MS } from './node-timeout';
 import { aiPromptPresetsKey, DEFAULT_AI_PROMPT_PRESETS, type AiPromptPreset } from './ai-prompt-presets';
 import AiRecognitionPromptInput from './components/AiRecognitionPromptInput.vue';
 import { ElForm, ElFormItem, ElInputNumber, ElMessage, ElMessageBox, ElOption, ElSelect } from 'element-plus';
-import { ArrowDown, Check, CircleClose, CopyDocument, Delete, Document, Download, Edit, FolderOpened, Plus, Refresh, Upload, VideoPlay, View, Clock } from '@element-plus/icons-vue';
+import { ArrowDown, Check, CircleClose, CopyDocument, Delete, Document, Download, Edit, FolderOpened, Loading, Plus, Refresh, Upload, VideoPlay, View, Clock } from '@element-plus/icons-vue';
 import RunHistoryDialog from './RunHistoryDialog.vue';
 import type { AndroidDevice, AppPreset, DeviceAction } from '../types';
 import DevicePreviewPanel from '../components/device/DevicePreviewPanel.vue';
@@ -28,6 +28,7 @@ import {
   getAppiumTree,
   importAppiumScripts,
   launchAppiumDeviceApp,
+  loadVariables,
   replayAppiumScript,
   saveAppiumScript,
   saveVariables,
@@ -39,9 +40,14 @@ import RecorderWorkspace from './components/RecorderWorkspace.vue';
 import FlowCanvas from './components/FlowCanvas.vue';
 import LongPressSettings from './components/LongPressSettings.vue';
 import StageLogSettings from './components/StageLogSettings.vue';
+import StopwatchSettings from './components/StopwatchSettings.vue';
+import { defaultStopwatch, validateStopwatch, stopwatchTargetsKey, remapStopwatchIds } from './stopwatch';
 import TextClickSettings from './components/TextClickSettings.vue';
 import { textClickSelector } from './text-click';
 import { DEFAULT_LOG_PREFIX, validateStageLog } from './stage-log';
+import RandomValueSettings from './components/RandomValueSettings.vue';
+import { defaultRandomValue, validateRandomValue } from './random-value';
+import { variablePresetKey, variablePresetOptions, type VariablePresetContext } from './variable-presets';
 import RecordedSteps from './components/RecordedSteps.vue';
 import NewScriptDialog from './components/NewScriptDialog.vue';
 import VisualChangeDialog from './components/VisualChangeDialog.vue';
@@ -111,8 +117,11 @@ const props = defineProps<{
   aiPromptPresets?: AiPromptPreset[];
   reportSummary?: ReportSummaryConfig;
   flowBackgroundColor?: string;
+  flowNodeColor?: string;
+  flowNodeBorderColor?: string;
   flowLineColor?: string;
   flowLineStyle?: FlowLineStyle;
+  flowLayoutDirection?: FlowLayoutDirection;
   active: boolean;
   appPresets: AppPreset[];
   deviceActions: readonly DeviceAction[];
@@ -138,8 +147,11 @@ const props = defineProps<{
 
 // provide/inject 随组件关系传递，放大弹窗 teleport 后也能使用同一颜色。
 provide(flowBackgroundKey, computed(() => normalizeFlowBackground(props.flowBackgroundColor)));
+provide(flowNodeColorKey, computed(() => normalizeFlowNodeColor(props.flowNodeColor)));
+provide(flowNodeBorderColorKey, computed(() => normalizeFlowNodeBorderColor(props.flowNodeBorderColor)));
 provide(flowLineColorKey, computed(() => normalizeFlowLineColor(props.flowLineColor)));
 provide(flowLineStyleKey, computed(() => normalizeFlowLineStyle(props.flowLineStyle)));
+provide(flowLayoutDirectionKey, computed(() => normalizeFlowLayoutDirection(props.flowLayoutDirection)));
 const availableAiPromptPresets = computed(() => props.aiPromptPresets ?? DEFAULT_AI_PROMPT_PRESETS);
 const availableReportTemplates = computed(() => [
   ...REPORT_SUMMARY_PROMPT_PRESETS,
@@ -214,7 +226,63 @@ const form = reactive({
   appPackage: '',
   appActivity: '',
 });
+const stopwatchTargets = computed(() => [
+  ...scripts.value.filter(script => script.id !== selectedScriptId.value),
+  { name: form.name || '当前脚本', steps: steps.value },
+].flatMap(script => script.steps.flatMap((step, index) => step.type === 'stopwatch' && step.stopwatch?.action === 'start' && step.stopwatch.timerId
+  ? [{ timerId: step.stopwatch.timerId, name: step.stopwatch.name,
+    label: `${step.stopwatch.name} · ${script.name} · 节点 ${index + 1} · ${step.stopwatch.timerId}` }] : [])));
+provide(stopwatchTargetsKey, stopwatchTargets);
 const scriptVariables = shallowRef<TestVariable[]>([]);
+const globalVariables = shallowRef<TestVariable[]>([]);
+const variablePresetsLoading = shallowRef(false);
+const variablePresetsError = shallowRef('');
+const availableVariablePresets = computed(() => variablePresetOptions(globalVariables.value, scriptVariables.value));
+const pendingRandomValue = shallowRef<{ step: AppiumRecordedStep; index?: number; branchTarget?: BranchTarget } | null>(null);
+let variablePresetsRequest: Promise<void> | undefined;
+
+function refreshVariablePresets(): Promise<void> {
+  if (variablePresetsRequest) return variablePresetsRequest;
+  variablePresetsLoading.value = true;
+  variablePresetsError.value = '';
+  variablePresetsRequest = loadVariables('/api/appium-recorder/variables').then(result => {
+    globalVariables.value = result.variables;
+  }).catch(error => {
+    variablePresetsError.value = error instanceof Error ? error.message : '预设变量加载失败';
+  }).finally(() => {
+    variablePresetsLoading.value = false;
+    variablePresetsRequest = undefined;
+  });
+  return variablePresetsRequest;
+}
+
+const variablePresets: VariablePresetContext = {
+  options: availableVariablePresets, loading: variablePresetsLoading, error: variablePresetsError,
+  refresh: refreshVariablePresets, open: () => setActiveWorkbenchTab('variables'),
+};
+provide(variablePresetKey, variablePresets);
+
+function validateRandomValueTarget(step: AppiumRecordedStep) {
+  if (!availableVariablePresets.value.some(variable => variable.name === step.randomValue?.name)) {
+    throw new Error(`节点「${step.label}」请选择已有预设变量；没有对应 key 时请先到“预设变量”添加`);
+  }
+}
+
+async function validateRandomValueTargets() {
+  const randomSteps = steps.value.filter(step => step.type === 'randomValue');
+  if (!randomSteps.length) return;
+  await refreshVariablePresets();
+  randomSteps.forEach(validateRandomValueTarget);
+  steps.value = steps.value.map(step => step.randomValue && availableVariablePresets.value.some(variable => variable.name === step.randomValue!.name && variable.sensitive)
+    ? { ...step, randomValue: { ...step.randomValue, sensitive: true } } : step);
+}
+
+function resumeRandomValue() {
+  const pending = pendingRandomValue.value;
+  if (!pending) return;
+  setActiveWorkbenchTab('recording');
+  void addAction('randomValue', pending.index, pending.branchTarget);
+}
 
 const savedDraftSnapshot = shallowRef('');
 const currentDraftSnapshot = computed(() => JSON.stringify({
@@ -1572,6 +1640,52 @@ async function addAction(
     if (result) return insertStep({ ...step }, index, branchTarget);
     return;
   }
+  if (action === 'stopwatch') {
+    const step = reactive<AppiumRecordedStep>({ id: createStepId(), type: 'stopwatch', label: '计时打点', stopwatch: defaultStopwatch(), flow: { nodeKind: 'action' } });
+    const result = await ElMessageBox({
+      title: '添加计时打点',
+      message: h(ElForm, { labelPosition: 'top', style: { width: 'min(380px, calc(100vw - 64px))' } }, () => h(StopwatchSettings, { step, targets: stopwatchTargets.value, onUpdate: patch => Object.assign(step, patch) })),
+      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      beforeClose: (action, _instance, done) => {
+        if (action === 'confirm') {
+          try { validateStopwatch(step.stopwatch); } catch (error) { ElMessage.warning((error as Error).message); return; }
+        }
+        done();
+      },
+    }).catch(() => null);
+    if (result) return insertStep({ ...step, stopwatch: { ...step.stopwatch! } }, index, branchTarget);
+    return;
+  }
+  if (action === 'randomValue') {
+    const step = reactive<AppiumRecordedStep>(pendingRandomValue.value?.step || {
+      id: createStepId(), type: 'randomValue', label: '获取随机值', randomValue: { ...defaultRandomValue(), name: '' }, flow: { nodeKind: 'action' },
+    });
+    pendingRandomValue.value = null;
+    const dialogPresets: VariablePresetContext = { ...variablePresets, open: () => {
+      pendingRandomValue.value = { step: JSON.parse(JSON.stringify(step)), index, branchTarget };
+      ElMessageBox.close();
+      variablePresets.open();
+    } };
+    const result = await ElMessageBox({
+      title: '添加获取随机值',
+      message: h(ElForm, { labelPosition: 'top', style: { width: 'min(380px, calc(100vw - 64px))', maxHeight: '65vh', overflowY: 'auto', paddingRight: '4px' } }, () => h(RandomValueSettings, {
+        step, presets: dialogPresets, onUpdate: patch => Object.assign(step, patch),
+      })),
+      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      beforeClose: (action, _instance, done) => {
+        if (action === 'confirm') {
+          try {
+            validateRandomValueTarget(step);
+            validateRandomValue(step.randomValue);
+            if (availableVariablePresets.value.some(variable => variable.name === step.randomValue!.name && variable.sensitive)) step.randomValue!.sensitive = true;
+          } catch (error) { ElMessage.warning(error instanceof Error ? error.message : '随机值配置无效'); return; }
+        }
+        done();
+      },
+    }).catch(() => null);
+    if (result) return insertStep(JSON.parse(JSON.stringify(step)), index, branchTarget);
+    return;
+  }
   if (action === 'launchApp') {
     return insertStep({
       id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
@@ -1857,6 +1971,7 @@ function setActiveWorkbenchTab(tab: string | number) {
 }
 
 function loadScript(script: AppiumRecordedScript) {
+  pendingRandomValue.value = null;
   setActiveWorkbenchTab('recording');
   flowClipboard.value = null;
   selectedScriptId.value = script.id;
@@ -1881,6 +1996,7 @@ function loadSelectedScript() {
 }
 
 function resetCurrentScript() {
+  pendingRandomValue.value = null;
   void saveVariables('/api/appium-recorder/variables?draft=1', []).catch(() => ElMessage.error('变量草稿清理失败'));
   scriptVariables.value = [];
   flowClipboard.value = null;
@@ -1953,7 +2069,7 @@ async function duplicateScript(script: AppiumRecordedScript) {
       appPackage: script.appPackage,
       appActivity: script.appActivity,
       deviceId: script.deviceId,
-      steps: cloneScriptSteps(script.steps),
+      steps: remapStopwatchIds(cloneScriptSteps(script.steps)),
     });
     await loadScripts();
     ElMessage.success(`已复制为「${payload.script.name}」`);
@@ -2129,6 +2245,7 @@ async function saveScript() {
   saving.value = true;
   try {
     validateVariables(scriptVariables.value);
+    await validateRandomValueTargets();
     const payload = await saveAppiumScript({
       id: selectedScriptId.value || undefined,
       name: form.name,
@@ -2233,9 +2350,7 @@ async function stopReplay() {
   stoppingReplay.value = true;
   try {
     const result = await stopAppiumReplay(activeReplayDeviceId.value);
-    if (result.stopped) {
-      ElMessage.info('正在终止回放并生成报告、日志和截图回放');
-    } else {
+    if (!result.stopped) {
       stoppingReplay.value = false;
       ElMessage.warning('当前没有可终止的回放任务');
     }
@@ -2499,7 +2614,11 @@ watch(
             </div>
           </el-tab-pane>
           <el-tab-pane label="预设变量" name="variables" lazy>
-            <PresetVariables :key="`${selectedScriptId}:${newScriptRevision}`" v-model:variables="scriptVariables" :script-id="selectedScriptId" :script-name="form.name" :disabled="recordingBusy || saving" @saved="onVariablesSaved" />
+            <div v-if="pendingRandomValue" class="random-value-return">
+              <span>随机值节点配置已保留</span>
+              <el-button type="primary" plain :disabled="recordingLocked" @click="resumeRandomValue">返回节点配置</el-button>
+            </div>
+            <PresetVariables :key="`${selectedScriptId}:${newScriptRevision}`" v-model:variables="scriptVariables" v-model:globals="globalVariables" :script-id="selectedScriptId" :script-name="form.name" :disabled="recordingBusy || saving" @saved="onVariablesSaved" />
           </el-tab-pane>
         </el-tabs>
       </el-card>
@@ -2669,6 +2788,22 @@ watch(
     </el-dialog>
 
     <el-dialog
+      :model-value="stoppingReplay"
+      title="报告正在生成中"
+      width="420px"
+      align-center
+      append-to-body
+      :show-close="false"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+    >
+      <div class="appium-report-progress" role="status" aria-live="polite">
+        <el-icon class="is-loading" aria-hidden="true"><Loading /></el-icon>
+        <span>正在终止回放并生成报告、日志和截图回放，请稍候。</span>
+      </div>
+    </el-dialog>
+
+    <el-dialog
       v-model="replayOutputDialogVisible"
       title="回放输出"
       width="820px"
@@ -2704,6 +2839,8 @@ watch(
 </template>
 
 <style scoped>
+.appium-report-progress { display: flex; align-items: center; gap: 12px; line-height: 1.6; }
+.random-value-return { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; color: var(--el-text-color-secondary); font-size: 13px; }
 .appium-script-icon { display: inline-flex; }
 .appium-script-icon .el-button { width: 30px; height: 30px; min-height: 30px; padding: 0; margin: 0; }
 :deep(.appium-recorder-card--workbench > .el-card__body) { overflow: hidden; }

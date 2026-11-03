@@ -63,5 +63,17 @@ test('loads quietly, serializes rapid edits, validates colors and surfaces save 
     await delay(400);
     assert.equal(auto.status.value, '已自动保存');
     assert.equal(submissions.at(-1)?.screenshotReport, true);
+    const savedCount = submissions.length;
+    form.appium.flowNodeColor = '#';
+    await delay(400);
+    assert.equal(submissions.length, savedCount, 'incomplete node colors must not be saved');
+    Object.assign(form.appium, { flowBackgroundColor: '#eaf2fb', flowNodeColor: '#f6faff', flowNodeBorderColor: '#a8c1df', flowLineColor: '#6385b0' });
+    await delay(400);
+    assert.equal(submissions.length, savedCount + 1, 'theme colors are saved together');
+    assert.equal(submissions.at(-1)?.flowNodeColor, '#f6faff');
+    assert.equal(submissions.at(-1)?.flowNodeBorderColor, '#a8c1df');
+    form.appium.flowNodeBorderColor = '#';
+    await delay(400);
+    assert.equal(submissions.length, savedCount + 1);
   } finally { scope.stop(); }
 });

@@ -10,9 +10,11 @@ import BranchTimeoutSettings from './BranchTimeoutSettings.vue';
 import { DEFAULT_NODE_TIMEOUT_MS } from '../node-timeout';
 import LongPressSettings from './LongPressSettings.vue';
 import StageLogSettings from './StageLogSettings.vue';
+import StopwatchSettings from './StopwatchSettings.vue';
 import LoopSettings from './LoopSettings.vue';
 import BreakLoopSettings from './BreakLoopSettings.vue';
 import VariableExtractionSettings from './VariableExtractionSettings.vue';
+import RandomValueSettings from './RandomValueSettings.vue';
 import ScriptParameterSettings from './ScriptParameterSettings.vue';
 import AiRecognitionSettings from './AiRecognitionSettings.vue';
 
@@ -59,7 +61,7 @@ const selectorSummary = computed(() => {
   return `${selector.strategy} · ${value}${props.step.contextSelector ? ' · 含父级' : ''}`;
 });
 const supportsTimeout = computed(() => ![
-  'delay', 'longPress', 'stopApp', 'log', 'openGallery', 'endFlow', 'loop', 'breakLoop', 'continueLoop', 'aiRecognition',
+  'delay', 'longPress', 'stopApp', 'log', 'stopwatch', 'openGallery', 'endFlow', 'loop', 'breakLoop', 'continueLoop', 'aiRecognition', 'randomValue',
 ].includes(props.step.type));
 
 function defaultKind(): FlowKind {
@@ -163,7 +165,7 @@ function patchSelector(patch: Partial<AppiumSelector>) {
 
 <template>
   <div class="appium-flow-editor">
-    <el-form label-position="top" size="small">
+    <el-form class="appium-flow-editor__form" label-position="left" label-width="104px" size="small">
       <LongPressSettings v-if="step.type === 'longPress'" :step="step" :disabled="disabled" @update="patchStep" />
       <el-form-item v-if="['waitActivity', 'launchApp', 'stopApp', 'clearAppData'].includes(step.type)" :label="step.type === 'waitActivity' ? '目标 Activity' : '目标 APP 包名'">
         <el-input :model-value="step.value || ''" :disabled="disabled" @update:model-value="patchStep({ value: String($event) })" />
@@ -187,7 +189,9 @@ function patchSelector(patch: Partial<AppiumSelector>) {
         </div>
       </template>
       <StageLogSettings v-if="step.type === 'log'" :step="step" :disabled="disabled" @update="patchStep" />
+      <StopwatchSettings v-if="step.type === 'stopwatch'" :step="step" :disabled="disabled" @update="patchStep" />
       <VariableExtractionSettings v-if="step.type === 'extractVariable'" :step="step" :disabled="disabled" @update="patchStep" />
+      <RandomValueSettings v-if="step.type === 'randomValue'" :step="step" :disabled="disabled" @update="patchStep" />
       <ScriptParameterSettings v-if="step.type === 'runScript'" :step="step" :disabled="disabled" @update="patchStep" />
       <LoopSettings v-if="step.type === 'loop'" :step="step" :disabled="disabled" @update="patchStep" />
       <BreakLoopSettings v-if="step.type === 'breakLoop' || step.type === 'continueLoop'" :step="step" :steps="steps" :disabled="disabled" :mode="step.type === 'continueLoop' ? 'continue' : 'break'" @update="patchStep" />
@@ -458,19 +462,55 @@ function patchSelector(patch: Partial<AppiumSelector>) {
 </template>
 
 <style scoped>
+.appium-flow-editor { --node-editor-gap: 12px; padding: 12px; }
+.appium-flow-editor__form { display: grid; gap: var(--node-editor-gap); }
+/* 高度动画会逐帧触发整张流程重排，子选项直接展开以保持编辑响应。 */
+.appium-flow-editor :deep(.el-collapse-item__wrap) { transition: none; }
+.appium-flow-editor :deep(.appium-flow-editor__section) { display: grid; gap: var(--node-editor-gap); }
+.appium-flow-editor :deep(.el-collapse .el-collapse-item__content) {
+  display: grid;
+  gap: var(--node-editor-gap);
+  padding: 12px;
+}
 .appium-flow-editor__fallback {
   display: grid;
-  gap: 10px;
-  margin-top: 8px;
+  gap: var(--node-editor-gap);
   padding-top: 12px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
 
-.appium-flow-editor :deep(.el-form-item) { margin-bottom: 10px; }
-
-.appium-flow-editor__fallback :deep(.el-form-item) {
-  margin-bottom: 0;
+.appium-flow-editor :deep(.el-form-item),
+.appium-flow-editor :deep(.ai-recognition-settings .el-form-item) { min-width: 0; margin: 0; }
+.appium-flow-editor :deep(.el-form-item.is-error) { margin-bottom: 8px; }
+.appium-flow-editor :deep(.el-form-item:has(> .el-form-item__label)) {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 8px;
 }
+.appium-flow-editor :deep(.el-form-item > .el-form-item__label) {
+  justify-content: flex-start;
+  width: auto !important;
+  height: auto;
+  min-height: 28px;
+  margin: 0;
+  padding: 5px 0;
+  color: var(--ui-text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+}
+.appium-flow-editor :deep(.el-form-item > .el-form-item__content) { min-width: 0; margin-left: 0 !important; }
+.appium-flow-editor :deep(.el-input-number),
+.appium-flow-editor :deep(.el-select) { width: 100%; }
+.appium-flow-editor :deep(.appium-flow-editor__grid),
+.appium-flow-editor :deep(.ai-recognition-settings__grid) { grid-template-columns: minmax(0, 1fr); gap: var(--node-editor-gap); }
+.appium-flow-editor :deep(.el-input__wrapper),
+.appium-flow-editor :deep(.el-select__wrapper),
+.appium-flow-editor :deep(.el-textarea__inner) { background: var(--ui-bg-soft); box-shadow: inset 0 0 0 1px var(--ui-border); }
+.appium-flow-editor :deep(.el-form-item:has(.el-textarea)) { display: block; }
+.appium-flow-editor :deep(.el-radio-group) { width: 100%; }
+.appium-flow-editor :deep(.el-radio-button__inner) { padding: 5px 8px; font-size: 12px; }
 
 .appium-flow-editor__fallback-alert {
   padding: 8px 12px;
@@ -483,10 +523,10 @@ function patchSelector(patch: Partial<AppiumSelector>) {
 
 .appium-flow-editor__groups {
   overflow: hidden;
-  margin-top: 8px;
+  margin: 0;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 10px;
-  background: #fff;
+  background: var(--ui-surface);
 }
 
 .appium-flow-editor__groups :deep(.el-collapse-item__header) {
@@ -497,7 +537,6 @@ function patchSelector(patch: Partial<AppiumSelector>) {
 }
 
 .appium-flow-editor__groups :deep(.el-collapse-item__wrap) { border-bottom: 0; }
-.appium-flow-editor__groups :deep(.el-collapse-item__content) { padding: 8px 10px 2px; }
 .appium-flow-editor__group-title { display: flex; align-items: center; justify-content: space-between; min-width: 0; width: 100%; padding-right: 8px; gap: 8px; }
 .appium-flow-editor__group-title strong { flex: none; color: var(--ui-text); font-size: 12px; }
 .appium-flow-editor__group-title small { min-width: 0; overflow: hidden; color: var(--ui-text-muted); font-size: 11px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }

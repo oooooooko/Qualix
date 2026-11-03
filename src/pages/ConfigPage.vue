@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { shallowRef } from 'vue';
 import BaseConfigPanel from '../components/config/BaseConfigPanel.vue';
-import MidsceneConfigPanel from '../components/config/MidsceneConfigPanel.vue';
 import AppiumConfigPanel from '../components/config/AppiumConfigPanel.vue';
-import type { MidsceneModelProvider } from '../config/midscene-model-presets';
 import type { AppPreset, ConfigForm } from '../types';
 
 defineProps<{
@@ -26,12 +24,10 @@ defineEmits<{
   editAppPreset: [app: AppPreset];
   deleteAppPreset: [id: string];
   cancelAppPresetEdit: [];
-  updateMidsceneModelProvider: [provider: MidsceneModelProvider];
 }>();
 
 const tabs = [
   { name: 'basic', label: '基础配置' },
-  { name: 'midscene', label: 'Midscene配置' },
   { name: 'appium', label: 'Appium配置' },
 ] as const;
 const activeTab = shallowRef<(typeof tabs)[number]['name']>('basic');
@@ -86,21 +82,6 @@ function handleTabKeydown(event: KeyboardEvent, index: number) {
         @edit-app-preset="$emit('editAppPreset', $event)"
         @delete-app-preset="$emit('deleteAppPreset', $event)"
         @cancel-app-preset-edit="$emit('cancelAppPresetEdit')"
-      />
-    </section>
-
-    <section
-      v-show="activeTab === 'midscene'"
-      id="config-panel-midscene"
-      role="tabpanel"
-      aria-labelledby="config-tab-midscene"
-    >
-      <MidsceneConfigPanel
-        :config-form="configForm"
-        :testing-model-key="testingModelKey"
-        :model-test-status="modelTestStatus"
-        @test-model="$emit('testModel', $event)"
-        @update-midscene-model-provider="$emit('updateMidsceneModelProvider', $event)"
       />
     </section>
 

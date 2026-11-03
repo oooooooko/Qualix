@@ -4,9 +4,8 @@ import { QuestionFilled } from '@element-plus/icons-vue';
 import { loadVariables, saveVariables } from '../api';
 import VariableTable from './VariableTable.vue';
 import { validateVariables, type TestVariable } from '../variables';
-const props = defineProps<{ variables: TestVariable[]; disabled?: boolean; scriptName: string; scriptId: string }>();
-const emit = defineEmits<{ 'update:variables': [TestVariable[]]; saved: [string, TestVariable[]] }>();
-const globals = ref<TestVariable[]>([]);
+const props = defineProps<{ variables: TestVariable[]; globals: TestVariable[]; disabled?: boolean; scriptName: string; scriptId: string }>();
+const emit = defineEmits<{ 'update:variables': [TestVariable[]]; 'update:globals': [TestVariable[]]; saved: [string, TestVariable[]] }>();
 const busy = ref(false);
 const loaded = ref(false);
 const error = ref('');
@@ -19,7 +18,9 @@ const privateUrl = props.scriptId ? `/api/appium-recorder/variables?scriptId=${e
 async function load() {
   busy.value = true; error.value = '';
   try {
-    globals.value = (await loadVariables('/api/appium-recorder/variables')).variables; loaded.value = true;
+    const globals = (await loadVariables('/api/appium-recorder/variables')).variables;
+    if (mounted) emit('update:globals', globals);
+    loaded.value = true;
     if (props.scriptId || !props.variables.length) {
       const variables = (await loadVariables(privateUrl)).variables;
       if (mounted) emit('update:variables', variables);
@@ -28,7 +29,7 @@ async function load() {
   finally { busy.value = false; }
 }
 function update(scope: 'global' | 'private', values: TestVariable[]) {
-  if (scope === 'global') globals.value = values;
+  if (scope === 'global') emit('update:globals', values);
   else emit('update:variables', values);
   const revision = ++revisions[scope];
   let variables: TestVariable[];

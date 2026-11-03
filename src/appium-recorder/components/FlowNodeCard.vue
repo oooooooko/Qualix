@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue';
+import { computed, inject, onBeforeUnmount, onMounted, shallowRef } from 'vue';
+import { flowLayoutDirectionKey, normalizeFlowLayoutDirection } from '../flow-appearance';
 import { Handle, Position } from '@vue-flow/core';
 import { CopyDocument, Delete, Edit, Plus, VideoPlay, View, WarningFilled, Connection, RefreshLeft } from '@element-plus/icons-vue';
 import type { AppiumRecordedStep } from '../types';
@@ -16,6 +17,7 @@ const props = defineProps<{
   nodeId: string;
   data: FlowGraphNodeData;
   steps: AppiumRecordedStep[];
+  expanded: boolean;
   readonly?: boolean;
   searchHighlighted?: boolean;
 }>();
@@ -33,7 +35,15 @@ const emit = defineEmits<{
   resize: [payload: { id: string; height: number }];
 }>();
 
+const layoutDirection = inject(flowLayoutDirectionKey, computed(() => normalizeFlowLayoutDirection(undefined)));
+const horizontal = computed(() => layoutDirection.value === 'horizontal');
+
 const rootRef = shallowRef<HTMLElement | null>(null);
+const cardRef = shallowRef<HTMLButtonElement | null>(null);
+const cardHeight = shallowRef(0);
+const handleStyle = computed(() => horizontal.value && props.data.kind === 'step'
+  ? { top: `${(cardHeight.value || props.data.cardMinHeight) / 2}px` }
+  : undefined);
 let resizeObserver: ResizeObserver | null = null;
 
 const insertTitle = computed(() => {
@@ -64,26 +74,22 @@ function handleStepClick() {
   emit('nodeClick', props.data.index);
 }
 
-function reportSize() {
-  if (!rootRef.value || props.data.kind !== 'step') return;
-  emit('resize', {
-    id: props.nodeId,
-    height: rootRef.value.offsetHeight,
-  });
-}
-
 onMounted(() => {
-  resizeObserver = new ResizeObserver(reportSize);
-  if (rootRef.value) resizeObserver.observe(rootRef.value);
-  void nextTick(reportSize);
+  if (!rootRef.value || props.data.kind !== 'step') return;
+  resizeObserver = new ResizeObserver(([entry]) => {
+    if (!entry) return;
+    // 横向端点跟随卡片，展开的编辑区域不参与端点居中。
+    cardHeight.value = cardRef.value?.offsetHeight ?? 0;
+    emit('resize', {
+      id: props.nodeId,
+      height: entry.borderBoxSize[0]?.blockSize ?? rootRef.value!.offsetHeight,
+    });
+  });
+  resizeObserver.observe(rootRef.value);
 });
 
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
-});
-
-watch(() => props.data, () => {
-  void nextTick(reportSize);
 });
 </script>
 
@@ -98,10 +104,11 @@ watch(() => props.data, () => {
     @touchstart.stop
   >
     <Handle
-      id="top"
+      id="input"
       type="target"
-      :position="Position.Top"
-      class="appium-flow-handle appium-flow-handle--top"
+      :position="horizontal ? Position.Left : Position.Top"
+      class="appium-flow-handle"
+      :style="handleStyle"
     />
 
     <div v-if="data.kind === 'start'" class="appium-flow-start-card nodrag nopan">
@@ -160,7 +167,7 @@ watch(() => props.data, () => {
       :class="[
         `appium-flow-step-shell--${data.flowKind}`,
         {
-          'appium-flow-step-shell--expanded': data.expanded,
+          'appium-flow-step-shell--expanded': expanded,
           'appium-flow-step-shell--selected': data.selected,
           'appium-flow-step-shell--delete-selected': data.selected && data.deleteMode,
           'appium-flow-step-shell--copying': data.copyMode,
@@ -169,6 +176,7 @@ watch(() => props.data, () => {
       ]"
     >
       <button
+        ref="cardRef"
         type="button"
         class="appium-flow-step-card nodrag nopan"
         :style="{ minHeight: `${data.cardMinHeight}px` }"
@@ -251,7 +259,7 @@ watch(() => props.data, () => {
         </span></el-tooltip>
       </span>
       <FlowStepEditor
-        v-if="!props.readonly && data.expanded"
+        v-if="!props.readonly && expanded"
         class="appium-flow-step-editor nodrag nopan"
         :step="data.step"
         :steps="steps"
@@ -262,15 +270,38 @@ watch(() => props.data, () => {
     </div>
 
     <Handle
-      id="bottom"
+      id="output"
       type="source"
-      :position="Position.Bottom"
-      class="appium-flow-handle appium-flow-handle--bottom"
+      :position="horizontal ? Position.Right : Position.Bottom"
+      class="appium-flow-handle"
+      :style="handleStyle"
     />
   </div>
 </template>
 
 <style scoped>
+.appium-flow-step-shell--expanded {
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-card);
+}
+.appium-flow-step-shell--expanded.appium-flow-step-shell--selected { border-color: var(--ui-primary); }
+.appium-flow-step-shell--expanded > .appium-flow-step-card {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.appium-flow-step-shell--expanded > .appium-flow-step-editor {
+  width: 100%;
+  margin-top: 0;
+  border: 0;
+  border-top: 1px solid var(--ui-border);
+  border-radius: 0;
+}
+
 .appium-flow-step-shell--delete-selected .appium-flow-step-card { background: #b83232; border-color: #a52a2a; }
 .appium-flow-step-shell--delete-selected .appium-flow-step-card__content strong,
 .appium-flow-step-shell--delete-selected .appium-flow-step-card__content em { color: #fff; }

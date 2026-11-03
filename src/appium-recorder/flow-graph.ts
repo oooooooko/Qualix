@@ -1,6 +1,7 @@
 import { Position, type Edge, type Node } from '@vue-flow/core';
 import * as dagre from '@dagrejs/dagre';
 import type { AppiumRecordedStep } from './types';
+import type { FlowLayoutDirection } from './flow-appearance';
 import { defaultFlowKind as defaultKind, flowBranchLabel, isBooleanCondition } from './flow-labels';
 
 type DagreApi = typeof dagre;
@@ -49,6 +50,8 @@ export type InsertAction =
   | 'waitActivity'
   | 'runScript'
   | 'extractVariable'
+  | 'randomValue'
+  | 'stopwatch'
   | 'noop'
   | 'log'
   | 'visualChangeStart'
@@ -140,6 +143,7 @@ type StepItem = {
 };
 
 type BuildFlowGraphOptions = {
+  layoutDirection?: FlowLayoutDirection;
   aiRecognitionModelConfigured?: boolean;
   expandedStepIndex: number | null;
   selectedCopyIndexes: number[];
@@ -307,7 +311,15 @@ export function buildFlowGraph(
   steps: AppiumRecordedStep[],
   options: BuildFlowGraphOptions,
 ) {
+  const horizontal = options.layoutDirection === 'horizontal';
+  const branchMinWidth = horizontal ? FLOW_STEP_NODE_HEIGHT : FLOW_STEP_NODE_WIDTH;
+  const branchMinSpread = horizontal ? 100 : FLOW_BRANCH_MIN_SPREAD;
   const items = steps.map((step, index) => ({ step, index }));
+  const stepNodeHeight = ({ step, index }: StepItem) => {
+    const estimated = estimateStepNodeHeight(options.labelStep(step), step.type === 'aiRecognition' ? 3 : undefined)
+      + (options.expandedStepIndex === index ? FLOW_EXPANDED_NODE_HEIGHT : 0);
+    return Math.max(FLOW_STEP_NODE_HEIGHT, Math.ceil(options.measuredNodeHeights?.[nodeIdForStep(step)] || estimated));
+  };
   const nodes: FlowGraphNode[] = [];
   const links: Link[] = [];
   const layoutLinks: Link[] = [];
@@ -321,26 +333,26 @@ export function buildFlowGraph(
     if (cached) return cached;
     if (measuringBranches.has(condition.id)) {
       return {
-        yesWidth: FLOW_STEP_NODE_WIDTH,
-        noWidth: FLOW_STEP_NODE_WIDTH,
-        centerGap: FLOW_BRANCH_MIN_SPREAD * 2,
-        totalWidth: FLOW_BRANCH_MIN_SPREAD * 2 + FLOW_STEP_NODE_WIDTH,
+        yesWidth: branchMinWidth,
+        noWidth: branchMinWidth,
+        centerGap: branchMinSpread * 2,
+        totalWidth: branchMinSpread * 2 + branchMinWidth,
       };
     }
 
     measuringBranches.add(condition.id);
     const branchWidth = (branch: FlowBranch) => Math.max(
-      FLOW_STEP_NODE_WIDTH,
-      ...directBranchItems(items, condition.id, branch).map(({ step }) => (
-        defaultKind(step) === 'condition'
-          ? conditionBranchLayout(step).totalWidth
-          : FLOW_STEP_NODE_WIDTH
+      branchMinWidth,
+      ...directBranchItems(items, condition.id, branch).map((item) => (
+        defaultKind(item.step) === 'condition'
+          ? Math.max(conditionBranchLayout(item.step).totalWidth, horizontal ? stepNodeHeight(item) : branchMinWidth)
+          : horizontal ? stepNodeHeight(item) : branchMinWidth
       )),
     );
     const yesWidth = branchWidth('yes');
     const noWidth = branchWidth('no');
     const centerGap = Math.max(
-      FLOW_BRANCH_MIN_SPREAD * 2,
+      branchMinSpread * 2,
       yesWidth / 2 + noWidth / 2 + FLOW_BRANCH_SUBTREE_GAP,
     );
     const sideExtent = Math.max(
@@ -351,7 +363,7 @@ export function buildFlowGraph(
       yesWidth,
       noWidth,
       centerGap,
-      totalWidth: Math.max(FLOW_STEP_NODE_WIDTH, sideExtent * 2),
+      totalWidth: Math.max(branchMinWidth, sideExtent * 2),
     };
     measuringBranches.delete(condition.id);
     branchLayouts.set(condition.id, layout);
@@ -363,12 +375,14 @@ export function buildFlowGraph(
     .forEach(({ step }) => conditionBranchLayout(step));
 
   const addNode = (node: FlowGraphNode) => {
+    // 在逻辑纵向坐标中复用分支、汇合和避让算法，横向布局交换节点尺寸后计算。
+    const width = Number(node.width) || FLOW_STEP_NODE_WIDTH;
+    const height = Number(node.height) || FLOW_STEP_NODE_HEIGHT;
     nodes.push({
       ...node,
-      dimensions: {
-        width: Number(node.width) || FLOW_STEP_NODE_WIDTH,
-        height: Number(node.height) || FLOW_STEP_NODE_HEIGHT,
-      },
+      width: horizontal ? height : width,
+      height: horizontal ? width : height,
+      dimensions: { width: horizontal ? height : width, height: horizontal ? width : height },
     } as FlowGraphNode);
   };
   const addVisibleLink = (source: string, target: string, branch?: FlowBranch) => {
@@ -427,14 +441,7 @@ export function buildFlowGraph(
     const label = options.labelStep(item.step);
     // 字数估算仅用于首次布局，不强制卡片高度；实际换行由浏览器决定。
     const cardMinHeight = FLOW_STEP_NODE_HEIGHT;
-    const estimatedCardHeight = estimateStepNodeHeight(
-      label,
-      item.step.type === 'aiRecognition' ? 3 : undefined,
-    );
-    const estimatedNodeHeight = options.expandedStepIndex === item.index
-      ? estimatedCardHeight + FLOW_EXPANDED_NODE_HEIGHT
-      : estimatedCardHeight;
-    const nodeHeight = Math.max(cardMinHeight, Math.ceil(options.measuredNodeHeights?.[id] || estimatedNodeHeight));
+    const nodeHeight = stepNodeHeight(item);
     addNode({
       id,
       type: 'flow-node',
@@ -790,7 +797,7 @@ export function buildFlowGraph(
       if (joinOwner && target.id !== joinOwner) {
         const incoming = links.filter((edge) => edge.target === target.id).map((edge) => nodeById.get(edge.source)!).filter(Boolean);
         if (incoming.length) {
-          target.position.y = Math.round(Math.max(...incoming.map((node) => node.position.y + nodeHeight(node))) + FLOW_STANDARD_LINE_GAP * 4);
+          target.position.y = Math.round(Math.max(...incoming.map((node) => node.position.y + nodeHeight(node))) + FLOW_STANDARD_LINE_GAP * 8);
           const incomingCenters = incoming.map(centerX);
           setCenterX(target, (Math.min(...incomingCenters) + Math.max(...incomingCenters)) / 2);
         }
@@ -806,7 +813,7 @@ export function buildFlowGraph(
       let x = centerX(source);
       if (target.data.kind === 'branch') {
         const conditionId = steps[target.data.conditionIndex].id;
-        const spread = (branchLayouts.get(conditionId)?.centerGap || FLOW_BRANCH_MIN_SPREAD * 2) / 2;
+        const spread = (branchLayouts.get(conditionId)?.centerGap || branchMinSpread * 2) / 2;
         x += target.data.branch === 'yes' ? -spread : spread;
       }
       setCenterX(target, x);
@@ -830,14 +837,25 @@ export function buildFlowGraph(
     source: link.source,
     target: link.target,
     type: 'flow-rounded',
-    sourceHandle: 'bottom',
-    targetHandle: 'top',
+    sourceHandle: 'output',
+    targetHandle: 'input',
     selectable: false,
     focusable: false,
     class: 'appium-vue-flow-edge',
     data: { branch: link.branch, merge: joins.has(link.target) },
   }));
 
+  if (horizontal) {
+    positionedNodes.forEach((node) => {
+      node.position = { x: node.position.y, y: node.position.x };
+      const width = node.width;
+      node.width = node.height;
+      node.height = width;
+      Object.assign(node, { dimensions: { width: Number(node.width), height: Number(node.height) } });
+      node.sourcePosition = Position.Right;
+      node.targetPosition = Position.Left;
+    });
+  }
   return { nodes: positionedNodes, edges };
 }
 

@@ -1,17 +1,18 @@
 {
-  "name": "android-midscene-automation",
-  "version": "1.1.7",
+  "name": "qualix",
+  "description": "移动应用自动化测试平台，集成 Appium、Artemis 和 Midscene，当前支持 Android。",
+  "version": "2.0.1",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oooooooko/android-midscene-automation.git"
+    "url": "git+https://github.com/oooooooko/Qualix.git"
   },
   "bugs": {
-    "url": "https://github.com/oooooooko/android-midscene-automation/issues"
+    "url": "https://github.com/oooooooko/Qualix/issues"
   },
-  "homepage": "https://github.com/oooooooko/android-midscene-automation#readme",
+  "homepage": "https://github.com/oooooooko/Qualix#readme",
   "type": "module",
   "bin": {
-    "android-midscene-automation": "bin/android-midscene-automation.js"
+    "qualix": "bin/qualix.js"
   },
   "files": [
     "artemis-main",
@@ -24,6 +25,7 @@
     "vite.config.ts",
     "README.md",
     "USAGE.md",
+    "ARTEMIS.md",
     "流程节点操作说明.md",
     "AI识别操作说明.md",
     "FAQ.md",
@@ -37,7 +39,8 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "pw:install": "playwright install chromium",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:compat": "node --test tests/legacy-cli.test.mjs"
   },
   "dependencies": {
     "@yume-chan/adb": "2.6.3",

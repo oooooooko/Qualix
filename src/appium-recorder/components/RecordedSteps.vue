@@ -115,6 +115,7 @@ const insertActionGroups: FlowActionGroup[] = [
   {
     title: '流程控制',
     actions: [
+      { type: 'randomValue', label: '获取随机值' },
       { type: 'noop', label: '空节点' },
       { type: 'endFlow', label: '终止流程' },
       {
@@ -126,6 +127,7 @@ const insertActionGroups: FlowActionGroup[] = [
         ],
       },
       { type: 'log', label: '输出日志' },
+      { type: 'stopwatch', label: '计时打点' },
       { type: 'runScript', label: '连接脚本' },
     ],
   },
@@ -241,7 +243,13 @@ async function deleteSelectedNodes() {
   finally { deleting.value = false; }
 }
 
-watch(() => props.steps, () => { if (copyMode.value) cancelCopyMode(); });
+watch(() => props.steps, (steps, previous) => {
+  if (copyMode.value) cancelCopyMode();
+  if (expandedStepIndex.value === null) return;
+  const id = previous[expandedStepIndex.value]?.id;
+  const index = steps.findIndex(step => step.id === id);
+  expandedStepIndex.value = index < 0 ? null : index;
+});
 
 function resetMainFlowPosition() {
   mainResetViewToken.value += 1;

@@ -207,5 +207,14 @@ const openModelConfigGuide = () => {
 </template>
 
 <style scoped>
+.config-midscene-card :deep(.el-card__header) { padding: 18px 24px; font-size: 16px; font-weight: 600; }
+.config-midscene-card :deep(.el-card__body) { padding: 24px; background: var(--ui-surface); }
+.config-midscene-card :deep(.el-form-item) { margin-bottom: 22px; }
+.config-midscene-card :deep(.el-form-item__label) { margin-bottom: 8px; font-size: 13px; }
+.config-midscene-card :deep(.el-input__wrapper), .config-midscene-card :deep(.el-select__wrapper) { min-height: 36px; }
 .config-model-input { width: 100%; }
+@media (max-width: 1000px) {
+  .config-model-grid { grid-template-columns: minmax(0, 1fr); }
+  .config-model-grid > section + section { padding: 24px 0 0; border-left: 0; border-top: 1px solid var(--ui-border); }
+}
 </style>

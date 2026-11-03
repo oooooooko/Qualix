@@ -102,6 +102,7 @@ const actionGroups: FlowActionGroup[] = [
   {
     title: '流程控制',
     actions: [
+      { type: 'randomValue', label: '获取随机值' },
       { type: 'noop', label: '空节点' },
       { type: 'endFlow', label: '终止流程' },
       {
@@ -131,6 +132,7 @@ function typeLabel(step: AppiumRecordedStep) {
     coordinateTap: '坐标点击', swipe: '滑动', launchApp: '启动 APP', stopApp: '杀死 APP', clearAppData: '清理 APP 缓存', longPress: '长按',
     pinch: '双指缩放', runScript: '连接脚本', screenshot: '截图', visualChange: '检测画面变化',
     noop: '空节点',
+    randomValue: '获取随机值',
     endFlow: '终止流程',
     loop: '有界循环',
     breakLoop: '退出循环',
@@ -148,6 +150,7 @@ function typeLabel(step: AppiumRecordedStep) {
 }
 
 function stepMeta(step: AppiumRecordedStep) {
+  if (step.type === 'randomValue') return flowStepMeta(step);
   if (step.type === 'imageCheck') return flowStepMeta(step);
   if (step.type === 'delay') return `${step.timeoutMs || 1000}ms`;
   if (step.type === 'input' || step.type === 'inputIfExists') return `输入内容：${step.value || '空'}`;

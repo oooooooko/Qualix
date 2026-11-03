@@ -1,0 +1,17 @@
+{
+  "name": "android-midscene-automation",
+  "version": "2.0.1",
+  "description": "Qualix 的旧命令兼容入口，保留原有 npx 启动方式。",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oooooooko/Qualix.git",
+    "directory": "compat/android-midscene-automation"
+  },
+  "type": "module",
+  "bin": {
+    "android-midscene-automation": "bin/android-midscene-automation.js"
+  },
+  "files": [
+    "bin"
+  ]
+}

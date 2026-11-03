@@ -232,7 +232,7 @@ async function save(enabled: boolean, observation?: AiObservationConfig) {
 .ai-recognition-settings__toggle-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0 12px; }
 .ai-recognition-settings__toggle-row :deep(.el-checkbox) { margin-right: 0; }
 .ai-recognition-settings__toggles :deep(.el-form-item__content) { align-items: center; }
-.ai-recognition-settings__groups { overflow: hidden; border: 1px solid var(--el-border-color-lighter); border-radius: 10px; background: #fff; }
+.ai-recognition-settings__groups { overflow: hidden; border: 1px solid var(--el-border-color-lighter); border-radius: 10px; background: var(--ui-surface); }
 .ai-recognition-settings__groups :deep(.el-collapse-item__header) { height: 42px; padding: 0 10px; border-bottom-color: var(--el-border-color-lighter); font-size: 12px; }
 .ai-recognition-settings__groups :deep(.el-collapse-item__wrap) { border-bottom-color: var(--el-border-color-lighter); }
 .ai-recognition-settings__groups :deep(.el-collapse-item:last-child .el-collapse-item__header),

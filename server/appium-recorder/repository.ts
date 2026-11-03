@@ -12,6 +12,8 @@ import { validateLoopSteps } from '../../src/appium-recorder/bounded-loop';
 import { validateVariables, validateExtraction, validateReturns, type TestVariable, type VariableExtraction, type ScriptReturn } from '../../src/appium-recorder/variables';
 import { getPresetVariables, savePresetVariables, deleteScriptVariables } from './variable-store';
 import { validateImageCheck, type ImageCheckConfig } from '../../src/appium-recorder/image-check';
+import { validateRandomValue, type RandomValueConfig } from '../../src/appium-recorder/random-value';
+import { validateStopwatch, remapStopwatchIds, type StopwatchConfig } from '../../src/appium-recorder/stopwatch';
 
 export type AppiumRecordedStepRecord = {
   mergeUndo?: import('../../src/appium-recorder/types').BranchMergeUndo;
@@ -53,6 +55,8 @@ export type AppiumRecordedStepRecord = {
     | 'runScript'
     | 'noop'
     | 'extractVariable'
+    | 'randomValue'
+    | 'stopwatch'
     | 'log'
     | 'visualChange';
   label: string;
@@ -97,6 +101,8 @@ export type AppiumRecordedStepRecord = {
   logPrefix?: string;
   imageCheck?: ImageCheckConfig;
   extractVariable?: VariableExtraction;
+  randomValue?: RandomValueConfig;
+  stopwatch?: StopwatchConfig;
   parameters?: TestVariable[];
   returns?: ScriptReturn[];
   keyCode?: number;
@@ -389,6 +395,8 @@ export function saveAppiumRecordedScript(input: {
     }
     if (step.type === 'imageCheck') validateImageCheck(step.imageCheck);
     if (step.type === 'extractVariable') validateExtraction(step.extractVariable);
+    if (step.type === 'randomValue') validateRandomValue(step.randomValue, { allowEmptySensitiveText: true });
+    if (step.type === 'stopwatch') validateStopwatch(step.stopwatch);
     if (step.type === 'runScript') { validateVariables(step.parameters); validateReturns(step.returns); }
   }
   validateLoopSteps(steps);
@@ -512,8 +520,10 @@ export function importAppiumRecordedScripts(inputs: Array<{
   });
   const importedIds = new Map(planned.filter(item => item.sourceId).map(item => [item.sourceId, item.id]));
 
+  const timerIds = new Map(planned.flatMap(input => input.steps.filter(step => step.stopwatch?.action === 'start' && step.stopwatch.timerId)
+    .map(step => [step.stopwatch!.timerId, crypto.randomUUID()])));
   return planned.map((input) => {
-    const steps = input.steps.map(step => (
+    const steps = remapStopwatchIds(input.steps, timerIds).map(step => (
       step.type === 'runScript' && step.value && importedIds.has(step.value)
         ? { ...step, value: importedIds.get(step.value) }
         : step

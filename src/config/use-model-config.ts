@@ -4,7 +4,7 @@ import { resolveReportSummary } from '../appium-recorder/report-summary';
 import { isAiRecognitionModelConfigured } from '../appium-recorder/ai-recognition';
 import { resolveAiDeduplication } from '../appium-recorder/ai-deduplication';
 import { resolveAiPromptPresets } from '../appium-recorder/ai-prompt-presets';
-import { normalizeFlowBackground, normalizeFlowLineColor, normalizeFlowLineStyle } from '../appium-recorder/flow-appearance';
+import { normalizeFlowBackground, normalizeFlowLineColor, normalizeFlowLineStyle, normalizeFlowLayoutDirection, normalizeFlowNodeColor, normalizeFlowNodeBorderColor } from '../appium-recorder/flow-appearance';
 import { selectMidsceneModelProvider, type MidsceneModelProvider } from './midscene-model-presets';
 import { useAppiumAutoSave } from './use-appium-auto-save';
 import type { ConfigForm } from '../types';
@@ -75,8 +75,11 @@ export function useModelConfig() {
     configForm.appium.aiDeduplication = resolveAiDeduplication(payload.appium?.aiDeduplication);
     configForm.appium.aiPromptPresets = resolveAiPromptPresets(payload.appium?.aiPromptPresets);
     configForm.appium.flowBackgroundColor = normalizeFlowBackground(payload.appium?.flowBackgroundColor);
+    configForm.appium.flowNodeColor = normalizeFlowNodeColor(payload.appium?.flowNodeColor);
+    configForm.appium.flowNodeBorderColor = normalizeFlowNodeBorderColor(payload.appium?.flowNodeBorderColor);
     configForm.appium.flowLineColor = normalizeFlowLineColor(payload.appium?.flowLineColor);
     configForm.appium.flowLineStyle = normalizeFlowLineStyle(payload.appium?.flowLineStyle);
+    configForm.appium.flowLayoutDirection = normalizeFlowLayoutDirection(payload.appium?.flowLayoutDirection);
     appiumAutoSave.initialize();
     ready.value = true;
     aiRecognitionModelConfigured.value = isAiRecognitionModelConfigured(configForm.appium.model);
@@ -111,7 +114,7 @@ export function useModelConfig() {
     if (model.provider !== 'codex' && !model.apiKey.trim()) missing.push('API Key');
 
     if (!missing.length) return '';
-    return `Midscene 模型配置不完整：缺少 ${missing.join('、')}。请在“参数配置 > Midscene配置 > Midscene 模型”中选择“使用 Codex”，或补齐自定义提供方后测试并保存。`;
+    return `Midscene 模型配置不完整：缺少 ${missing.join('、')}。请在“实验室 > Midscene > 参数配置 > Midscene 模型”中选择“使用 Codex”，或补齐自定义提供方后测试并保存。`;
   };
 
   const saveModelConfig = async () => {

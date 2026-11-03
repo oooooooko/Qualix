@@ -1,7 +1,7 @@
 import { resolveReportSummary, type ReportSummaryConfig } from '../src/appium-recorder/report-summary';
 import type { AiPromptPreset } from '../src/appium-recorder/ai-prompt-presets';
 import fs from 'node:fs';
-import { isHexColor, normalizeFlowBackground, normalizeFlowLineColor, normalizeFlowLineStyle } from '../src/appium-recorder/flow-appearance';
+import { isHexColor, normalizeFlowBackground, normalizeFlowLineColor, normalizeFlowLineStyle, normalizeFlowLayoutDirection, normalizeFlowNodeColor, normalizeFlowNodeBorderColor } from '../src/appium-recorder/flow-appearance';
 import os from 'node:os';
 import path from 'node:path';
 import YAML from 'yaml';
@@ -13,7 +13,7 @@ import { resolveAiDeduplication, type AiDeduplicationConfig } from '../src/appiu
 import type { MidsceneModelProvider } from '../src/config/midscene-model-presets';
 
 export type AppConfig = {
-  appium: { reportSummary?: ReportSummaryConfig; model: AiRecognitionModel; promptOptimizer?: { model: AiRecognitionModel }; aiPromptPresets?: AiPromptPreset[]; aiDeduplication?: AiDeduplicationConfig; flowBackgroundColor?: string; flowLineColor?: string; flowLineStyle?: 'straight' | 'curved'; screenshotReport?: boolean };
+  appium: { reportSummary?: ReportSummaryConfig; model: AiRecognitionModel; promptOptimizer?: { model: AiRecognitionModel }; aiPromptPresets?: AiPromptPreset[]; aiDeduplication?: AiDeduplicationConfig; flowBackgroundColor?: string; flowNodeColor?: string; flowNodeBorderColor?: string; flowLineColor?: string; flowLineStyle?: 'straight' | 'curved'; flowLayoutDirection?: 'vertical' | 'horizontal'; screenshotReport?: boolean };
   runtime: {
     androidSdkPath: string;
     reportOutputPath: string;
@@ -99,8 +99,11 @@ function normalizeConfig(config: Partial<AppConfig> | null | undefined): AppConf
       aiDeduplication: resolveAiDeduplication(config?.appium?.aiDeduplication),
       screenshotReport: config?.appium?.screenshotReport === true,
       flowBackgroundColor: normalizeFlowBackground(config?.appium?.flowBackgroundColor),
+      flowNodeColor: normalizeFlowNodeColor(config?.appium?.flowNodeColor),
+      flowNodeBorderColor: normalizeFlowNodeBorderColor(config?.appium?.flowNodeBorderColor),
       flowLineColor: normalizeFlowLineColor(config?.appium?.flowLineColor),
       flowLineStyle: normalizeFlowLineStyle(config?.appium?.flowLineStyle),
+      flowLayoutDirection: normalizeFlowLayoutDirection(config?.appium?.flowLayoutDirection),
       model: Object.fromEntries(['baseUrl', 'apiKey', 'name'].map((key) => {
         const value = config?.appium?.model?.[key as keyof AiRecognitionModel];
         return [key, typeof value === 'string' ? value.trim() : ''];
@@ -242,6 +245,14 @@ export function saveConfig(config: AppConfig) {
   }
   if (config.appium?.flowLineStyle !== undefined && !['straight', 'curved'].includes(config.appium.flowLineStyle)) {
     throw new ConfigValidationError('连接线条样式必须是直线或曲线');
+  }
+  if (config.appium?.flowLayoutDirection !== undefined && !['vertical', 'horizontal'].includes(config.appium.flowLayoutDirection)) {
+    throw new ConfigValidationError('流程布局方向必须是纵向或横向');
+  }
+  for (const key of ['flowNodeColor', 'flowNodeBorderColor'] as const) {
+    if (config.appium?.[key] !== undefined && !isHexColor(config.appium[key])) {
+      throw new ConfigValidationError('节点颜色必须是有效的十六进制颜色（#RGB 或 #RRGGBB）');
+    }
   }
   const normalized = normalizeConfig(config);
   validateRuntimeConfig(normalized);

@@ -5,7 +5,7 @@ import type { MidsceneModelProvider } from './config/midscene-model-presets';
 import type { AiRecognitionModel } from './appium-recorder/ai-recognition';
 import type { AiDeduplicationConfig } from './appium-recorder/ai-deduplication';
 
-export type MenuKey = 'analysis' | 'generator' | 'automation' | 'config' | 'appium' | 'artemis' | 'about';
+export type MenuKey = 'analysis' | 'generator' | 'automation' | 'midscene-config' | 'config' | 'appium' | 'artemis' | 'about';
 export type GeneratorMode = 'ai' | 'manual';
 
 export type AppiumVersionInfo = {
@@ -21,7 +21,7 @@ export type GeneratorForm = {
 };
 
 export type ConfigForm = {
-  appium: { reportSummary?: ReportSummaryConfig; model: AiRecognitionModel; promptOptimizer?: { model: AiRecognitionModel }; aiPromptPresets?: AiPromptPreset[]; aiDeduplication?: AiDeduplicationConfig; flowBackgroundColor?: string; flowLineColor?: string; flowLineStyle?: 'straight' | 'curved'; screenshotReport?: boolean };
+  appium: { reportSummary?: ReportSummaryConfig; model: AiRecognitionModel; promptOptimizer?: { model: AiRecognitionModel }; aiPromptPresets?: AiPromptPreset[]; aiDeduplication?: AiDeduplicationConfig; flowBackgroundColor?: string; flowNodeColor?: string; flowNodeBorderColor?: string; flowLineColor?: string; flowLineStyle?: 'straight' | 'curved'; flowLayoutDirection?: 'vertical' | 'horizontal'; screenshotReport?: boolean };
   runtime: {
     androidSdkPath: string;
     reportOutputPath: string;

@@ -42,6 +42,7 @@ const AutomationPage = defineAsyncComponent(() => import('./pages/AutomationPage
 const AppiumPage = defineAsyncComponent(() => import('./appium-recorder/AppiumPage.vue'));
 const ArtemisPage = defineAsyncComponent(() => import('./pages/ArtemisPage.vue'));
 const ConfigPage = defineAsyncComponent(() => import('./pages/ConfigPage.vue'));
+const MidsceneConfigPanel = defineAsyncComponent(() => import('./components/config/MidsceneConfigPanel.vue'));
 const GeneratorPage = defineAsyncComponent(() => import('./pages/GeneratorPage.vue'));
 const HelpCenter = defineAsyncComponent(() => import('./components/help/HelpCenter.vue'));
 import type {
@@ -52,7 +53,7 @@ import type {
 } from './types';
 
 const ACTIVE_MENU_STORAGE_KEY = 'android-midscene-automation:active-menu';
-const menuKeys: MenuKey[] = ['appium', 'artemis', 'generator', 'automation', 'analysis', 'config', 'about'];
+const menuKeys: MenuKey[] = ['appium', 'artemis', 'generator', 'automation', 'midscene-config', 'analysis', 'config', 'about'];
 const storedMenu = window.localStorage.getItem(ACTIVE_MENU_STORAGE_KEY) as MenuKey | null;
 const activeMenu = ref<MenuKey>(storedMenu && menuKeys.includes(storedMenu) ? storedMenu : 'generator');
 const activeGeneratorMode = ref<GeneratorMode>('ai');
@@ -125,7 +126,8 @@ const menuItems = [
   { key: 'appium', label: 'Appium', icon: Monitor },
   { key: 'artemis', label: 'Artemis', icon: Monitor },
   { key: 'generator', label: '测试脚本生成', icon: Operation },
-  { key: 'automation', label: '自动化测试', icon: Monitor },
+  { key: 'automation', label: '自动化测试', icon: VideoPlay },
+  { key: 'midscene-config', label: 'Midscene参数配置', icon: Setting },
   { key: 'analysis', label: '分析页', icon: DataAnalysis },
   { key: 'config', label: '参数配置', icon: Setting },
   { key: 'about', label: '关于', icon: InfoFilled },
@@ -894,7 +896,7 @@ onUnmounted(() => {
           'page-body--artemis': activeMenu === 'artemis',
         }"
       >
-        <el-alert v-if="activeMenu !== 'appium' && activeMenu !== 'artemis' && activeMenu !== 'config' && activeMenu !== 'about' && errorMessage" type="error" :closable="false" show-icon class="page-alert">
+        <el-alert v-if="activeMenu !== 'appium' && activeMenu !== 'artemis' && activeMenu !== 'config' && activeMenu !== 'midscene-config' && activeMenu !== 'about' && errorMessage" type="error" :closable="false" show-icon class="page-alert">
           <template #title>{{ errorMessage }}</template>
         </el-alert>
 
@@ -929,7 +931,19 @@ onUnmounted(() => {
           @clear-all="clearGeneratorPage"
         />
 
-        <div v-if="activeMenu === 'config' && !configReady && !configResource.error.value" class="page-loading" role="status">正在加载参数配置…</div>
+        <div v-if="(activeMenu === 'config' || activeMenu === 'midscene-config') && !configReady && !configResource.error.value" class="page-loading" role="status">正在加载参数配置…</div>
+
+        <MidsceneConfigPanel
+          v-if="visitedMenus.has('midscene-config') && configReady"
+          v-show="activeMenu === 'midscene-config'"
+          role="region"
+          aria-label="Midscene参数配置"
+          :config-form="configForm"
+          :testing-model-key="testingModelKey"
+          :model-test-status="modelTestStatus"
+          @test-model="testModel"
+          @update-midscene-model-provider="updateMidsceneModelProvider"
+        />
 
         <ConfigPage
           v-if="visitedMenus.has('config') && configReady"
@@ -950,7 +964,6 @@ onUnmounted(() => {
           @edit-app-preset="editAppPreset"
           @delete-app-preset="removeAppPreset"
           @cancel-app-preset-edit="resetAppPresetForm"
-          @update-midscene-model-provider="updateMidsceneModelProvider"
         />
 
         <AutomationPage
@@ -993,8 +1006,11 @@ onUnmounted(() => {
           :ai-prompt-presets="configForm.appium.aiPromptPresets"
           :report-summary="configForm.appium.reportSummary"
           :flow-background-color="configForm.appium.flowBackgroundColor"
+          :flow-node-color="configForm.appium.flowNodeColor"
+          :flow-node-border-color="configForm.appium.flowNodeBorderColor"
           :flow-line-color="configForm.appium.flowLineColor"
           :flow-line-style="configForm.appium.flowLineStyle"
+          :flow-layout-direction="configForm.appium.flowLayoutDirection"
           :device-actions="deviceActions"
           :playground-available="playgroundAvailable"
           :playground-device-id="playgroundDeviceId"

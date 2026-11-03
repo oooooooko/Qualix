@@ -56,6 +56,8 @@ export function useAppiumAutoSave(config: ConfigForm, save: (value: Omit<ConfigF
     pending = undefined;
     const value = config.appium;
     if ((value.flowBackgroundColor !== undefined && !isHexColor(value.flowBackgroundColor))
+      || (value.flowNodeColor !== undefined && !isHexColor(value.flowNodeColor))
+      || (value.flowNodeBorderColor !== undefined && !isHexColor(value.flowNodeBorderColor))
       || (value.flowLineColor !== undefined && !isHexColor(value.flowLineColor))) {
       status.value = '颜色格式有误，尚未保存';
       return;

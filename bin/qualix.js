@@ -8,8 +8,9 @@ import { fileURLToPath } from 'node:url';
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const userRoot = process.cwd();
-const githubUrl = 'https://github.com/oooooooko/android-midscene-automation';
-const appName = 'android-midscene-automation';
+const githubUrl = 'https://github.com/oooooooko/Qualix';
+// Keep the existing data directory so renaming the package preserves user data.
+const dataDirectoryName = 'android-midscene-automation';
 const runtimeEntries = [
   '.midscene-app',
   'scripts-output',
@@ -25,15 +26,15 @@ function getDefaultDataRoot() {
   if (process.platform === 'win32') {
     return path.join(
       process.env.LOCALAPPDATA || process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Local'),
-      appName,
+      dataDirectoryName,
     );
   }
 
   if (process.platform === 'darwin') {
-    return path.join(os.homedir(), 'Library', 'Application Support', appName);
+    return path.join(os.homedir(), 'Library', 'Application Support', dataDirectoryName);
   }
 
-  return path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local', 'share'), appName);
+  return path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local', 'share'), dataDirectoryName);
 }
 
 function hasRuntimeData(root) {
@@ -82,7 +83,8 @@ if (!args.includes('--host')) {
   args.unshift('--host');
 }
 
-console.log(`\nGitHub 源码 / 二次修改：${githubUrl}`);
+console.log('\nQualix · 移动自动化平台');
+console.log(`GitHub 源码 / 二次修改：${githubUrl}`);
 console.log(`问题反馈 / 功能建议：${githubUrl}/issues\n`);
 console.log(`本地数据目录：${dataRoot}\n`);
 

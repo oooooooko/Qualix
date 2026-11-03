@@ -6,6 +6,8 @@ import { isNativeStateCondition } from './native-control-state';
 import { DEFAULT_LOG_PREFIX } from './stage-log';
 import { imageCheckSummary } from './image-check';
 import { isAiBranchEnabled } from './ai-recognition';
+import { randomValueSummary } from './random-value';
+import { STOPWATCH_ACTIONS } from './stopwatch';
 
 export function isBooleanCondition(step: Pick<AppiumRecordedStep, 'type' | 'aiBranchEnabled'>) {
   return isNativeStateCondition(step) || (step.type === 'aiRecognition' && isAiBranchEnabled(step)) || step.type === 'textClick' || step.type === 'imageCheck';
@@ -13,7 +15,7 @@ export function isBooleanCondition(step: Pick<AppiumRecordedStep, 'type' | 'aiBr
 
 export function defaultFlowKind(step: AppiumRecordedStep): FlowKind {
   if (step.type === 'aiRecognition') return isAiBranchEnabled(step) ? 'condition' : 'action';
-  if (step.type === 'extractVariable') return 'action';
+  if (step.type === 'extractVariable' || step.type === 'randomValue' || step.type === 'stopwatch') return 'action';
   if (step.type === 'loop') return 'condition';
   if (step.type === 'breakLoop' || step.type === 'continueLoop') return 'action';
   if (step.type === 'log' || step.type === 'openGallery' || step.type === 'endFlow') return 'action';
@@ -73,12 +75,16 @@ export function flowTypeLabel(step: AppiumRecordedStep) {
     noop: '空节点',
     log: '输出日志',
     extractVariable: '提取变量',
+    randomValue: '获取随机值',
+    stopwatch: '计时打点',
     visualChange: '检测画面变化',
   };
   return labelMap[step.type] || step.type;
 }
 
 export function flowStepMeta(step: AppiumRecordedStep) {
+  if (step.type === 'stopwatch') return `${step.stopwatch?.name || '未命名'}${step.stopwatch?.timerId ? '' : '（未关联）'} · ${STOPWATCH_ACTIONS[step.stopwatch?.action || 'start']}`;
+  if (step.type === 'randomValue') return randomValueSummary(step.randomValue);
   if (step.type === 'imageCheck') return imageCheckSummary(step.imageCheck);
   if (step.type === 'extractVariable') return `${step.extractVariable?.attribute || 'text'} → ${step.extractVariable?.name || '未设置变量名'}`;
   if (step.type === 'loop') return `最多 ${step.loop?.maxIterations ?? '?'} 次 · ${step.loop?.exitWhen === 'exists' ? '元素出现时退出' : step.loop?.exitWhen === 'notExists' ? '元素消失时退出' : '固定次数'}${step.loop?.exitWhen !== 'never' ? ` ${step.selector?.value || ''}` : ''}`;
