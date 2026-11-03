@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { QuestionFilled } from '@element-plus/icons-vue';
 import { loadVariables, saveVariables } from '../api';
@@ -61,33 +62,33 @@ onMounted(load);
 
 <template>
   <div class="preset-variables">
-    <section class="preset-variables__section" aria-label="全局变量">
+    <section class="preset-variables__section" :aria-label="t('全局变量')">
       <div class="preset-variables__title">
-        <h3>全局变量</h3>
+        <h3>{{ t("全局变量") }}</h3>
       <el-tooltip placement="bottom-end" effect="light" :show-after="150">
         <template #content>
           <div class="preset-variables__help">
-            <strong>如何使用预设变量</strong>
-            <p>全局变量可在所有脚本中使用；私有变量仅在当前脚本中使用，同名时优先使用私有变量。</p>
-            <p>编辑后自动保存，变量值可以为空字符串。新脚本的私有变量先保存为草稿，首次保存脚本时归入该脚本。</p>
-            <p>使用 <code v-pre>{{变量名}}</code> 在输入、判断、定位、日志中引用，例如 <code v-pre>{{account}}</code>。变量名使用字母、数字和下划线，不能以数字开头。</p>
-            <p>敏感值在日志和报告中脱敏，导出时清空敏感值；密码、令牌等名称自动标记为敏感，也可手动勾选。</p>
-            <p>含敏感变量的运行不保存截图或 Appium 原始日志。本地变量非加密存储。</p>
+            <strong>{{ t("如何使用预设变量") }}</strong>
+            <p>{{ t("全局变量可在所有脚本中使用；私有变量仅在当前脚本中使用，同名时优先使用私有变量。") }}</p>
+            <p>{{ t("编辑后自动保存，变量值可以为空字符串。新脚本的私有变量先保存为草稿，首次保存脚本时归入该脚本。") }}</p>
+            <p>{{ t("使用") }} <code v-text="t('{{变量名}}')" /> {{ t("在输入、判断、定位、日志中引用，例如") }} <code v-pre>{{account}}</code>{{ t("。变量名使用字母、数字和下划线，不能以数字开头。") }}</p>
+            <p>{{ t("敏感值在日志和报告中脱敏，导出时清空敏感值；密码、令牌等名称自动标记为敏感，也可手动勾选。") }}</p>
+            <p>{{ t("含敏感变量的运行不保存截图或 Appium 原始日志。本地变量非加密存储。") }}</p>
           </div>
         </template>
-        <el-button class="preset-variables__help-button" :icon="QuestionFilled" text aria-label="预设变量使用说明" />
+        <el-button class="preset-variables__help-button" :icon="QuestionFilled" text :aria-label="t('预设变量使用说明')" />
       </el-tooltip>
       </div>
-        <el-alert v-if="error" :title="error" type="error" :closable="false" /><el-button v-if="error" @click="load">重新加载</el-button>
+        <el-alert v-if="error" :title="t(error)" type="error" :closable="false" /><el-button v-if="error" @click="load">{{ t("重新加载") }}</el-button>
         <VariableTable :model-value="globals" :disabled="disabled || busy || !loaded" @update:model-value="update('global', $event)">
-          <span class="preset-variables__status" :class="{ 'is-error': invalid.global }" role="status">{{ status.global }}</span>
+          <span class="preset-variables__status" :class="{ 'is-error': invalid.global }" role="status">{{ t(status.global) }}</span>
         </VariableTable>
     </section>
-    <section class="preset-variables__section" aria-label="当前脚本私有变量">
-        <div class="preset-variables__title"><h3>当前脚本私有变量</h3></div>
-        <div class="preset-variables__script">{{ scriptName || '未命名脚本' }}</div>
+    <section class="preset-variables__section" :aria-label="t('当前脚本私有变量')">
+        <div class="preset-variables__title"><h3>{{ t("当前脚本私有变量") }}</h3></div>
+        <div class="preset-variables__script">{{ scriptName || t("未命名脚本") }}</div>
         <VariableTable :model-value="variables" :disabled="disabled || busy" @update:model-value="update('private', $event)">
-          <span class="preset-variables__status" :class="{ 'is-error': invalid.private }" role="status">{{ status.private }}</span>
+          <span class="preset-variables__status" :class="{ 'is-error': invalid.private }" role="status">{{ t(status.private) }}</span>
         </VariableTable>
     </section>
   </div>

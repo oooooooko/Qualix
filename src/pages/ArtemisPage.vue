@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { onScopeDispose, shallowRef, watch } from 'vue';
+import { t } from '../i18n';
+import { onScopeDispose, shallowRef, watch, useTemplateRef } from 'vue';
+import { locale } from '../i18n';
 import { APP_BASE } from '../api';
 
 const props = defineProps<{ active: boolean }>();
@@ -8,6 +10,12 @@ const message = shallowRef('');
 const url = shallowRef('');
 const frameUrl = shallowRef('');
 const revision = shallowRef(0);
+const frame = useTemplateRef('artemisFrame');
+function syncLanguage() {
+  if (!frameUrl.value) return;
+  frame.value?.contentWindow?.postMessage({ type: 'qualix:language', locale: locale.value }, new URL(frameUrl.value).origin);
+}
+watch(locale, syncLanguage);
 let controller: AbortController | undefined;
 
 async function connect(reload = false) {
@@ -25,7 +33,13 @@ async function connect(reload = false) {
     if (!data.ancestors.includes(window.location.origin)) {
       throw new Error('Artemis 未允许当前页面嵌入。请停止原服务，再用 npm run artemis 启动；自定义端口需配置 ARTEMIS_EMBED_ORIGINS。');
     }
-    frameUrl.value = data.url;
+    const embeddedUrl = new URL(data.url);
+    embeddedUrl.searchParams.set('uiLanguage', locale.value);
+    embeddedUrl.searchParams.set('parentOrigin', window.location.origin);
+    if (!frameUrl.value || new URL(frameUrl.value).origin !== embeddedUrl.origin || reload) {
+      frameUrl.value = embeddedUrl.href;
+    }
+    syncLanguage();
     if (reload) revision.value++;
   } catch (error) {
     if (request.signal.aborted) return;
@@ -41,22 +55,22 @@ onScopeDispose(() => controller?.abort());
 </script>
 
 <template>
-  <section class="artemis-page" aria-label="Artemis 控制台">
+  <section class="artemis-page" :aria-label="t('Artemis 控制台')">
     <div class="artemis-toolbar">
-      <span>Artemis · Android AI 自动化</span>
+      <span>{{ t("Artemis · Android AI 自动化") }}</span>
       <div class="artemis-actions">
-        <el-button :loading="loading" @click="connect(true)">重新连接</el-button>
-        <a v-if="url" :href="url" target="_blank" rel="noopener noreferrer">独立打开</a>
+        <el-button :loading="loading" @click="connect(true)">{{ t("重新连接") }}</el-button>
+        <a v-if="url" :href="url" target="_blank" rel="noopener noreferrer">{{ t("独立打开") }}</a>
       </div>
     </div>
     <div v-if="message" class="artemis-empty" role="status">
-      <h2>Artemis 暂不可用</h2>
-      <p>{{ message }}</p>
-      <p>启动服务后，点击“重新连接”。模型和设备在 Artemis 内配置。</p>
+      <h2>{{ t("Artemis 暂不可用") }}</h2>
+      <p>{{ t(message) }}</p>
+      <p>{{ t("启动服务后，点击“重新连接”。模型和设备在 Artemis 内配置。") }}</p>
       <code>npm run artemis</code>
     </div>
-    <div v-else-if="!frameUrl" class="artemis-empty" role="status">正在连接 Artemis…</div>
-    <iframe v-if="frameUrl" :key="revision" :src="frameUrl" title="Artemis Android 自动化控制台" allow="clipboard-write" class="artemis-frame" />
+    <div v-else-if="!frameUrl" class="artemis-empty" role="status">{{ t("正在连接 Artemis…") }}</div>
+    <iframe ref="artemisFrame" @load="syncLanguage" v-if="frameUrl" :key="revision" :src="frameUrl" :title="t('Artemis Android 自动化控制台')" allow="clipboard-write" class="artemis-frame" />
   </section>
 </template>
 

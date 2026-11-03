@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { AppiumVisualChangeRegion } from './types';
 import { DEFAULT_NODE_TIMEOUT_MS } from './node-timeout';
 
@@ -115,7 +116,7 @@ export function validateImageCheck(config: ImageCheckConfig | undefined) {
 }
 
 export function imageCheckSummary(config?: ImageCheckConfig) {
-  if (!config) return '未配置图像判断';
-  const expectation = config.mode === 'template' ? ` · ${config.expectation === 'present' ? '匹配到模板' : '未匹配到模板'}` : '';
-  return `${IMAGE_CHECK_MODES[config.mode]}${expectation} · ${config.target === 'element' ? '组件区域' : '框选区域'} · ${config.durationMs}ms`;
+  if (!config) return t("未配置图像判断");
+  const expectation = config.mode === 'template' ? t(" · {0}", { 0: config.expectation === 'present' ? t("匹配到模板") : t("未匹配到模板") }) : '';
+  return t("{0}{1} · {2} · {3}ms", { 0: IMAGE_CHECK_MODES[config.mode], 1: expectation, 2: config.target === 'element' ? t("组件区域") : t("框选区域"), 3: config.durationMs });
 }

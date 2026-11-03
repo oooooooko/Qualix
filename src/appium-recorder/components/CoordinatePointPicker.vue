@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, inject, onBeforeUnmount, watch } from 'vue';
 import { Aim } from '@element-plus/icons-vue';
 import { coordinatePreviewKey } from '../coordinate-preview';
@@ -16,8 +17,8 @@ onBeforeUnmount(cancel);
 <template>
   <el-form-item>
     <el-button :icon="Aim" :disabled="disabled || !picker?.enabled.value" @click="picker?.start(owner, point => emit('select', point))">
-      {{ picking ? '请在左侧设备预览点击' : '获取点击坐标' }}
+      {{ picking ? t("请在左侧设备预览点击") : t("获取点击坐标") }}
     </el-button>
-    <el-button v-if="picking" text @click="cancel">取消取点</el-button>
+    <el-button v-if="picking" text @click="cancel">{{ t("取消取点") }}</el-button>
   </el-form-item>
 </template>

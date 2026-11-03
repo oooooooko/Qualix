@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Aim, Camera, Upload, QuestionFilled } from '@element-plus/icons-vue';
@@ -33,7 +34,7 @@ const numericFields = computed(() => [
 function patch(value: Partial<ImageCheckConfig>) { emit('update', { ...props.config, ...value }); }
 function confirm() {
   try { validateImageCheck(props.config); emit('confirm'); }
-  catch (error) { ElMessage.warning((error as Error).message); }
+  catch (error) { ElMessage.warning(t((error as Error).message)); }
 }
 async function capture(key: 'template' | 'negativeTemplate') {
   busy.value = true;
@@ -43,7 +44,7 @@ async function capture(key: 'template' | 'negativeTemplate') {
     const result = await captureImageCheckRegion(props.deviceId, props.config.region, props.config.screenWidth, props.config.screenHeight);
     if (deviceId !== props.deviceId || regionKey !== JSON.stringify(props.config.region)) throw new Error('采集期间目标区域已变化，请重新采集');
     patch({ [key]: result.base64, screenWidth: result.screenWidth, screenHeight: result.screenHeight });
-  } catch (error) { ElMessage.error((error as Error).message); }
+  } catch (error) { ElMessage.error(t((error as Error).message)); }
   finally { busy.value = false; }
 }
 function chooseFile(key: 'template' | 'negativeTemplate') { uploadSlot.value = key; fileInput.value?.click(); }
@@ -59,93 +60,89 @@ async function upload(event: Event) {
     const reader = new FileReader();
     reader.onload = () => patch({ [uploadSlot.value]: String(reader.result).split(',')[1] });
     reader.readAsDataURL(file);
-  } catch (error) { ElMessage.error((error as Error).message); }
+  } catch (error) { ElMessage.error(t((error as Error).message)); }
 }
 </script>
 
 <template>
-  <el-dialog :model-value="true" :title="editing ? '修改图像判断' : '添加图像判断'" width="520px" top="5vh"
+  <el-dialog :model-value="true" :title="editing ? t('修改图像判断') : t('添加图像判断')" width="520px" top="5vh"
     class="image-check-dialog" append-to-body draggable :modal="false" modal-penetrable
     :close-on-click-modal="false" :close-on-press-escape="false" :show-close="!busy" @close="emit('close')">
     <el-form label-position="top" size="small" :disabled="busy">
-      <el-form-item label="检测模式">
+      <el-form-item :label="t('检测模式')">
         <el-select :model-value="config.mode" @update:model-value="patch({ mode: $event, consecutive: $event === 'black' ? 3 : 1, ratio: $event === 'change' ? 2 : 95 })">
-          <el-option v-for="(label, key) in IMAGE_CHECK_MODES" :key="key" :label="label" :value="key" />
+          <el-option v-for="(label, key) in IMAGE_CHECK_MODES" :key="key" :label="t(label)" :value="key" />
         </el-select>
-        <el-tooltip content="适合固定图标、图片勾选、黑屏、颜色和画面变化。不识别任意文字或业务语义，不能仅凭外观证明按钮可用或视频卡死。证据不足时报告无法判定。" :show-after="200">
+        <el-tooltip :content="t('适合固定图标、图片勾选、黑屏、颜色和画面变化。不识别任意文字或业务语义，不能仅凭外观证明按钮可用或视频卡死。证据不足时报告无法判定。')" :show-after="200">
           <el-icon class="image-check-help"><QuestionFilled /></el-icon>
         </el-tooltip>
       </el-form-item>
-      <el-form-item label="检测目标">
+      <el-form-item :label="t('检测目标')">
         <el-radio-group :model-value="config.target" @update:model-value="$event === 'element' ? emit('useElement') : patch({ target: 'region' })">
-          <el-radio-button value="element" :disabled="!hasElement && config.target !== 'element'">当前选中元素</el-radio-button>
-          <el-radio-button value="region">框选区域</el-radio-button>
+          <el-radio-button value="element" :disabled="!hasElement && config.target !== 'element'">{{ t("当前选中元素") }}</el-radio-button>
+          <el-radio-button value="region">{{ t("框选区域") }}</el-radio-button>
         </el-radio-group>
-        <el-tooltip content="组件按实时定位结果截图，同名组件必须限定父级；框选区域只在采集时相同屏幕尺寸下执行，尺寸变化需重新框选。模板按原始尺寸匹配，不自动缩放。">
+        <el-tooltip :content="t('组件按实时定位结果截图，同名组件必须限定父级；框选区域只在采集时相同屏幕尺寸下执行，尺寸变化需重新框选。模板按原始尺寸匹配，不自动缩放。')">
           <el-icon class="image-check-help"><QuestionFilled /></el-icon>
         </el-tooltip>
       </el-form-item>
-      <el-form-item v-if="config.target === 'region'" label="设备预览区域">
-        <el-button :icon="Aim" @click="emit('pick')">{{ picking ? '正在框选' : '框选 / 拖动区域' }}</el-button>
+      <el-form-item v-if="config.target === 'region'" :label="t('设备预览区域')">
+        <el-button :icon="Aim" @click="emit('pick')">{{ picking ? t("正在框选") : t("框选 / 拖动区域") }}</el-button>
       </el-form-item>
       <div class="image-check-grid">
-        <el-form-item v-for="(label, key) in { x: 'X', y: 'Y', width: '宽度', height: '高度' }" :key="key" :label="label">
+        <el-form-item v-for="(label, key) in { x: 'X', y: 'Y', width: '宽度', height: '高度' }" :key="key" :label="t(label)">
           <el-input-number :model-value="config.region[key]" :disabled="config.target === 'element'" :min="key === 'x' || key === 'y' ? 0 : 1" :max="16000" :precision="0" controls-position="right"
             @update:model-value="$event !== undefined && patch({ region: { ...config.region, [key]: $event } })" />
         </el-form-item>
       </div>
       <div v-if="slots.length" class="image-check-grid">
         <div v-for="slot in slots" :key="slot.key" class="image-check-template">
-          <span>{{ slot.label }}</span>
+          <span>{{ t(slot.label) }}</span>
           <small v-if="imageTemplateSize(config[slot.key])" class="image-check-size">{{ imageTemplateSize(config[slot.key])!.width }} × {{ imageTemplateSize(config[slot.key])!.height }} px</small>
           <el-image v-if="config[slot.key]" :src="'data:image/png;base64,' + config[slot.key]" :preview-src-list="['data:image/png;base64,' + config[slot.key]]" fit="contain" preview-teleported />
-          <div v-else class="image-check-empty">未采集</div>
+          <div v-else class="image-check-empty">{{ t("未采集") }}</div>
           <div>
-            <el-tooltip content="截取当前检测区域作为模板，可再次采集替换"><el-button :icon="Camera" :disabled="!deviceId" :loading="busy" aria-label="采集模板" @click="capture(slot.key)" /></el-tooltip>
-            <el-tooltip content="上传 PNG 替换模板"><el-button :icon="Upload" aria-label="上传模板" @click="chooseFile(slot.key)" /></el-tooltip>
+            <el-tooltip :content="t('截取当前检测区域作为模板，可再次采集替换')"><el-button :icon="Camera" :disabled="!deviceId" :loading="busy" :aria-label="t('采集模板')" @click="capture(slot.key)" /></el-tooltip>
+            <el-tooltip :content="t('上传 PNG 替换模板')"><el-button :icon="Upload" :aria-label="t('上传模板')" @click="chooseFile(slot.key)" /></el-tooltip>
           </div>
         </div>
       </div>
       <input ref="fileInput" type="file" accept="image/png" hidden @change="upload" />
-      <el-alert v-if="regionIssue" :title="regionIssue" type="warning" show-icon :closable="false" class="image-check-region-warning">
-        <el-button v-if="expandedRegion" size="small" @click="patch({ region: expandedRegion })">扩大检测区域</el-button>
+      <el-alert v-if="regionIssue" :title="t(regionIssue)" type="warning" show-icon :closable="false" class="image-check-region-warning">
+        <el-button v-if="expandedRegion" size="small" @click="patch({ region: expandedRegion })">{{ t("扩大检测区域") }}</el-button>
       </el-alert>
-      <el-form-item v-if="config.mode === 'template' || config.mode === 'change'" :label="config.mode === 'template' ? '预期匹配结果' : '判断条件'">
+      <el-form-item v-if="config.mode === 'template' || config.mode === 'change'" :label="config.mode === 'template' ? t('预期匹配结果') : t('判断条件')">
         <el-radio-group :model-value="config.expectation" @update:model-value="patch({ expectation: $event as 'present' | 'absent' })">
-          <el-radio-button value="present">{{ config.mode === 'template' ? '匹配到模板' : '画面有变化' }}</el-radio-button>
-          <el-radio-button value="absent">{{ config.mode === 'template' ? '未匹配到模板' : '持续无明显变化' }}</el-radio-button>
+          <el-radio-button value="present">{{ config.mode === 'template' ? t("匹配到模板") : t("画面有变化") }}</el-radio-button>
+          <el-radio-button value="absent">{{ config.mode === 'template' ? t("未匹配到模板") : t("持续无明显变化") }}</el-radio-button>
         </el-radio-group>
       </el-form-item>
-      <el-form-item v-if="config.mode === 'color'" label="目标颜色 #RRGGBB">
+      <el-form-item v-if="config.mode === 'color'" :label="t('目标颜色 #RRGGBB')">
         <el-color-picker :model-value="config.color" @update:model-value="$event && patch({ color: $event })" />
         <el-input :model-value="config.color" maxlength="7" @update:model-value="patch({ color: $event })" />
       </el-form-item>
       <div class="image-check-grid">
         <template v-for="field in numericFields" :key="field.key">
-          <el-form-item :label="field.label">
+          <el-form-item :label="t(field.label)">
             <template v-if="field.key === 'threshold'" #label>
-              <span class="image-check-threshold-label">{{ field.label }}
+              <span class="image-check-threshold-label">{{ t(field.label) }}
                 <el-tooltip effect="dark" placement="top" :show-after="200">
                   <template #content>
-                    <div class="image-check-threshold-help">
-                      当前画面与参考模板的匹配得分达到此值，才算匹配成功，得分不是正确概率。
-                      数值越高越严格，可能漏掉有细微变化的目标；越低越宽松，可能误认相似图案。
-                      例如设为 98%，需要匹配得分达到 98%。设为 100% 时，极细微的像素差异也会判为不匹配。图片状态判断还会结合两种模板的最小得分差，得分太接近时无法判定。
-                    </div>
+                    <div class="image-check-threshold-help"> {{ t("当前画面与参考模板的匹配得分达到此值，才算匹配成功，得分不是正确概率。 数值越高越严格，可能漏掉有细微变化的目标；越低越宽松，可能误认相似图案。 例如设为 98%，需要匹配得分达到 98%。设为 100% 时，极细微的像素差异也会判为不匹配。图片状态判断还会结合两种模板的最小得分差，得分太接近时无法判定。") }} </div>
                   </template>
-                  <el-button class="image-check-threshold-button" :icon="QuestionFilled" text aria-label="匹配严格度说明" @click.prevent />
+                  <el-button class="image-check-threshold-button" :icon="QuestionFilled" text :aria-label="t('匹配严格度说明')" @click.prevent />
                 </el-tooltip>
               </span>
             </template>
             <el-input-number :model-value="field.key === 'threshold' ? Number((config.threshold * 100).toFixed(8)) : config[field.key]" :min="field.min" :max="field.max" :step="field.step" controls-position="right" @update:model-value="$event !== undefined && patch({ [field.key]: field.key === 'threshold' ? $event / 100 : $event })" />
-            <el-alert v-if="field.key === 'threshold' && config.threshold === 1" title="100% 要求完全匹配，极细微的像素差异也会判为不匹配。" type="warning" :closable="false" show-icon class="image-check-strict-warning" />
+            <el-alert v-if="field.key === 'threshold' && config.threshold === 1" :title="t('100% 要求完全匹配，极细微的像素差异也会判为不匹配。')" type="warning" :closable="false" show-icon class="image-check-strict-warning" />
           </el-form-item>
           <BranchTimeoutSettings v-if="field.key === 'durationMs'" style="grid-column: 1 / -1" :step="{ id: '', label: '', type: 'imageCheck', timeoutBranch }" :disabled="busy" @update="emit('timeoutBranch', $event)" />
         </template>
       </div>
       <BranchTimeoutSettings v-if="config.mode === 'state'" :step="{ id: '', label: '', type: 'imageCheck', timeoutBranch }" :disabled="busy" @update="emit('timeoutBranch', $event)" />
     </el-form>
-    <template #footer><el-button :disabled="busy" @click="emit('close')">取消</el-button><el-button type="primary" :disabled="busy" @click="confirm">{{ editing ? '保存' : '添加' }}</el-button></template>
+    <template #footer><el-button :disabled="busy" @click="emit('close')">{{ t("取消") }}</el-button><el-button type="primary" :disabled="busy" @click="confirm">{{ editing ? t("保存") : t("添加") }}</el-button></template>
   </el-dialog>
 </template>
 

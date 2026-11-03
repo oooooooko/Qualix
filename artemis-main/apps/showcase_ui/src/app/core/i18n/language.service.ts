@@ -1,61 +1,71 @@
 import { DOCUMENT } from '@angular/common';
-import { inject, Injectable, signal } from '@angular/core';
-import { ZH_CN } from './zh-cn';
+import { inject, Injectable, signal, OnDestroy } from '@angular/core';
+import { artemisMessages, languages, LANGUAGE_STORAGE_KEY, normalizeLocale, type Locale } from '../../../../../../../locales';
+export { LANGUAGE_STORAGE_KEY } from '../../../../../../../locales';
+export type UiLanguage = Locale;
 
-export type UiLanguage = 'zh' | 'en';
-export const LANGUAGE_STORAGE_KEY = 'artemis.ui.language';
+const templates = Object.keys(artemisMessages.en).filter(key => /\{\d+\}/.test(key)).map(key => ({
+  key,
+  expression: new RegExp('^' + key.split(/(\{\d+\})/).map(part => /^\{\d+\}$/.test(part)
+    ? '([\\s\\S]*?)' : part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('') + '$'),
+}));
 
-/** UI copy only: task text, model output and device identifiers stay untouched. */
+/** The host Settings page owns the preference; task/model/device content stays unchanged. */
 @Injectable({ providedIn: 'root' })
-export class LanguageService {
+export class LanguageService implements OnDestroy {
   private readonly document = inject(DOCUMENT);
-  private readonly current = signal<UiLanguage>(this.readPreference());
+  private readonly current = signal<Locale>(this.readPreference());
   readonly language = this.current.asReadonly();
+  private readonly onHostMessage = (event: MessageEvent) => {
+    const view = this.document.defaultView;
+    if (!view || event.source !== view.parent || view.parent === view) return;
+    const origin = this.parentOrigin();
+    if (!origin || event.origin !== origin || event.data?.type !== 'qualix:language') return;
+    if (!languages.some(language => language.code === event.data.locale)) return;
+    this.setLanguage(event.data.locale);
+  };
 
   constructor() {
     this.updateDocument();
+    this.document.defaultView?.addEventListener?.('message', this.onHostMessage);
   }
+  ngOnDestroy(): void { this.document.defaultView?.removeEventListener?.('message', this.onHostMessage); }
 
-  setLanguage(language: UiLanguage): void {
-    this.current.set(language);
+  setLanguage(language: Locale | 'zh'): void {
+    this.current.set(normalizeLocale(language));
     this.updateDocument();
-    try {
-      this.document.defaultView?.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    } catch {
-      // The switch still works if the browser disallows persistent storage.
-    }
+    try { this.document.defaultView?.localStorage.setItem(LANGUAGE_STORAGE_KEY, this.language()); } catch { /* Storage can be blocked in an embedded browser. */ }
   }
 
   translate(value: string | null | undefined): string {
     if (!value) return '';
-    if (this.language() === 'en') return value;
     const key = value.replace(/\s+/g, ' ').trim();
-    const translated = ZH_CN[key];
+    const messages = artemisMessages[this.language()];
+    let translated = messages[key];
     if (translated === undefined) {
-      // Known diagnostic templates preserve variable identifiers verbatim.
-      return value
-        .replace(/^Python ([\d.]+) Ready$/, 'Python $1 已就绪')
-        .replace(/^Python ([\d.]+) Unsupported$/, 'Python $1 不受支持')
-        .replace(/^(\d+) failed$/, '$1 项失败')
-        .replace(/^Stop current task: /, '停止当前任务：')
-        .replace(/^Stop current task \((.+)\)$/, '停止当前任务（$1）')
-        .replace(/^ADB connected to (.+), but the Android lock screen is active\. Unlock the device and enter the home screen before running a task\.$/,
-          'ADB 已连接到 $1，但设备处于锁屏状态。请解锁并进入主屏幕后再运行任务。')
-        .replace(/^ADB connected to (.+), but Android lock-screen state could not be verified\. Keep the device unlocked on the home screen and check again\.$/,
-          'ADB 已连接到 $1，但无法确认锁屏状态。请保持设备解锁并停留在主屏幕，然后再次检查。');
+      for (const template of templates) {
+        const match = template.expression.exec(key);
+        if (!match) continue;
+        translated = (messages[template.key] ?? template.key).replace(/\{(\d+)\}/g, (_token, index: string) => match[Number(index) + 1] ?? '');
+        break;
+      }
     }
-    return value.match(/^\s*/)?.[0] + translated + value.match(/\s*$/)?.[0];
+    return translated === undefined ? value : (value.match(/^\s*/)?.[0] ?? '') + translated + (value.match(/\s*$/)?.[0] ?? '');
   }
 
-  private readPreference(): UiLanguage {
+  private readPreference(): Locale {
     try {
-      return this.document.defaultView?.localStorage.getItem(LANGUAGE_STORAGE_KEY) === 'en' ? 'en' : 'zh';
-    } catch {
-      return 'zh';
-    }
+      const requested = new URL(this.document.defaultView?.location?.href ?? 'http://localhost').searchParams.get('uiLanguage');
+      if (languages.some(language => language.code === requested)) return normalizeLocale(requested);
+      const storage = this.document.defaultView?.localStorage;
+      return normalizeLocale(storage?.getItem(LANGUAGE_STORAGE_KEY) ?? storage?.getItem('artemis.ui.language'));
+    } catch { return 'zh-CN'; }
   }
-
-  private updateDocument(): void {
-    this.document.documentElement.lang = this.language() === 'zh' ? 'zh-CN' : 'en';
+  private parentOrigin(): string {
+    try {
+      const value = new URL(this.document.defaultView?.location?.href ?? 'http://localhost').searchParams.get('parentOrigin');
+      return value ? new URL(value).origin : '';
+    } catch { return ''; }
   }
+  private updateDocument(): void { this.document.documentElement.lang = this.language(); }
 }

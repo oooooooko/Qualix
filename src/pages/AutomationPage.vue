@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../i18n';
 import { CopyDocument, Delete, View } from '@element-plus/icons-vue';
 import DevicePreviewPanel from '../components/device/DevicePreviewPanel.vue';
 import type { AndroidDevice, DeviceAction, ExecutionStep, SavedScript } from '../types';
@@ -56,7 +57,7 @@ const getRunStatusTagText = (status: string) => {
 <template>
   <section class="automation-layout">
     <el-card shadow="never" class="automation-card">
-      <template #header>脚本列表</template>
+      <template #header>{{ t("脚本列表") }}</template>
       <div class="script-list">
         <div
           v-for="item in savedScripts"
@@ -78,14 +79,14 @@ const getRunStatusTagText = (status: string) => {
               text
               size="small"
               :icon="View"
-              title="查看代码"
-              aria-label="查看代码"
+              :title="t('查看代码')"
+              :aria-label="t('查看代码')"
               @click.stop="openCodeDialog(item)"
             />
             <el-button text size="small" :icon="Delete" @click.stop="removeSavedScript(item.id)" />
           </div>
         </div>
-        <el-empty v-if="!savedScripts.length" description="暂无脚本" />
+        <el-empty v-if="!savedScripts.length" :description="t('暂无脚本')" />
       </div>
     </el-card>
 
@@ -108,22 +109,22 @@ const getRunStatusTagText = (status: string) => {
       />
 
       <el-card shadow="never" class="automation-card execution-card">
-        <template #header>执行面板</template>
+        <template #header>{{ t("执行面板") }}</template>
         <el-form label-position="top">
-          <el-form-item class="execution-script-item" label="当前脚本">
+          <el-form-item class="execution-script-item" :label="t('当前脚本')">
             <el-input :model-value="selectedScript ? `${selectedScript.promptTitle || selectedScript.name} · ${selectedScript.name}` : ''" readonly />
           </el-form-item>
           <el-form-item class="execution-output-item">
             <div class="execution-output-section">
               <div class="execution-output-header">
-                <strong>执行输出</strong>
+                <strong>{{ t("执行输出") }}</strong>
                 <div class="execution-output-toolbar">
                   <el-tag
                     v-if="lastRunStatus"
                     size="small"
                     :type="getRunStatusTagType(lastRunStatus)"
                   >
-                    {{ getRunStatusTagText(lastRunStatus) }}
+                    {{ t(getRunStatusTagText(lastRunStatus)) }}
                   </el-tag>
                   <span v-if="runningElapsedText" class="execution-output-duration">
                     {{ runningElapsedText }}
@@ -134,12 +135,8 @@ const getRunStatusTagText = (status: string) => {
                     :icon="CopyDocument"
                     :disabled="!executionLog"
                     @click="$emit('copyExecutionLog')"
-                  >
-                    复制
-                  </el-button>
-                  <el-button size="small" text :disabled="!executionLog" @click="$emit('clearExecutionLog')">
-                    清除
-                  </el-button>
+                  > {{ t("复制") }} </el-button>
+                  <el-button size="small" text :disabled="!executionLog" @click="$emit('clearExecutionLog')"> {{ t("清除") }} </el-button>
                 </div>
               </div>
               <div class="execution-log execution-log--panel">

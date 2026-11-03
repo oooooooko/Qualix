@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { RefreshLeft, Fold, Operation } from '@element-plus/icons-vue';
 
@@ -84,29 +85,29 @@ defineExpose({ showTree, showPreview });
 <template>
   <div ref="container" class="recorder-workspace">
     <div class="recorder-workspace__toolbar">
-      <el-radio-group :model-value="settings.mode" size="small" aria-label="工作区布局" @update:model-value="setMode">
-        <el-radio-button value="recording">录制布局</el-radio-button>
-        <el-radio-button value="flow">流程布局</el-radio-button>
+      <el-radio-group :model-value="settings.mode" size="small" :aria-label="t('工作区布局')" @update:model-value="setMode">
+        <el-radio-button value="recording">{{ t("录制布局") }}</el-radio-button>
+        <el-radio-button value="flow">{{ t("流程布局") }}</el-radio-button>
       </el-radio-group>
       <div class="recorder-workspace__tools">
-        <el-tooltip content="恢复默认布局" placement="top"><el-button :icon="RefreshLeft" size="small" aria-label="恢复默认布局" @click="resetLayout" /></el-tooltip>
+        <el-tooltip :content="t('恢复默认布局')" placement="top"><el-button :icon="RefreshLeft" size="small" :aria-label="t('恢复默认布局')" @click="resetLayout" /></el-tooltip>
       </div>
     </div>
     <div class="recorder-workspace__panels" :style="{ gridTemplateColumns: columns }">
       <div v-show="!previewCollapsed || drawer === 'preview'" class="recorder-workspace__panel" :class="{ 'recorder-workspace__panel--drawer': drawer === 'preview' }">
         <slot name="preview" />
-        <el-tooltip content="收起设备预览" placement="top" :show-after="200"><el-button class="recorder-workspace__collapse recorder-panel-tool" :icon="Fold" size="small" aria-label="收起设备预览" @click="settings.previewHidden = true; drawer = null" /></el-tooltip>
+        <el-tooltip :content="t('收起设备预览')" placement="top" :show-after="200"><el-button class="recorder-workspace__collapse recorder-panel-tool" :icon="Fold" size="small" :aria-label="t('收起设备预览')" @click="settings.previewHidden = true; drawer = null" /></el-tooltip>
       </div>
-      <button v-if="previewCollapsed" class="recorder-workspace__rail" aria-label="展开设备预览" title="展开设备预览" @click="showPreview"><el-icon><Operation /></el-icon><span>设备预览</span></button>
-      <div class="recorder-workspace__separator" :class="{ 'is-disabled': previewCollapsed }" role="separator" aria-label="调整设备预览宽度" aria-orientation="vertical" :aria-valuenow="previewWidth" :tabindex="previewCollapsed ? -1 : 0" @pointerdown="!previewCollapsed && beginResize($event, 'previewWidth')" @pointermove="resize" @pointerup="drag = null" @pointercancel="drag = null" @keydown="resizeKey($event, 'previewWidth')" />
+      <button v-if="previewCollapsed" class="recorder-workspace__rail" :aria-label="t('展开设备预览')" :title="t('展开设备预览')" @click="showPreview"><el-icon><Operation /></el-icon><span>{{ t("设备预览") }}</span></button>
+      <div class="recorder-workspace__separator" :class="{ 'is-disabled': previewCollapsed }" role="separator" :aria-label="t('调整设备预览宽度')" aria-orientation="vertical" :aria-valuenow="previewWidth" :tabindex="previewCollapsed ? -1 : 0" @pointerdown="!previewCollapsed && beginResize($event, 'previewWidth')" @pointermove="resize" @pointerup="drag = null" @pointercancel="drag = null" @keydown="resizeKey($event, 'previewWidth')" />
       <div v-show="!treeCollapsed || drawer === 'tree'" class="recorder-workspace__panel" :class="{ 'recorder-workspace__panel--drawer': drawer === 'tree' }">
         <slot name="tree" />
-        <el-tooltip content="收起组件树" placement="top" :show-after="200"><el-button class="recorder-workspace__collapse recorder-panel-tool" :icon="Fold" size="small" aria-label="收起组件树" @click="settings.treeHidden = true; drawer = null" /></el-tooltip>
+        <el-tooltip :content="t('收起组件树')" placement="top" :show-after="200"><el-button class="recorder-workspace__collapse recorder-panel-tool" :icon="Fold" size="small" :aria-label="t('收起组件树')" @click="settings.treeHidden = true; drawer = null" /></el-tooltip>
       </div>
-      <button v-if="treeCollapsed" class="recorder-workspace__rail" aria-label="展开组件树" title="展开组件树" @click="showTree"><el-icon><Operation /></el-icon><span>组件树</span></button>
-      <div class="recorder-workspace__separator" :class="{ 'is-disabled': treeCollapsed }" role="separator" aria-label="调整组件树宽度" aria-orientation="vertical" :aria-valuenow="treeWidth" :tabindex="treeCollapsed ? -1 : 0" @pointerdown="!treeCollapsed && beginResize($event, 'treeWidth')" @pointermove="resize" @pointerup="drag = null" @pointercancel="drag = null" @keydown="resizeKey($event, 'treeWidth')" />
+      <button v-if="treeCollapsed" class="recorder-workspace__rail" :aria-label="t('展开组件树')" :title="t('展开组件树')" @click="showTree"><el-icon><Operation /></el-icon><span>{{ t("组件树") }}</span></button>
+      <div class="recorder-workspace__separator" :class="{ 'is-disabled': treeCollapsed }" role="separator" :aria-label="t('调整组件树宽度')" aria-orientation="vertical" :aria-valuenow="treeWidth" :tabindex="treeCollapsed ? -1 : 0" @pointerdown="!treeCollapsed && beginResize($event, 'treeWidth')" @pointermove="resize" @pointerup="drag = null" @pointercancel="drag = null" @keydown="resizeKey($event, 'treeWidth')" />
       <div class="recorder-workspace__main"><slot /></div>
-      <button v-if="drawer" class="recorder-workspace__backdrop" aria-label="关闭侧面板" @click="drawer = null" />
+      <button v-if="drawer" class="recorder-workspace__backdrop" :aria-label="t('关闭侧面板')" @click="drawer = null" />
     </div>
   </div>
 </template>

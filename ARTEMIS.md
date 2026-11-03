@@ -1,5 +1,7 @@
 # Artemis 使用说明
 
+[简体中文](./ARTEMIS.md) | [English](./ARTEMIS.en.md)
+
 本文档介绍 Qualix 中 Artemis 的启动、模型配置和任务执行。项目环境要求与主程序启动方式见 [README](./README.md)。
 
 ## 启动与控制台集成

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { AppiumRecordedStep } from '../types';
@@ -53,45 +54,45 @@ function submit() {
 </script>
 
 <template>
-  <el-dialog :model-value="Boolean(conditionId)" :title="unmerging ? '取消合并' : '合并分支'" width="min(520px, 94vw)" append-to-body :close-on-click-modal="false" @close="emit('close')">
+  <el-dialog :model-value="Boolean(conditionId)" :title="unmerging ? t('取消合并') : t('合并分支')" width="min(520px, 94vw)" append-to-body :close-on-click-modal="false" @close="emit('close')">
     <el-form v-if="unmerging" label-position="top">
-      <el-alert v-if="typeof undoPreview === 'string'" :title="undoPreview" type="warning" :closable="false" />
-        <el-alert v-else title="还原合并前的分支及被删除的重复节点，保留现有节点配置修改。" type="info" :closable="false" />
-        <el-form-item v-if="condition?.mergeUndo && (typeof undoPreview === 'string' || undoPreview?.addedCount)" label="公共流程新增操作保留位置">
-          <el-radio-group v-model="addedSide" aria-label="新增操作保留位置">
-            <el-radio-button value="both">两侧都保留</el-radio-button>
-            <el-radio-button value="yes">仅左侧</el-radio-button>
-            <el-radio-button value="no">仅右侧</el-radio-button>
+      <el-alert v-if="typeof undoPreview === 'string'" :title="t(undoPreview)" type="warning" :closable="false" />
+        <el-alert v-else :title="t('还原合并前的分支及被删除的重复节点，保留现有节点配置修改。')" type="info" :closable="false" />
+        <el-form-item v-if="condition?.mergeUndo && (typeof undoPreview === 'string' || undoPreview?.addedCount)" :label="t('公共流程新增操作保留位置')">
+          <el-radio-group v-model="addedSide" :aria-label="t('新增操作保留位置')">
+            <el-radio-button value="both">{{ t("两侧都保留") }}</el-radio-button>
+            <el-radio-button value="yes">{{ t("仅左侧") }}</el-radio-button>
+            <el-radio-button value="no">{{ t("仅右侧") }}</el-radio-button>
           </el-radio-group>
-          <p>原来源分支保留新增操作的相对位置；分配到另一侧的操作放在该分支末尾。</p>
+          <p>{{ t("原来源分支保留新增操作的相对位置；分配到另一侧的操作放在该分支末尾。") }}</p>
         </el-form-item>
     </el-form>
     <el-form v-else label-position="top">
-      <el-form-item label="合并方向">
-        <el-radio-group v-model="retainedSide" aria-label="合并方向">
-          <el-radio-button value="yes">保留左侧流程</el-radio-button>
-          <el-radio-button value="no">保留右侧流程</el-radio-button>
+      <el-form-item :label="t('合并方向')">
+        <el-radio-group v-model="retainedSide" :aria-label="t('合并方向')">
+          <el-radio-button value="yes">{{ t("保留左侧流程") }}</el-radio-button>
+          <el-radio-button value="no">{{ t("保留右侧流程") }}</el-radio-button>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="保留的公共流程起点">
-        <el-select v-model="commonId" aria-label="保留的公共流程起点" style="width: 100%">
+      <el-form-item :label="t('保留的公共流程起点')">
+        <el-select v-model="commonId" :aria-label="t('保留的公共流程起点')" style="width: 100%">
           <el-option v-for="step in candidates" :key="step.id" :value="step.id"
             :label="`${condition ? flowBranchLabel(condition, step.flow!.parentBranch!) : ''} · ${step.label}`" />
         </el-select>
       </el-form-item>
-      <el-form-item :label="retainedSide === 'yes' ? '右侧重复部分起点' : '左侧重复部分起点'">
-        <el-select v-model="duplicateId" :disabled="!commonId" aria-label="另一侧重复部分起点" style="width: 100%">
-          <el-option value="" label="不删除，保留另一侧全部操作后接入" />
+      <el-form-item :label="retainedSide === 'yes' ? t('右侧重复部分起点') : t('左侧重复部分起点')">
+        <el-select v-model="duplicateId" :disabled="!commonId" :aria-label="t('另一侧重复部分起点')" style="width: 100%">
+          <el-option value="" :label="t('不删除，保留另一侧全部操作后接入')" />
           <el-option v-for="step in duplicates" :key="step.id" :value="step.id" :label="step.label" />
         </el-select>
       </el-form-item>
-      <el-alert v-if="typeof preview === 'string'" :title="preview" type="error" :closable="false" />
-      <el-checkbox v-else-if="preview?.removedCount" v-model="confirmed">确认删除另一侧从所选起点开始的 {{ preview.removedCount }} 个节点</el-checkbox>
+      <el-alert v-if="typeof preview === 'string'" :title="t(preview)" type="error" :closable="false" />
+      <el-checkbox v-else-if="preview?.removedCount" v-model="confirmed">{{ t("确认删除另一侧从所选起点开始的") }} {{ preview.removedCount }} {{ t("个节点") }}</el-checkbox>
     </el-form>
     <template #footer>
-      <el-button @click="emit('close')">取消</el-button>
-      <el-button v-if="unmerging" type="primary" :disabled="disabled || !undoPreview || typeof undoPreview === 'string'" @click="submit">取消合并</el-button>
-      <el-button v-else type="primary" :disabled="disabled || !preview || typeof preview === 'string' || Boolean(preview.removedCount && !confirmed)" @click="submit">合并分支</el-button>
+      <el-button @click="emit('close')">{{ t("取消") }}</el-button>
+      <el-button v-if="unmerging" type="primary" :disabled="disabled || !undoPreview || typeof undoPreview === 'string'" @click="submit">{{ t("取消合并") }}</el-button>
+      <el-button v-else type="primary" :disabled="disabled || !preview || typeof preview === 'string' || Boolean(preview.removedCount && !confirmed)" @click="submit">{{ t("合并分支") }}</el-button>
     </template>
   </el-dialog>
 </template>

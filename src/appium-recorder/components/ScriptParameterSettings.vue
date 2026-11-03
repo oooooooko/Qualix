@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { Delete, Plus } from '@element-plus/icons-vue';
 import VariableTable from './VariableTable.vue';
 import type { AppiumRecordedStep } from '../types';
@@ -14,28 +15,28 @@ function update(index: number, patch: Partial<ScriptReturn>) {
   <div class="script-parameter-settings">
     <section class="script-parameter-settings__section">
       <div class="script-parameter-settings__heading">
-        <strong>传入子脚本参数</strong>
-        <span>同名参数会覆盖子脚本中的变量值</span>
+        <strong>{{ t("传入子脚本参数") }}</strong>
+        <span>{{ t("同名参数会覆盖子脚本中的变量值") }}</span>
       </div>
-      <VariableTable layout="cards" empty-text="暂无传入参数" :model-value="step.parameters || []" :disabled="disabled" @update:model-value="emit('update', { parameters: $event })" />
+      <VariableTable layout="cards" :empty-text="t('暂无传入参数')" :model-value="step.parameters || []" :disabled="disabled" @update:model-value="emit('update', { parameters: $event })" />
     </section>
     <section class="script-parameter-settings__section">
       <div class="script-parameter-settings__heading">
-        <strong>返回值映射</strong>
-        <span>将子脚本执行后的变量保存到当前脚本</span>
+        <strong>{{ t("返回值映射") }}</strong>
+        <span>{{ t("将子脚本执行后的变量保存到当前脚本") }}</span>
       </div>
       <div class="return-mappings">
       <div v-for="(item, index) in step.returns || []" :key="index" class="return-row">
-        <label><span>子脚本变量</span><el-input :model-value="item.name" placeholder="例如：result" aria-label="子脚本返回变量" :disabled="disabled" @update:model-value="update(index, { name: String($event) })" /></label>
+        <label><span>{{ t("子脚本变量") }}</span><el-input :model-value="item.name" :placeholder="t('例如：result')" :aria-label="t('子脚本返回变量')" :disabled="disabled" @update:model-value="update(index, { name: String($event) })" /></label>
         <span class="return-row__arrow">→</span>
-        <label><span>当前脚本变量</span><el-input :model-value="item.target" placeholder="例如：deviceResult" aria-label="返回目标变量" :disabled="disabled" @update:model-value="update(index, { target: String($event) })" /></label>
-        <el-tooltip content="删除映射"><el-button :icon="Delete" text :disabled="disabled" aria-label="删除返回映射" @click="emit('update', { returns: step.returns!.filter((_, i) => i !== index) })" /></el-tooltip>
+        <label><span>{{ t("当前脚本变量") }}</span><el-input :model-value="item.target" :placeholder="t('例如：deviceResult')" :aria-label="t('返回目标变量')" :disabled="disabled" @update:model-value="update(index, { target: String($event) })" /></label>
+        <el-tooltip :content="t('删除映射')"><el-button :icon="Delete" text :disabled="disabled" :aria-label="t('删除返回映射')" @click="emit('update', { returns: step.returns!.filter((_, i) => i !== index) })" /></el-tooltip>
       </div>
       <div v-if="!(step.returns || []).length" class="return-mappings__empty">
-        <span>无需获取子脚本返回值</span>
-        <small>需要继续使用子脚本产生的变量时再添加映射</small>
+        <span>{{ t("无需获取子脚本返回值") }}</span>
+        <small>{{ t("需要继续使用子脚本产生的变量时再添加映射") }}</small>
       </div>
-      <el-button class="return-mappings__add" :icon="Plus" :disabled="disabled" size="small" @click="emit('update', { returns: [...(step.returns || []), { name: '', target: '' }] })">新增返回映射</el-button>
+      <el-button class="return-mappings__add" :icon="Plus" :disabled="disabled" size="small" @click="emit('update', { returns: [...(step.returns || []), { name: '', target: '' }] })">{{ t("新增返回映射") }}</el-button>
       </div>
     </section>
   </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed } from 'vue';
 import type { AppiumRecordedStep } from '../types';
 import { enclosingLoops } from '../bounded-loop';
@@ -25,9 +26,9 @@ function updateTarget(value: string) {
 </script>
 
 <template>
-  <el-form-item :label="fieldLabel">
-    <el-select class="break-loop-target" popper-class="break-loop-target-popper" :model-value="targetId" :disabled="disabled" :aria-label="fieldLabel" @update:model-value="updateTarget">
-      <el-option class="break-loop-target-option" v-for="(loop, index) in loops" :key="loop.id" :value="loop.id" :label="`${loop.label}（${index === 0 ? '当前循环' : `外层 ${index}`} · 节点 ${steps.findIndex(item => item.id === loop.id) + 1}）`" />
+  <el-form-item :label="t(fieldLabel)">
+    <el-select class="break-loop-target" popper-class="break-loop-target-popper" :model-value="targetId" :disabled="disabled" :aria-label="t(fieldLabel)" @update:model-value="updateTarget">
+      <el-option class="break-loop-target-option" v-for="(loop, index) in loops" :key="loop.id" :value="loop.id" :label="t('{0}（{1} · 节点 {2}）', { 0: loop.label, 1: index === 0 ? '当前循环' : `外层 ${index}`, 2: steps.findIndex(item => item.id === loop.id) + 1 })" />
     </el-select>
   </el-form-item>
 </template>

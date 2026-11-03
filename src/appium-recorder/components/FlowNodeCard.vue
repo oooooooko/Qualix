@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, inject, onBeforeUnmount, onMounted, shallowRef } from 'vue';
 import { flowLayoutDirectionKey, normalizeFlowLayoutDirection } from '../flow-appearance';
 import { Handle, Position } from '@vue-flow/core';
@@ -114,8 +115,8 @@ onBeforeUnmount(() => {
     <div v-if="data.kind === 'start'" class="appium-flow-start-card nodrag nopan">
       <span class="appium-flow-start-card__icon">S</span>
       <span>
-        <strong>开始</strong>
-        <small>当前脚本入口</small>
+        <strong>{{ t("开始") }}</strong>
+        <small>{{ t("当前脚本入口") }}</small>
       </span>
     </div>
 
@@ -127,7 +128,7 @@ onBeforeUnmount(() => {
       style="width: 100%"
       tabindex="-1"
     >
-      {{ data.label }}
+      {{ t(data.label) }}
     </button>
 
     <span
@@ -142,7 +143,7 @@ onBeforeUnmount(() => {
         class="appium-flow-insert-preview-point"
         aria-hidden="true"
       />
-      <el-tooltip v-else content="添加操作" placement="top">
+      <el-tooltip v-else :content="t('添加操作')" placement="top">
         <FlowActionMenu
           :groups="data.actionGroups"
           :disabled="!data.canOpenInsertMenu"
@@ -155,7 +156,7 @@ onBeforeUnmount(() => {
             type="primary"
             :icon="Plus"
             :disabled="!data.canOpenInsertMenu"
-            :aria-label="insertTitle"
+            :aria-label="t(insertTitle)"
           />
         </FlowActionMenu>
       </el-tooltip>
@@ -183,36 +184,36 @@ onBeforeUnmount(() => {
         @click="handleStepClick"
       >
         <span class="appium-flow-step-card__content">
-          <el-tooltip v-if="data.missingAiModel" content="请在参数配置 > Appium配置中配置 AI 识别模型" placement="top">
-            <el-icon class="appium-ai-model-warning" color="var(--el-color-danger)" role="img" aria-label="AI 识别模型未配置" tabindex="0">
+          <el-tooltip v-if="data.missingAiModel" :content="t('请在参数配置 > Appium配置中配置 AI 识别模型')" placement="top">
+            <el-icon class="appium-ai-model-warning" color="var(--el-color-danger)" role="img" :aria-label="t('AI 识别模型未配置')" tabindex="0">
               <WarningFilled />
             </el-icon>
           </el-tooltip>
           <strong :title="`${data.index + 1}. ${data.title}`"><span class="appium-flow-node-number">{{ data.index + 1 }}.</span> {{ data.title }}</strong>
           <small
             :class="{ 'appium-flow-step-card__meta--clamped': data.step.type === 'aiRecognition' }"
-            :title="data.meta"
+            :title="t(data.meta)"
           >{{ data.meta }}</small>
           <em v-if="data.note" :title="data.note">{{ data.note }}</em>
         </span>
       </button>
       <span v-if="!props.readonly && !data.deleteMode" class="appium-flow-step-card__actions nodrag nopan" @click.stop>
-        <el-tooltip v-if="data.flowKind === 'condition' && data.step.type !== 'loop' && !data.copyMode" :content="data.step.flow?.successTargetId ? '取消合并：还原分支并保留后续编辑' : '合并分支：将两侧后续节点汇入公共流程'" placement="top" :show-after="200">
+        <el-tooltip v-if="data.flowKind === 'condition' && data.step.type !== 'loop' && !data.copyMode" :content="data.step.flow?.successTargetId ? t('取消合并：还原分支并保留后续编辑') : t('合并分支：将两侧后续节点汇入公共流程')" placement="top" :show-after="200">
         <span class="appium-node-action-tooltip"><el-button text size="small" :icon="data.step.flow?.successTargetId ? RefreshLeft : Connection"
-          :title="data.step.flow?.successTargetId ? '取消合并' : '合并分支'" :aria-label="data.step.flow?.successTargetId ? '取消合并' : '合并分支'" :disabled="data.mergeDisabled"
+          :title="data.step.flow?.successTargetId ? t('取消合并') : t('合并分支')" :aria-label="data.step.flow?.successTargetId ? t('取消合并') : t('合并分支')" :disabled="data.mergeDisabled"
           @click="emit('merge', data.index)" />
         </span></el-tooltip>
-        <el-tooltip v-if="!data.copyMode && data.canCopy" content="复制节点：复制后可在插入位置粘贴" placement="top" :show-after="200">
+        <el-tooltip v-if="!data.copyMode && data.canCopy" :content="t('复制节点：复制后可在插入位置粘贴')" placement="top" :show-after="200">
         <span class="appium-node-action-tooltip">
         <el-button
           text
           size="small"
           :icon="CopyDocument"
-          title="复制节点"
+          :title="t('复制节点')"
           @click="emit('copy', data.index)"
         />
         </span></el-tooltip>
-        <el-tooltip v-if="data.canExecute" :content="data.step.type === 'aiRecognition' ? '测试 AI 识别：使用当前设备画面测试识别结果' : '立即执行：在当前设备上执行此操作'" placement="top" :show-after="200">
+        <el-tooltip v-if="data.canExecute" :content="data.step.type === 'aiRecognition' ? t('测试 AI 识别：使用当前设备画面测试识别结果') : t('立即执行：在当前设备上执行此操作')" placement="top" :show-after="200">
         <span class="appium-node-action-tooltip">
         <el-button
           text
@@ -220,40 +221,40 @@ onBeforeUnmount(() => {
           :icon="VideoPlay"
           :loading="data.launching"
           :disabled="data.disabled"
-          :title="data.step.type === 'aiRecognition' ? '测试 AI 识别' : '立即执行'"
-          :aria-label="data.step.type === 'aiRecognition' ? '测试 AI 识别' : '立即执行'"
+          :title="data.step.type === 'aiRecognition' ? t('测试 AI 识别') : t('立即执行')"
+          :aria-label="data.step.type === 'aiRecognition' ? t('测试 AI 识别') : t('立即执行')"
           @click="emit('execute', data.index)"
         />
         </span></el-tooltip>
-        <el-tooltip v-if="data.canEditInput" :content="data.step.type === 'runScript' ? '修改连接脚本' : data.step.type === 'imageCheck' ? '修改图像判断配置' : '修改输入内容：编辑此节点要输入的文字'" placement="top" :show-after="200">
+        <el-tooltip v-if="data.canEditInput" :content="data.step.type === 'runScript' ? t('修改连接脚本') : data.step.type === 'imageCheck' ? t('修改图像判断配置') : t('修改输入内容：编辑此节点要输入的文字')" placement="top" :show-after="200">
         <span class="appium-node-action-tooltip">
         <el-button
           text
           size="small"
           :icon="Edit"
           :disabled="data.disabled"
-          :title="data.step.type === 'runScript' ? '修改连接脚本' : data.step.type === 'imageCheck' ? '修改图像判断配置' : '修改输入内容'"
+          :title="data.step.type === 'runScript' ? t('修改连接脚本') : data.step.type === 'imageCheck' ? t('修改图像判断配置') : t('修改输入内容')"
           @click="emit('editInput', data.index)"
         />
         </span></el-tooltip>
-        <el-tooltip v-if="data.step.type === 'runScript'" content="预览连接脚本：查看关联脚本的流程" placement="top" :show-after="200">
+        <el-tooltip v-if="data.step.type === 'runScript'" :content="t('预览连接脚本：查看关联脚本的流程')" placement="top" :show-after="200">
         <span class="appium-node-action-tooltip">
         <el-button
           text
           size="small"
           :icon="View"
-          title="预览连接脚本"
+          :title="t('预览连接脚本')"
           @click="emit('previewLinkedScript', data.index)"
         />
         </span></el-tooltip>
-        <el-tooltip :content="data.flowKind === 'condition' ? '删除节点：同时删除所属分支子节点，保留公共流程' : '删除节点：移除此操作并连接前后节点'" placement="top" :show-after="200">
+        <el-tooltip :content="data.flowKind === 'condition' ? t('删除节点：同时删除所属分支子节点，保留公共流程') : t('删除节点：移除此操作并连接前后节点')" placement="top" :show-after="200">
         <span class="appium-node-action-tooltip">
         <el-button
           text
           size="small"
           :icon="Delete"
           :disabled="data.removeDisabled"
-          title="删除节点"
+          :title="t('删除节点')"
           @click="emit('remove', data.index)"
         />
         </span></el-tooltip>

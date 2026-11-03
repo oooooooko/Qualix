@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../i18n';
 import { shallowRef } from 'vue';
 import BaseConfigPanel from '../components/config/BaseConfigPanel.vue';
 import AppiumConfigPanel from '../components/config/AppiumConfigPanel.vue';
@@ -45,7 +46,7 @@ function handleTabKeydown(event: KeyboardEvent, index: number) {
 
 <template>
   <div class="config-page">
-    <div class="subnav config-tabs" role="tablist" aria-label="参数配置分类">
+    <div class="subnav config-tabs" role="tablist" :aria-label="t('参数配置分类')">
       <button
         v-for="(tab, index) in tabs"
         :id="`config-tab-${tab.name}`"
@@ -60,7 +61,7 @@ function handleTabKeydown(event: KeyboardEvent, index: number) {
         @click="activeTab = tab.name"
         @keydown="handleTabKeydown($event, index)"
       >
-        {{ tab.label }}
+        {{ t(tab.label) }}
       </button>
     </div>
 

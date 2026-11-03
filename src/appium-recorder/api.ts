@@ -1,3 +1,4 @@
+import { locale } from '../i18n';
 import { APP_BASE } from '../api';
 import type { AiObservationConfig, AiRecognitionResult } from './ai-recognition';
 import type { AppiumRecordedScript, AppiumRecordedStep, AppiumScriptDraft } from './types';
@@ -97,7 +98,7 @@ export async function getAppiumScripts() {
 }
 
 export function getAppiumLlmPrompt(draft: AppiumScriptDraft) {
-  return postJson<{ prompt: string }>(`${APP_BASE}/api/appium-recorder/llm-prompt`, draft);
+  return postJson<{ prompt: string }>(`${APP_BASE}/api/appium-recorder/llm-prompt`, { ...draft, locale: locale.value });
 }
 
 export function saveAppiumScript(input: {

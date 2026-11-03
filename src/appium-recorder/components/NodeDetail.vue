@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, ref } from 'vue';
 import { View, CopyDocument } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
@@ -39,68 +40,68 @@ const locatorItems = computed(() => {
 });
 async function copyLocator(value: string) {
   if (!value) return;
-  try { await navigator.clipboard.writeText(value); ElMessage.success('定位内容已复制'); }
-  catch { ElMessage.error('复制失败，请手动选择定位内容复制'); }
+  try { await navigator.clipboard.writeText(value); ElMessage.success(t("定位内容已复制")); }
+  catch { ElMessage.error(t("复制失败，请手动选择定位内容复制")); }
 }
 </script>
 
 <template>
   <div
     v-loading="loading"
-    element-loading-text="正在检测页面变化..."
+    :element-loading-text="t('正在检测页面变化...')"
     class="appium-node-detail"
   >
     <div class="appium-node-summary">
       <div class="appium-node-summary__text" v-if="node">
         <strong :title="node.label">{{ node.label }}</strong>
-        <span>{{ node.className.split('.').pop() }}<template v-if="node.checkable"> · {{ node.checked === undefined ? '勾选状态未知' : node.checked ? '已勾选' : '未勾选' }}</template><template v-if="node.selector.matchCount"> · {{ node.selector.matchCount > 1 ? `定位重复 ${node.selector.matchCount}` : '定位唯一' }}</template></span>
+        <span>{{ node.className.split('.').pop() }}<template v-if="node.checkable"> · {{ node.checked === undefined ? t("勾选状态未知") : node.checked ? t("已勾选") : t("未勾选") }}</template><template v-if="node.selector.matchCount"> · {{ node.selector.matchCount > 1 ? t("定位重复 {0}", { 0: node.selector.matchCount }) : t("定位唯一") }}</template></span>
       </div>
-      <span v-else class="appium-node-summary__empty">请选择组件</span>
-      <el-button size="small" type="primary" :icon="View" :disabled="!node" @click="detailsVisible = true">详情</el-button>
+      <span v-else class="appium-node-summary__empty">{{ t("请选择组件") }}</span>
+      <el-button size="small" type="primary" :icon="View" :disabled="!node" @click="detailsVisible = true">{{ t("详情") }}</el-button>
     </div>
-    <el-drawer v-model="detailsVisible" title="组件详情" size="560px" class="appium-node-detail-drawer" append-to-body destroy-on-close>
+    <el-drawer v-model="detailsVisible" :title="t('组件详情')" size="560px" class="appium-node-detail-drawer" append-to-body destroy-on-close>
       <template v-if="node">
         <div class="appium-node-detail__content">
           <section class="appium-node-detail__summary">
             <div>
-              <span>当前组件</span>
+              <span>{{ t("当前组件") }}</span>
               <strong>{{ node.label }}</strong>
-              <code>{{ node.className || '未知组件类型' }}</code>
+              <code>{{ node.className || t("未知组件类型") }}</code>
             </div>
             <div class="appium-node-detail__tags">
-              <el-tag :type="node.enabled ? 'success' : 'info'" size="small">{{ node.enabled ? '可用' : '不可用' }}</el-tag>
-              <el-tag :type="node.clickable ? 'primary' : 'info'" size="small">{{ node.clickable ? '可点击' : '不可点击' }}</el-tag>
-              <el-tag v-if="node.selector.matchCount" :type="node.selector.matchCount > 1 ? 'warning' : 'success'" size="small">{{ node.selector.matchCount > 1 ? `定位重复 ${node.selector.matchCount}` : '定位唯一' }}</el-tag>
+              <el-tag :type="node.enabled ? 'success' : 'info'" size="small">{{ node.enabled ? t("可用") : t("不可用") }}</el-tag>
+              <el-tag :type="node.clickable ? 'primary' : 'info'" size="small">{{ node.clickable ? t("可点击") : t("不可点击") }}</el-tag>
+              <el-tag v-if="node.selector.matchCount" :type="node.selector.matchCount > 1 ? 'warning' : 'success'" size="small">{{ node.selector.matchCount > 1 ? t("定位重复 {0}", { 0: node.selector.matchCount }) : t("定位唯一") }}</el-tag>
             </div>
           </section>
 
           <section class="appium-node-detail__panel appium-node-detail__panel--locators">
             <div class="appium-node-detail__heading">
-              <strong>定位方式</strong>
-              <span>已按当前脚本使用优先级排列，未提供的定位属性自动隐藏</span>
+              <strong>{{ t("定位方式") }}</strong>
+              <span>{{ t("已按当前脚本使用优先级排列，未提供的定位属性自动隐藏") }}</span>
             </div>
             <div class="appium-node-locators">
               <article v-for="locator in locatorItems" :key="locator.name" class="appium-node-locator-card" :class="{ 'is-recommended': locator.recommended }">
                 <div class="appium-node-locator-card__header">
-                  <el-tooltip :content="locator.description" placement="top" :show-after="300">
+                  <el-tooltip :content="t(locator.description)" placement="top" :show-after="300">
                     <span class="appium-node-locator-label"><strong>{{ locator.name }}</strong><small v-if="locator.attribute">{{ locator.attribute }}</small></span>
                   </el-tooltip>
-                  <el-tag v-if="locator.recommended" type="primary" size="small">当前使用</el-tag>
+                  <el-tag v-if="locator.recommended" type="primary" size="small">{{ t("当前使用") }}</el-tag>
                 </div>
                 <div class="appium-node-locator-value">
                   <code>{{ locator.value }}</code>
-                  <el-tooltip :content="`复制 ${locator.name}`" placement="top" :show-after="200">
-                    <el-button class="appium-node-locator-copy" text size="small" :icon="CopyDocument" :aria-label="`复制 ${locator.name}`" @click="copyLocator(locator.value)" />
+                  <el-tooltip :content="t('复制 {0}', { 0: locator.name })" placement="top" :show-after="200">
+                    <el-button class="appium-node-locator-copy" text size="small" :icon="CopyDocument" :aria-label="t('复制 {0}', { 0: locator.name })" @click="copyLocator(locator.value)" />
                   </el-tooltip>
                 </div>
-                <small v-if="locator.warning" class="appium-node-locator-warning">{{ locator.warning }}</small>
+                <small v-if="locator.warning" class="appium-node-locator-warning">{{ t(locator.warning) }}</small>
               </article>
-              <el-empty v-if="!locatorItems.length" :image-size="48" description="当前组件没有可用定位信息" />
+              <el-empty v-if="!locatorItems.length" :image-size="48" :description="t('当前组件没有可用定位信息')" />
             </div>
           </section>
 
           <section class="appium-node-detail__panel">
-            <div class="appium-node-detail__heading"><strong>组件属性</strong><span>当前组件树快照中的原始信息</span></div>
+            <div class="appium-node-detail__heading"><strong>{{ t("组件属性") }}</strong><span>{{ t("当前组件树快照中的原始信息") }}</span></div>
             <el-descriptions class="appium-node-properties" :column="1" border size="small">
               <el-descriptions-item label="text">{{ node.text || '-' }}</el-descriptions-item>
               <el-descriptions-item label="content-desc">{{ node.contentDesc || '-' }}</el-descriptions-item>
@@ -111,13 +112,13 @@ async function copyLocator(value: string) {
               <el-descriptions-item label="clickable">{{ String(node.clickable) }}</el-descriptions-item>
               <el-descriptions-item v-if="node.checkable !== undefined" label="checkable">{{ String(node.checkable) }}</el-descriptions-item>
               <el-descriptions-item v-if="node.checkable" label="checked">{{ node.checked === undefined ? '-' : String(node.checked) }}</el-descriptions-item>
-              <el-descriptions-item label="当前 Activity">{{ currentActivity || '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('当前 Activity')">{{ currentActivity || '-' }}</el-descriptions-item>
               <el-descriptions-item label="selector">
                 <code>{{ node.selector.strategy }} {{ node.selector.value || '' }}</code>
               </el-descriptions-item>
-              <el-descriptions-item label="推荐定位">
-                <span v-if="node.contextSelector">父级 {{ node.contextSelector.strategy }} {{ node.contextSelector.value || '' }} + 子级 {{ node.selector.strategy }} {{ node.selector.value || '' }}</span>
-                <span v-else>{{ node.selector.unique ? '当前 selector 唯一' : '使用当前 selector，定位失败时使用坐标兜底' }}</span>
+              <el-descriptions-item :label="t('推荐定位')">
+                <span v-if="node.contextSelector">{{ t("父级") }} {{ node.contextSelector.strategy }} {{ node.contextSelector.value || '' }} {{ t("+ 子级") }} {{ node.selector.strategy }} {{ node.selector.value || '' }}</span>
+                <span v-else>{{ node.selector.unique ? t("当前 selector 唯一") : t("使用当前 selector，定位失败时使用坐标兜底") }}</span>
               </el-descriptions-item>
               <el-descriptions-item label="bounds">
                 <code v-if="node.bounds">[{{ node.bounds.left }},{{ node.bounds.top }}][{{ node.bounds.right }},{{ node.bounds.bottom }}]</code>
@@ -127,8 +128,8 @@ async function copyLocator(value: string) {
           </section>
         </div>
       </template>
-      <el-empty v-else description="请选择组件" />
-      <template #footer><el-button type="primary" @click="detailsVisible = false">关闭</el-button></template>
+      <el-empty v-else :description="t('请选择组件')" />
+      <template #footer><el-button type="primary" @click="detailsVisible = false">{{ t("关闭") }}</el-button></template>
     </el-drawer>
 
   </div>

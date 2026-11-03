@@ -86,6 +86,10 @@ def _showcase_build_required(showcase_dir: Path) -> bool:
     source_dir = showcase_dir / "src"
     if source_dir.exists():
         input_paths.extend(path for path in source_dir.rglob("*") if path.is_file())
+    locale_dir = showcase_dir.parent.parent.parent / "locales"
+    if locale_dir.is_dir():
+        input_paths.append(locale_dir / "index.ts")
+        input_paths.extend(locale_dir.glob("*/artemis.json"))
     return any(path.exists() and path.stat().st_mtime > build_time for path in input_paths)
 
 

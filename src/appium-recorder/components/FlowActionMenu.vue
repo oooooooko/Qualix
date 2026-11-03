@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { nextTick, shallowRef } from 'vue';
 import type { MenuInstance, PopoverInstance } from 'element-plus';
 import { PASTE_COMMAND, type FlowActionGroup, type FlowActionSubgroup, type InsertAction } from '../flow-graph';
@@ -116,29 +117,29 @@ function selectAction(value: string) {
             :key="group.title"
             :index="group.title"
             :data-group="group.title"
-            :aria-label="group.title"
+            :aria-label="t(group.title)"
             tabindex="-1"
             :teleported="false"
             popper-class="appium-action-submenu"
             @click="openGroupOnClick($event, group.title)"
           >
-            <template #title>{{ group.title }}</template>
+            <template #title>{{ t(group.title) }}</template>
             <template v-for="item in group.actions" :key="isSubgroup(item) ? item.label : item.type">
               <el-sub-menu
                 v-if="isSubgroup(item)"
                 :index="`${group.title}/${item.label}`"
                 :data-group="`${group.title}/${item.label}`"
-                :aria-label="item.label"
+                :aria-label="t(item.label)"
                 tabindex="-1"
                 :teleported="true"
                 popper-class="appium-action-submenu appium-action-submenu--third"
                 @click.stop="openGroupOnClick($event, `${group.title}/${item.label}`)"
               >
-                <template #title>{{ item.label }}</template>
+                <template #title>{{ t(item.label) }}</template>
                 <el-tooltip
                   v-for="action in item.actions"
                   :key="action.type"
-                  :content="actionDescriptions[action.type]"
+                  :content="t(actionDescriptions[action.type])"
                   placement="right"
                   effect="dark"
                   :show-after="350"
@@ -148,13 +149,13 @@ function selectAction(value: string) {
                   popper-class="appium-action-description"
                 >
                   <el-menu-item :index="action.type" :disabled="isActionDisabled(action.type)">
-                    {{ action.label }}
+                    {{ t(action.label) }}
                   </el-menu-item>
                 </el-tooltip>
               </el-sub-menu>
               <el-tooltip
                 v-else
-                :content="actionDescriptions[item.type]"
+                :content="t(actionDescriptions[item.type])"
                 placement="right"
                 effect="dark"
                 :show-after="350"
@@ -164,14 +165,12 @@ function selectAction(value: string) {
                 popper-class="appium-action-description"
               >
                 <el-menu-item :index="item.type" :disabled="isActionDisabled(item.type)">
-                  {{ item.label }}
+                  {{ t(item.label) }}
                 </el-menu-item>
               </el-tooltip>
             </template>
           </el-sub-menu>
-          <el-menu-item v-if="clipboardCount" :index="PASTE_COMMAND" class="appium-action-paste">
-            粘贴 {{ clipboardCount }} 个节点
-          </el-menu-item>
+          <el-menu-item v-if="clipboardCount" :index="PASTE_COMMAND" class="appium-action-paste"> {{ t("粘贴") }} {{ clipboardCount }} {{ t("个节点") }} </el-menu-item>
         </el-menu>
       </div>
     </el-popover>

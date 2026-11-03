@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, nextTick, shallowRef, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Aim, CopyDocument, FullScreen, Close, Delete } from '@element-plus/icons-vue';
@@ -159,7 +160,7 @@ function toggleCopySelection(index: number) {
   const step = props.steps[index];
   if (!step) return;
   if (step.type === 'launchApp' || step.type === 'clearAppData') {
-    ElMessage.warning(deleteMode.value ? 'App 初始化节点不参与批量删除' : 'App 初始化节点不能复制');
+    ElMessage.warning(t(deleteMode.value ? t("App 初始化节点不参与批量删除") : t("App 初始化节点不能复制")));
     return;
   }
   if (selectedCopyIndexes.value.includes(index)) {
@@ -167,7 +168,7 @@ function toggleCopySelection(index: number) {
     return;
   }
   if (selectedCopyIndexes.value.some((item) => isDescendantStep(index, item))) {
-    ElMessage.info('该子节点已随判断节点选中');
+    ElMessage.info(t("该子节点已随判断节点选中"));
     return;
   }
   const candidate = [
@@ -178,7 +179,7 @@ function toggleCopySelection(index: number) {
     createFlowClipboard(props.steps, candidate);
   } catch (error) {
     const message = error instanceof Error ? error.message : '当前节点不能一起选择';
-    ElMessage.warning(deleteMode.value ? message.replace(/复制/g, '删除') : message);
+    ElMessage.warning(t(deleteMode.value ? message.replace(/复制/g, t("删除")) : message));
     return;
   }
   selectedCopyIndexes.value = candidate;
@@ -230,11 +231,11 @@ async function deleteSelectedNodes() {
   const next = removeFlowSteps(original, selectedCopyIndexes.value);
   deleting.value = true;
   try {
-    await ElMessageBox.confirm(`确认删除选中的 ${original.length - next.length} 个节点？所属分支子节点会一起删除，公共流程保留。`, '批量删除', {
-      type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消', appendTo: 'body',
+    await ElMessageBox.confirm(t("确认删除选中的 {0} 个节点？所属分支子节点会一起删除，公共流程保留。", { 0: original.length - next.length }), t("批量删除"), {
+      type: 'warning', confirmButtonText: t("删除"), cancelButtonText: t("取消"), appendTo: 'body',
     });
     if (props.steps !== original || props.mergeDisabled || props.removeDisabled) {
-      ElMessage.warning('流程或运行状态已变化，请重新选择');
+      ElMessage.warning(t("流程或运行状态已变化，请重新选择"));
       return;
     }
     emit('replaceSteps', next);
@@ -295,9 +296,9 @@ function updateStep(index: number, step: AppiumRecordedStep) {
     <div class="appium-flow-toolbar">
       <FlowNodeSearch v-model:query="searchQuery" :results="searchResults" :selected-id="searchTargetId" @select="focusSearchResult" />
       <template v-if="copyMode">
-        <span class="appium-flow-toolbar__status">已选择 {{ selectedCopyIndexes.length }} 个节点</span>
-        <el-tooltip :content="deleteMode ? '删除选中' : '复制选中'" placement="top" :show-after="200"><span class="flow-toolbar-icon">
-        <el-button :aria-label="deleteMode ? '删除选中' : '复制选中'"
+        <span class="appium-flow-toolbar__status">{{ t("已选择") }} {{ selectedCopyIndexes.length }} {{ t("个节点") }}</span>
+        <el-tooltip :content="deleteMode ? t('删除选中') : t('复制选中')" placement="top" :show-after="200"><span class="flow-toolbar-icon">
+        <el-button :aria-label="deleteMode ? t('删除选中') : t('复制选中')"
           size="small"
           :type="deleteMode ? 'danger' : 'primary'"
           :loading="deleting"
@@ -306,28 +307,28 @@ function updateStep(index: number, step: AppiumRecordedStep) {
           @click="deleteMode ? deleteSelectedNodes() : copySelectedNodes()"
         />
         </span></el-tooltip>
-        <el-tooltip content="取消" placement="top" :show-after="200"><span class="flow-toolbar-icon"><el-button size="small" :icon="Close" aria-label="取消" @click="cancelCopyMode" /></span></el-tooltip>
+        <el-tooltip :content="t('取消')" placement="top" :show-after="200"><span class="flow-toolbar-icon"><el-button size="small" :icon="Close" :aria-label="t('取消')" @click="cancelCopyMode" /></span></el-tooltip>
       </template>
-      <el-tooltip v-else content="批量复制" placement="top" :show-after="200"><span class="flow-toolbar-icon">
-      <el-button aria-label="批量复制"
+      <el-tooltip v-else :content="t('批量复制')" placement="top" :show-after="200"><span class="flow-toolbar-icon">
+      <el-button :aria-label="t('批量复制')"
         size="small"
         :icon="CopyDocument"
         :disabled="!steps.length"
         @click="startCopyMode"
       />
       </span></el-tooltip>
-      <el-tooltip v-if="!copyMode" content="批量删除" placement="top" :show-after="200"><span class="flow-toolbar-icon">
-        <el-button aria-label="批量删除" size="small" :icon="Delete" :disabled="!steps.length || mergeDisabled || removeDisabled" @click="startDeleteMode" />
+      <el-tooltip v-if="!copyMode" :content="t('批量删除')" placement="top" :show-after="200"><span class="flow-toolbar-icon">
+        <el-button :aria-label="t('批量删除')" size="small" :icon="Delete" :disabled="!steps.length || mergeDisabled || removeDisabled" @click="startDeleteMode" />
       </span></el-tooltip>
-      <el-tooltip content="还原位置" placement="top" :show-after="200"><span class="flow-toolbar-icon">
-      <el-button aria-label="还原位置"
+      <el-tooltip :content="t('还原位置')" placement="top" :show-after="200"><span class="flow-toolbar-icon">
+      <el-button :aria-label="t('还原位置')"
         size="small"
         :icon="Aim"
         @click="resetMainFlowPosition"
       />
       </span></el-tooltip>
-      <el-tooltip content="放大" placement="top" :show-after="200"><span class="flow-toolbar-icon">
-      <el-button aria-label="放大"
+      <el-tooltip :content="t('放大')" placement="top" :show-after="200"><span class="flow-toolbar-icon">
+      <el-button :aria-label="t('放大')"
         size="small"
         :icon="FullScreen"
         @click="flowDialogVisible = true"
@@ -375,7 +376,7 @@ function updateStep(index: number, step: AppiumRecordedStep) {
 
     <el-dialog
       v-model="flowDialogVisible"
-      title="流程总览"
+      :title="t('流程总览')"
       @opened="searchTargetId && focusSearchResult(searchTargetId)"
       width="86vw"
       class="appium-flow-dialog"
@@ -386,9 +387,9 @@ function updateStep(index: number, step: AppiumRecordedStep) {
       <div class="appium-flow-toolbar appium-flow-dialog__toolbar">
         <FlowNodeSearch v-model:query="searchQuery" :results="searchResults" :selected-id="searchTargetId" @select="focusSearchResult" />
         <template v-if="copyMode">
-          <span class="appium-flow-toolbar__status">已选择 {{ selectedCopyIndexes.length }} 个节点</span>
-          <el-tooltip :content="deleteMode ? '删除选中' : '复制选中'" placement="top" :show-after="200"><span class="flow-toolbar-icon">
-          <el-button :aria-label="deleteMode ? '删除选中' : '复制选中'"
+          <span class="appium-flow-toolbar__status">{{ t("已选择") }} {{ selectedCopyIndexes.length }} {{ t("个节点") }}</span>
+          <el-tooltip :content="deleteMode ? t('删除选中') : t('复制选中')" placement="top" :show-after="200"><span class="flow-toolbar-icon">
+          <el-button :aria-label="deleteMode ? t('删除选中') : t('复制选中')"
             size="small"
             :type="deleteMode ? 'danger' : 'primary'"
             :loading="deleting"
@@ -397,22 +398,22 @@ function updateStep(index: number, step: AppiumRecordedStep) {
             @click="deleteMode ? deleteSelectedNodes() : copySelectedNodes()"
           />
           </span></el-tooltip>
-          <el-tooltip content="取消" placement="top" :show-after="200"><span class="flow-toolbar-icon"><el-button size="small" :icon="Close" aria-label="取消" @click="cancelCopyMode" /></span></el-tooltip>
+          <el-tooltip :content="t('取消')" placement="top" :show-after="200"><span class="flow-toolbar-icon"><el-button size="small" :icon="Close" :aria-label="t('取消')" @click="cancelCopyMode" /></span></el-tooltip>
         </template>
-        <el-tooltip v-else content="批量复制" placement="top" :show-after="200"><span class="flow-toolbar-icon">
-        <el-button aria-label="批量复制"
+        <el-tooltip v-else :content="t('批量复制')" placement="top" :show-after="200"><span class="flow-toolbar-icon">
+        <el-button :aria-label="t('批量复制')"
           size="small"
           :icon="CopyDocument"
           :disabled="!steps.length"
           @click="startCopyMode"
         />
         </span></el-tooltip>
-        <el-tooltip v-if="!copyMode" content="批量删除" placement="top" :show-after="200"><span class="flow-toolbar-icon">
-          <el-button aria-label="批量删除" size="small" :icon="Delete" :disabled="!steps.length || mergeDisabled || removeDisabled" @click="startDeleteMode" />
+        <el-tooltip v-if="!copyMode" :content="t('批量删除')" placement="top" :show-after="200"><span class="flow-toolbar-icon">
+          <el-button :aria-label="t('批量删除')" size="small" :icon="Delete" :disabled="!steps.length || mergeDisabled || removeDisabled" @click="startDeleteMode" />
         </span></el-tooltip>
-        <el-tooltip content="还原位置" placement="top" :show-after="200"><span class="flow-toolbar-icon">
+        <el-tooltip :content="t('还原位置')" placement="top" :show-after="200"><span class="flow-toolbar-icon">
           <el-button
-            aria-label="还原位置"
+            :aria-label="t('还原位置')"
             size="small"
             :icon="Aim"
             @click="resetDialogFlowPosition"

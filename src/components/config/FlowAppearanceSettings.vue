@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed } from 'vue';
 import { RefreshLeft } from '@element-plus/icons-vue';
 import {
@@ -59,49 +60,49 @@ const selectedTheme = computed(() => {
 
 <template>
   <el-card shadow="never" class="config-module-card config-appium-card flow-appearance-settings">
-    <template #header><div class="panel-header"><span>流程外观</span></div></template>
-    <section class="flow-theme-settings" aria-label="预设流程主题">
-      <div class="flow-theme-heading"><h3>预设主题</h3><span>同时应用画布、节点和连接线配色，可继续单独调整。</span></div>
+    <template #header><div class="panel-header"><span>{{ t("流程外观") }}</span></div></template>
+    <section class="flow-theme-settings" :aria-label="t('预设流程主题')">
+      <div class="flow-theme-heading"><h3>{{ t("预设主题") }}</h3><span>{{ t("同时应用画布、节点和连接线配色，可继续单独调整。") }}</span></div>
       <div class="flow-theme-presets">
         <button v-for="theme in FLOW_APPEARANCE_THEMES" :key="theme.id" type="button" class="flow-theme"
-          :aria-label="`应用${theme.name}主题`" :aria-pressed="selectedTheme === theme.id" @click="emit('applyTheme', theme)">
+          :aria-label="t('应用{0}主题', { 0: t(theme.name) })" :aria-pressed="selectedTheme === theme.id" @click="emit('applyTheme', theme)">
           <svg viewBox="0 0 160 72" aria-hidden="true" :style="{ backgroundColor: theme.colors.flowBackgroundColor }">
             <path d="M 60 24 C 92 24 68 48 100 48" fill="none" :stroke="theme.colors.flowLineColor" stroke-width="2.5" />
             <rect x="10" y="12" width="50" height="24" rx="5" :fill="theme.colors.flowNodeColor" :stroke="theme.colors.flowNodeBorderColor" />
             <rect x="100" y="36" width="50" height="24" rx="5" :fill="theme.colors.flowNodeColor" :stroke="theme.colors.flowNodeBorderColor" />
             <circle cx="60" cy="24" r="3" :fill="theme.colors.flowLineColor" /><circle cx="100" cy="48" r="3" :fill="theme.colors.flowLineColor" />
           </svg>
-          <span>{{ theme.name }}</span>
+          <span>{{ t(theme.name) }}</span>
         </button>
       </div>
     </section>
     <div class="flow-behavior-settings">
       <div class="flow-behavior-setting">
-        <span>布局方向</span>
-        <el-radio-group :model-value="normalizeFlowLayoutDirection(layoutDirection)" aria-label="流程布局方向"
+        <span>{{ t("布局方向") }}</span>
+        <el-radio-group :model-value="normalizeFlowLayoutDirection(layoutDirection)" :aria-label="t('流程布局方向')"
           @update:model-value="emit('update:layoutDirection', normalizeFlowLayoutDirection($event))">
-          <el-radio-button value="vertical">纵向</el-radio-button>
-          <el-radio-button value="horizontal">横向</el-radio-button>
+          <el-radio-button value="vertical">{{ t("纵向") }}</el-radio-button>
+          <el-radio-button value="horizontal">{{ t("横向") }}</el-radio-button>
         </el-radio-group>
       </div>
       <div class="flow-behavior-setting">
-        <span>连接线</span>
-        <el-radio-group :model-value="normalizeFlowLineStyle(lineStyle)" aria-label="连接线条样式"
+        <span>{{ t("连接线") }}</span>
+        <el-radio-group :model-value="normalizeFlowLineStyle(lineStyle)" :aria-label="t('连接线条样式')"
           @update:model-value="emit('update:lineStyle', normalizeFlowLineStyle($event))">
-          <el-radio-button value="straight">直线</el-radio-button>
-          <el-radio-button value="curved">曲线</el-radio-button>
+          <el-radio-button value="straight">{{ t("直线") }}</el-radio-button>
+          <el-radio-button value="curved">{{ t("曲线") }}</el-radio-button>
         </el-radio-group>
       </div>
     </div>
-    <el-form label-position="left" label-width="90px" class="flow-colors" aria-label="自定义流程配色">
-      <el-form-item v-for="panel in panels" :key="panel.key" :label="panel.title" :error="panel.error"
+    <el-form label-position="left" label-width="90px" class="flow-colors" :aria-label="t('自定义流程配色')">
+      <el-form-item v-for="panel in panels" :key="panel.key" :label="t(panel.title)" :error="t(panel.error)"
         class="flow-color-row" :class="{ 'flow-color-row--invalid': panel.error }">
         <div class="flow-color-input">
           <el-color-picker :model-value="panel.normalize(panel.color)" color-format="hex" :predefine="panel.presets"
-            :aria-label="panel.pickerLabel" @update:model-value="update(panel.key, $event || panel.fallback)" />
-          <el-input :model-value="panel.color" :aria-label="panel.inputLabel" :placeholder="panel.fallback"
+            :aria-label="t(panel.pickerLabel)" @update:model-value="update(panel.key, $event || panel.fallback)" />
+          <el-input :model-value="panel.color" :aria-label="t(panel.inputLabel)" :placeholder="t(panel.fallback)"
             @update:model-value="update(panel.key, String($event))" />
-          <el-button text circle :icon="RefreshLeft" :title="panel.resetLabel" :aria-label="panel.resetLabel"
+          <el-button text circle :icon="RefreshLeft" :title="t(panel.resetLabel)" :aria-label="t(panel.resetLabel)"
             @click="update(panel.key, panel.fallback)" />
         </div>
       </el-form-item>

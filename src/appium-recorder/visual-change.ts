@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { AppiumBounds, AppiumRecordedStep } from './types';
 
 export const VISUAL_CHANGE_DEFAULTS = {
@@ -80,8 +81,8 @@ export function visualRegionToBounds(
 
 export function visualChangeMeta(step: AppiumRecordedStep) {
   const config = normalizeVisualChangeConfig(step.visualChange);
-  if (config.role === 'start') return `${config.pairLabel || '检测画面变化'} · 开始 · 阈值 ${config.changeRatioThreshold}%`;
-  if (config.role === 'end') return `${config.pairLabel || '检测画面变化'} · 结束`;
-  const range = config.startStepId && config.endStepId ? '起止节点截图对比' : '请选择起止节点';
-  return `${range} · 阈值 ${config.changeRatioThreshold}%`;
+  if (config.role === 'start') return t("{0} · 开始 · 阈值 {1}%", { 0: config.pairLabel || t("检测画面变化"), 1: config.changeRatioThreshold });
+  if (config.role === 'end') return t("{0} · 结束", { 0: config.pairLabel || t("检测画面变化") });
+  const range = config.startStepId && config.endStepId ? t("起止节点截图对比") : t("请选择起止节点");
+  return t("{0} · 阈值 {1}%", { 0: range, 1: config.changeRatioThreshold });
 }

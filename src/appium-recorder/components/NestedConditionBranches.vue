@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { defaultFlowKind as defaultKind, flowBranchLabel, flowStepMeta } from '../flow-labels';
+import { t } from '../../i18n';
+import { defaultFlowKind as defaultKind, flowBranchLabel, flowStepMeta as stepMeta, flowKindLabel as kindLabel, flowTypeLabel as typeLabel } from '../flow-labels';
 import { computed } from 'vue';
 import { CopyDocument, Delete, Edit, Timer } from '@element-plus/icons-vue';
 import type { AppiumRecordedStep } from '../types';
@@ -9,7 +10,6 @@ import FlowActionMenu from './FlowActionMenu.vue';
 import type { FlowActionGroup, InsertAction } from '../flow-graph';
 
 type BranchName = 'yes' | 'no';
-type FlowKind = 'action' | 'condition' | 'assertion';
 const PASTE_COMMAND = '__paste_flow_nodes__';
 
 const props = defineProps<{
@@ -119,66 +119,6 @@ const actionGroups: FlowActionGroup[] = [
   },
 ];
 
-function kindLabel(kind: FlowKind) {
-  return { action: '操作', condition: '判断', assertion: '校验' }[kind];
-}
-
-function typeLabel(step: AppiumRecordedStep) {
-  const labels: Partial<Record<AppiumRecordedStep['type'], string>> = {
-    tap: '点击', input: '输入', tapIfExists: '存在则点击', inputIfExists: '存在则输入',
-    clearIfExists: '存在则清空', backIfExists: '存在则返回', clearInput: '清空',
-    waitFor: '等待出现', waitDisappear: '等待消失', assertExists: '断言存在',
-    assertText: '断言文本', key: '按键', waitActivity: '等待 Activity', delay: '延时',
-    coordinateTap: '坐标点击', swipe: '滑动', launchApp: '启动 APP', stopApp: '杀死 APP', clearAppData: '清理 APP 缓存', longPress: '长按',
-    pinch: '双指缩放', runScript: '连接脚本', screenshot: '截图', visualChange: '检测画面变化',
-    noop: '空节点',
-    randomValue: '获取随机值',
-    endFlow: '终止流程',
-    loop: '有界循环',
-    breakLoop: '退出循环',
-    continueLoop: '继续下一次循环',
-    log: '输出日志',
-    checkboxState: 'Checkbox 状态',
-    checkedState: '判断勾选',
-    radioButtonState: 'RadioButton 状态',
-    aiRecognition: 'AI 识别',
-    imageCheck: '图像判断',
-    openGallery: '启动相册',
-    textClick: '文字点击',
-  };
-  return labels[step.type] || step.type;
-}
-
-function stepMeta(step: AppiumRecordedStep) {
-  if (step.type === 'randomValue') return flowStepMeta(step);
-  if (step.type === 'imageCheck') return flowStepMeta(step);
-  if (step.type === 'delay') return `${step.timeoutMs || 1000}ms`;
-  if (step.type === 'input' || step.type === 'inputIfExists') return `输入内容：${step.value || '空'}`;
-  if (step.type === 'longPress') return flowStepMeta(step);
-  if (step.type === 'coordinateTap') return `${step.fallback?.centerX || ''},${step.fallback?.centerY || ''}`;
-  if (step.type === 'swipe') {
-    const swipe = step.swipe;
-    return swipe ? `[${swipe.startX},${swipe.startY}] -> [${swipe.endX},${swipe.endY}]` : '';
-  }
-  if (step.type === 'visualChange') {
-    const config = step.visualChange;
-    if (!config) return '';
-    if (config.role === 'start') return `${config.pairLabel || '检测画面变化'} · 开始 · 阈值 ${config.changeRatioThreshold}%`;
-    if (config.role === 'end') return `${config.pairLabel || '检测画面变化'} · 结束`;
-    return `${config.startStepId && config.endStepId ? '起止节点截图对比' : '请选择起止节点'} · 阈值 ${config.changeRatioThreshold}%`;
-  }
-  if (step.type === 'noop') return '';
-  if (defaultKind(step) === 'condition' && step.value) {
-    return `${step.flow?.textMatch === 'exact' ? '精准匹配' : '模糊匹配'}：${step.value}`;
-  }
-  if (step.contextSelector && step.selector) {
-    return `父级 ${step.contextSelector.strategy} ${step.contextSelector.value || ''} + 子级 ${step.selector.strategy} ${step.selector.value || ''}`;
-  }
-  if (step.type === 'key') return `keyCode ${step.keyCode || ''}`;
-  if (step.type === 'runScript') return step.value ? `脚本 ${step.value}` : '';
-  return `${step.selector?.strategy || ''} ${step.selector?.value || ''}`.trim();
-}
-
 function branchItems(branch: BranchName) {
   return stepItems.value.filter(({ step }) => (
     step.flow?.parentConditionId === props.condition.id && step.flow.parentBranch === branch
@@ -200,9 +140,9 @@ function branchConnectionTargetId(branch: BranchName) {
 
 function targetLabel(branch: BranchName) {
   const id = branch === 'yes' ? props.condition.flow?.yesTargetId : props.condition.flow?.noTargetId;
-  if (!id) return '结束';
+  if (!id) return t('结束');
   const index = props.steps.findIndex((step) => step.id === id);
-  return index < 0 ? '未找到目标' : props.steps[index].label;
+  return index < 0 ? t('未找到目标') : props.steps[index].label;
 }
 
 function isDescendant(descendantIndex: number, ancestorIndex: number) {
@@ -304,7 +244,7 @@ function branchSplitPath() {
                   <span
                     class="appium-flow-node__meta"
                     :class="{ 'appium-flow-node__meta--clamped': item.step.type === 'aiRecognition' }"
-                    :title="item.step.type === 'aiRecognition' ? stepMeta(item.step) : undefined"
+                    :title="t(item.step.type === 'aiRecognition' ? stepMeta(item.step) : undefined)"
                   >
                     {{ kindLabel(defaultKind(item.step)) }} · {{ typeLabel(item.step) }}
                     <template v-if="stepMeta(item.step)"> · {{ stepMeta(item.step) }}</template>
@@ -313,35 +253,35 @@ function branchSplitPath() {
                 </span>
               </button>
               <span class="appium-flow-node__actions" @click.stop>
-                <el-tooltip v-if="!copyMode && canCopyStep(item.step)" content="复制节点：复制后可在插入位置粘贴" placement="top" :show-after="200">
+                <el-tooltip v-if="!copyMode && canCopyStep(item.step)" :content="t('复制节点：复制后可在插入位置粘贴')" placement="top" :show-after="200">
                 <span style="display: inline-flex">
                 <el-button
                   text
                   size="small"
                   :icon="CopyDocument"
-                  title="复制节点"
+                  :title="t('复制节点')"
                   @click="$emit('copy', [item.index])"
                 />
                 </span></el-tooltip>
-                <el-tooltip v-if="['input', 'inputIfExists', 'imageCheck', 'runScript'].includes(item.step.type)" :content="item.step.type === 'runScript' ? '修改连接脚本' : item.step.type === 'imageCheck' ? '修改图像判断配置' : '修改输入内容：编辑此节点要输入的文字'" placement="top" :show-after="200">
+                <el-tooltip v-if="['input', 'inputIfExists', 'imageCheck', 'runScript'].includes(item.step.type)" :content="item.step.type === 'runScript' ? t('修改连接脚本') : item.step.type === 'imageCheck' ? t('修改图像判断配置') : t('修改输入内容：编辑此节点要输入的文字')" placement="top" :show-after="200">
                 <span style="display: inline-flex">
                 <el-button
                   text
                   size="small"
                   :icon="Edit"
                   :disabled="disabled"
-                  :title="item.step.type === 'runScript' ? '修改连接脚本' : item.step.type === 'imageCheck' ? '修改图像判断配置' : '修改输入内容'"
+                  :title="item.step.type === 'runScript' ? t('修改连接脚本') : item.step.type === 'imageCheck' ? t('修改图像判断配置') : t('修改输入内容')"
                   @click="$emit('editInput', item.index)"
                 />
                 </span></el-tooltip>
-                <el-tooltip content="删除节点：移除此操作；判断节点同时删除所属分支子节点" placement="top" :show-after="200">
+                <el-tooltip :content="t('删除节点：移除此操作；判断节点同时删除所属分支子节点')" placement="top" :show-after="200">
                 <span style="display: inline-flex">
                 <el-button
                   text
                   size="small"
                   :icon="Delete"
                   :disabled="removeDisabled"
-                  title="删除节点"
+                  :title="t('删除节点')"
                   @click="$emit('remove', item.index)"
                 />
                 </span></el-tooltip>
@@ -392,9 +332,7 @@ function branchSplitPath() {
               :disabled="!canOpenInsertMenu()"
               :icon="Timer"
               @click.stop
-            >
-              插入操作
-            </el-button>
+            > {{ t("插入操作") }} </el-button>
           </FlowActionMenu>
         </div>
       </div>

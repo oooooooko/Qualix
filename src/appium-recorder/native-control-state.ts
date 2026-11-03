@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { AppiumRecordedStep } from './types';
 
 export type NativeStateType = 'checkboxState' | 'radioButtonState' | 'checkedState';
@@ -7,7 +8,7 @@ export function isNativeStateCondition(step: Pick<AppiumRecordedStep, 'type'>): 
 }
 
 export function nativeControlName(type: NativeStateType) {
-  return type === 'checkedState' ? '勾选组件（Checkbox / RadioButton / Switch）' : type === 'checkboxState' ? 'Checkbox' : 'RadioButton';
+  return type === 'checkedState' ? t("勾选组件（Checkbox / RadioButton / Switch）") : type === 'checkboxState' ? 'Checkbox' : 'RadioButton';
 }
 
 export function nativeControlType(className: unknown): NativeStateType | undefined {

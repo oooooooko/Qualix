@@ -48,9 +48,8 @@ select {
 }
 
 .layout-sidebar__logo {
-  display: grid;
-  place-items: center;
-  font-weight: 700;
+  display: block;
+  object-fit: contain;
 }
 
 .layout-menu {
@@ -3112,14 +3111,9 @@ body {
 }
 
 .layout-sidebar__logo {
-  border-radius: var(--ui-radius);
   flex: none;
-  width: 32px;
-  height: 32px;
-  background: var(--ui-primary);
-  box-shadow: 0 2px 8px rgb(26 115 232 / 18%);
-  color: #fff;
-  font-size: 20px;
+  width: 36px;
+  height: 36px;
 }
 
 .layout-menu.el-menu {
@@ -3996,7 +3990,7 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
   z-index: 1;
 }
 .layout-header { box-shadow: 0 2px 6px -3px rgb(15 23 42 / 12%); }
-.layout-sidebar__logo, .layout-page-tab.is-active {
+.layout-page-tab.is-active {
   background: linear-gradient(180deg, #3588f3, var(--ui-primary));
   box-shadow: var(--ui-shadow-primary);
 }

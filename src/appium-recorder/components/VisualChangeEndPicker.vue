@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 defineProps<{ candidates: { id: string; label: string; number: number }[] }>();
 const emit = defineEmits<{ select: [id: string] }>();
 </script>
 
 <template>
-  <div class="visual-end-picker" aria-label="可结束的画面变化检测">
+  <div class="visual-end-picker" :aria-label="t('可结束的画面变化检测')">
     <button v-for="item in candidates" :key="item.id" type="button" @click="emit('select', item.id)">
       <strong>{{ item.label }}</strong>
-      <span>开始节点 #{{ item.number }}</span>
+      <span>{{ t("开始节点 #") }}{{ item.number }}</span>
     </button>
   </div>
 </template>

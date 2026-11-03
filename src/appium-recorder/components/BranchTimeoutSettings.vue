@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import type { AppiumRecordedStep } from '../types';
 import { flowBranchLabel } from '../flow-labels';
 defineProps<{ step: AppiumRecordedStep; disabled?: boolean }>();
@@ -6,11 +7,11 @@ defineEmits<{ update: [value: NonNullable<AppiumRecordedStep['timeoutBranch']>] 
 </script>
 
 <template>
-  <el-form-item label="超时后处理">
+  <el-form-item :label="t('超时后处理')">
     <el-select class="branch-timeout-select" size="small" popper-class="branch-timeout-popper" :model-value="step.timeoutBranch || 'stop'" :disabled="disabled" @update:model-value="$emit('update', $event)">
-      <el-option label="未配置分支（超时终止）" value="stop" />
-      <el-option :label="`进入左侧分支（${flowBranchLabel(step, 'yes')}）`" value="yes" />
-      <el-option :label="`进入右侧分支（${flowBranchLabel(step, 'no')}）`" value="no" />
+      <el-option :label="t('未配置分支（超时终止）')" value="stop" />
+      <el-option :label="t('进入左侧分支（{0}）', { 0: flowBranchLabel(step, 'yes') })" value="yes" />
+      <el-option :label="t('进入右侧分支（{0}）', { 0: flowBranchLabel(step, 'no') })" value="no" />
     </el-select>
   </el-form-item>
 </template>

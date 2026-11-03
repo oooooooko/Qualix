@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { Document, UploadFilled } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { useTemplateRef } from 'vue';
@@ -29,11 +30,11 @@ const handleFileChange = (event: Event) => {
 
   const extension = file.name.split('.').pop()?.toLowerCase() || '';
   if (!allowedExtensions.has(extension)) {
-    ElMessage.error('仅支持 txt、xls、xlsx、doc、docx 格式');
+    ElMessage.error(t("仅支持 txt、xls、xlsx、doc、docx 格式"));
     return;
   }
   if (file.size > maxFileSize) {
-    ElMessage.error('文件大小不能超过 10MB');
+    ElMessage.error(t("文件大小不能超过 10MB"));
     return;
   }
 
@@ -43,7 +44,7 @@ const handleFileChange = (event: Event) => {
 
 <template>
   <div class="test-case-upload">
-    <el-tooltip v-if="fileName" :content="fileName" placement="top">
+    <el-tooltip v-if="fileName" :content="t(fileName)" placement="top">
       <span class="test-case-upload__file">
         <el-icon><Document /></el-icon>
         <span class="test-case-upload__name">{{ fileName }}</span>
@@ -54,9 +55,7 @@ const handleFileChange = (event: Event) => {
       :icon="UploadFilled"
       :loading="uploading"
       @click="openFilePicker"
-    >
-      上传用例
-    </el-button>
+    > {{ t("上传用例") }} </el-button>
     <input
       ref="fileInput"
       class="test-case-upload__input"

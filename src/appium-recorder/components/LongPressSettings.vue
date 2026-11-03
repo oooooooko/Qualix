@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed } from 'vue';
 import type { AppiumRecordedStep } from '../types';
 import { longPressMode } from '../long-press';
@@ -24,13 +25,13 @@ function changeCoordinate(key: 'centerX' | 'centerY', value: number | undefined)
 
 <template>
   <div class="appium-flow-editor__section">
-    <el-form-item label="长按方式">
+    <el-form-item :label="t('长按方式')">
       <el-radio-group :model-value="mode" :disabled="disabled" @update:model-value="changeMode($event as AppiumRecordedStep['longPressMode'])">
-        <el-radio-button value="element">长按元素</el-radio-button>
-        <el-radio-button value="coordinates">长按坐标</el-radio-button>
+        <el-radio-button value="element">{{ t("长按元素") }}</el-radio-button>
+        <el-radio-button value="coordinates">{{ t("长按坐标") }}</el-radio-button>
       </el-radio-group>
     </el-form-item>
-    <el-form-item label="长按时间 ms">
+    <el-form-item :label="t('长按时间 ms')">
       <el-input-number
         :model-value="step.timeoutMs ?? 800"
         :disabled="disabled"
@@ -42,7 +43,7 @@ function changeCoordinate(key: 'centerX' | 'centerY', value: number | undefined)
       />
     </el-form-item>
     <div v-if="mode === 'coordinates'" class="appium-flow-editor__grid">
-      <el-form-item v-for="axis in (['X', 'Y'] as const)" :key="axis" :label="axis">
+      <el-form-item v-for="axis in (['X', 'Y'] as const)" :key="axis" :label="t(axis)">
         <el-input-number
           :model-value="axis === 'X' ? step.fallback?.centerX : step.fallback?.centerY"
           :disabled="disabled"

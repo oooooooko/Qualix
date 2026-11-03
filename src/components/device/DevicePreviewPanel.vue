@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import { Close, Cpu, FullScreen, Refresh } from '@element-plus/icons-vue';
 import type { AndroidDevice, DeviceAction } from '../../types';
@@ -304,25 +305,25 @@ function handlePointerCancel(event: PointerEvent) {
   <el-card shadow="never" class="automation-card device-preview-card" :class="{ 'device-preview-card--compact': compact, 'device-preview-card--enlarged': enlarged }">
     <template #header>
       <div class="panel-header">
-        <div class="device-preview-title"><span>设备预览</span><DeviceInfoTooltip :device-id="selectedDeviceId" /></div>
+        <div class="device-preview-title"><span>{{ t("设备预览") }}</span><DeviceInfoTooltip :device-id="selectedDeviceId" /></div>
         <div class="device-status">
           <el-tag v-if="compact" :type="available ? 'success' : 'info'">
-            {{ available ? '已连接' : '未连接' }}
+            {{ available ? t("已连接") : t("未连接") }}
           </el-tag>
-          <el-tooltip v-if="compact && !pointSelection" :content="enlarged ? '退出设备放大' : '放大设备预览'" placement="top" :show-after="200"><el-button class="recorder-panel-tool" size="small" :icon="enlarged ? Close : FullScreen" :aria-label="enlarged ? '退出设备放大' : '放大设备预览'" @click="enlarged = !enlarged" /></el-tooltip>
-          <el-tooltip content="刷新画面" placement="top" :show-after="200">
+          <el-tooltip v-if="compact && !pointSelection" :content="enlarged ? t('退出设备放大') : t('放大设备预览')" placement="top" :show-after="200"><el-button class="recorder-panel-tool" size="small" :icon="enlarged ? Close : FullScreen" :aria-label="enlarged ? t('退出设备放大') : t('放大设备预览')" @click="enlarged = !enlarged" /></el-tooltip>
+          <el-tooltip :content="t('刷新画面')" placement="top" :show-after="200">
           <el-button
-            :text="!compact"
+            :text="t(!compact)"
             :circle="!compact"
             :class="{ 'recorder-panel-tool': compact }"
             :size="compact ? 'small' : 'default'"
             :icon="Refresh"
             :disabled="!selectedDeviceId"
-            aria-label="刷新画面"
+            :aria-label="t('刷新画面')"
             @click="emit('refreshPreview')"
           />
           </el-tooltip>
-          <el-tag v-if="!compact" :type="available ? 'success' : 'info'">{{ available ? 'ADB 已连接' : '未检测到设备' }}</el-tag>
+          <el-tag v-if="!compact" :type="available ? 'success' : 'info'">{{ available ? t("ADB 已连接") : t("未检测到设备") }}</el-tag>
         </div>
       </div>
     </template>
@@ -330,14 +331,14 @@ function handlePointerCancel(event: PointerEvent) {
     <div class="device-toolbar">
       <el-select
         :model-value="selectedDeviceId"
-        placeholder="选择设备"
+        :placeholder="t('选择设备')"
         class="device-select"
         @change="emit('switchDevice', String($event))"
       >
         <el-option
           v-for="device in devices"
           :key="device.id"
-          :label="`${device.id}${device.description ? ` · ${device.description}` : ''}`"
+          :label="t(`${device.id}${device.description ? ` · ${device.description}` : ''}`)"
           :value="device.id"
         />
       </el-select>
@@ -350,17 +351,17 @@ function handlePointerCancel(event: PointerEvent) {
         type="button"
         class="device-action-button"
         :disabled="interactionDisabled || regionSelection || pointSelection"
-        :aria-label="action.label"
+        :aria-label="t(action.label)"
         @click="emit('triggerKey', action.keyCode)"
       >
-        <img :src="action.icon" :alt="action.label" class="device-action-button__icon" />
-        <span class="device-action-button__tooltip">{{ action.label }}</span>
+        <img :src="action.icon" :alt="t(action.label)" class="device-action-button__icon" />
+        <span class="device-action-button__tooltip">{{ t(action.label) }}</span>
       </button>
     </div>
 
     <div v-if="pointSelection" class="device-point-selection">
-      <span>请点击画面获取坐标</span>
-      <el-button size="small" text @click="emit('cancelPointSelection')">取消取点</el-button>
+      <span>{{ t("请点击画面获取坐标") }}</span>
+      <el-button size="small" text @click="emit('cancelPointSelection')">{{ t("取消取点") }}</el-button>
     </div>
     <div
       ref="previewRef"
@@ -448,11 +449,10 @@ function handlePointerCancel(event: PointerEvent) {
       </div>
       <div v-else class="device-preview__empty">
         <Cpu class="device-preview__icon" />
-        <p v-if="selectedDeviceId" class="device-preview__meta">
-          当前设备：{{ selectedDeviceId }}
+        <p v-if="selectedDeviceId" class="device-preview__meta"> {{ t("当前设备：") }}{{ selectedDeviceId }}
         </p>
-        <p v-if="previewError">{{ previewError }}</p>
-        <p v-else>请选择可用设备</p>
+        <p v-if="previewError">{{ t(previewError) }}</p>
+        <p v-else>{{ t("请选择可用设备") }}</p>
       </div>
     </div>
   </el-card>

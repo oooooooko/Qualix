@@ -5,7 +5,7 @@ const generatedEnd = '<!-- generated-docs:end -->';
 const readmeUrl = new URL('../README.md', import.meta.url);
 
 const stripFirstHeading = (markdown) =>
-  markdown.replace(/^#\s+[^\r\n]+\r?\n+/, '').trim();
+  markdown.replace(/^#\s+[^\r\n]+\r?\n+/, '').replace(/^\[简体中文\].*\n+/m, '').trim();
 
 const [readme, faq, changelog] = await Promise.all([
   readFile(readmeUrl, 'utf8'),
@@ -33,3 +33,14 @@ const generatedDocs = [
 ].join('\n');
 
 await writeFile(readmeUrl, `${readmeBody}\n\n${generatedDocs}\n`, 'utf8');
+
+await import('./sync-i18n-docs.mjs');
+const englishReadmeUrl = new URL('../README.en.md', import.meta.url);
+const [englishReadme, englishFaq, englishChangelog] = await Promise.all([
+  readFile(englishReadmeUrl, 'utf8'), readFile(new URL('../FAQ.en.md', import.meta.url), 'utf8'),
+  readFile(new URL('../CHANGELOG.en.md', import.meta.url), 'utf8'),
+]);
+const stripLanguageLinks = markdown => markdown.replace(/^\[简体中文\].*\n+/m, '');
+const englishGenerated = [generatedStart, '', '# FAQ', '', stripLanguageLinks(stripFirstHeading(englishFaq)), '',
+  '# Changelog', '', stripLanguageLinks(stripFirstHeading(englishChangelog)), '', generatedEnd].join('\n');
+await writeFile(englishReadmeUrl, `${englishReadme.trimEnd()}\n\n${englishGenerated}\n`, 'utf8');

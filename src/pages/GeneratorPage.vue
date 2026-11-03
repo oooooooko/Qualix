@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../i18n';
 import AiGeneratorPage from './AiGeneratorPage.vue';
 import ManualStepsPage from './ManualStepsPage.vue';
 import GeneratedCodePanel from '../components/generator/GeneratedCodePanel.vue';
@@ -52,17 +53,13 @@ defineEmits<{
         class="subnav__item"
         :class="{ 'subnav__item--active': mode === 'ai' }"
         @click="mode = 'ai'"
-      >
-        AI生成
-      </button>
+      > {{ t("AI生成") }} </button>
       <button
         type="button"
         class="subnav__item"
         :class="{ 'subnav__item--active': mode === 'manual' }"
         @click="mode = 'manual'"
-      >
-        自定义步骤编排
-      </button>
+      > {{ t("自定义步骤编排") }} </button>
     </div>
 
     <AiGeneratorPage

@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { InjectionKey, Ref } from 'vue';
 
 export type StopwatchConfig = { timerId: string; name: string; action: 'start' | 'mark' | 'end' };
@@ -5,7 +6,7 @@ export type StopwatchTarget = { timerId: string; name: string; label: string };
 export const stopwatchTargetsKey: InjectionKey<Readonly<Ref<StopwatchTarget[]>>> = Symbol('stopwatch-targets');
 export const STOPWATCH_ACTIONS = { start: '开始计时', mark: '记录时间点', end: '结束计时' };
 export function defaultStopwatch(): StopwatchConfig {
-  return { timerId: crypto.randomUUID(), name: '计时器1', action: 'start' };
+  return { timerId: crypto.randomUUID(), name: t('计时器1'), action: 'start' };
 }
 export function validateStopwatch(config?: StopwatchConfig) {
   if (!config || typeof config.name !== 'string' || !config.name.trim() || config.name.length > 80

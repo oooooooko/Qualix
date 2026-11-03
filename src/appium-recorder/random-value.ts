@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { sensitiveVariableName, validateVariables } from './variables';
 
 export type RandomValueConfig = {
@@ -45,16 +46,16 @@ export function validateRandomValue(input: RandomValueConfig | undefined, option
 }
 
 export function randomValueSummary(config: RandomValueConfig | undefined) {
-  if (!config) return '未配置随机值';
-  let source = '随机 ID（UUID）';
-  if (config.mode === 'integer') source = `随机整数 ${config.min ?? '?'}～${config.max ?? '?'}`;
+  if (!config) return t("未配置随机值");
+  let source = t("随机 ID（UUID）");
+  if (config.mode === 'integer') source = t("随机整数 {0}～{1}", { 0: config.min ?? '?', 1: config.max ?? '?' });
   if (config.mode === 'text') {
     let count = 0;
     try {
       const candidates = randomTextCandidates(config.text);
       count = config.withoutReplacement ? new Set(candidates).size : candidates.length;
     } catch { /* 编辑中的空内容仍允许展示节点。 */ }
-    source = `${count} 条候选 · ${config.withoutReplacement ? '本次运行不重复' : '允许重复'}`;
+    source = t("{0} 条候选 · {1}", { 0: count, 1: config.withoutReplacement ? t("本次运行不重复") : t("允许重复") });
   }
-  return `${source} → ${config.name || '未设置变量名'}`;
+  return t("{0} → {1}", { 0: source, 1: config.name || t("未设置变量名") });
 }

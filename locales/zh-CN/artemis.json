@@ -1,5 +1,4 @@
-// Central UI dictionary. Unrecognized server messages retain their original text.
-export const ZH_CN: Readonly<Record<string, string>> = {
+{
   "Refresh Configuration": "刷新配置",
   "Invalid model environment configuration.": "模型环境配置无效，请检查 .env。",
   "Refreshing Configuration...": "正在刷新配置…",
@@ -647,5 +646,12 @@ export const ZH_CN: Readonly<Record<string, string>> = {
   "Configuration must contain a default model.": "配置必须包含默认模型。",
   "Invalid model or agent configuration. Please check provider, model and fallback.": "模型或智能体配置无效，请检查 provider、model、fallback 及智能体字段。",
   "Configuration changed on disk. Cancel editing and reload before saving.": "文件已被其他操作修改。请先复制当前修改，再取消编辑并重新加载后保存。",
-  "Unable to save configuration. Check file permissions.": "无法保存配置，请检查文件权限。"
-};
+  "Unable to save configuration. Check file permissions.": "无法保存配置，请检查文件权限。",
+  "Python {0} Ready": "Python {0} 已就绪",
+  "Python {0} Unsupported": "Python {0} 不受支持",
+  "{0} failed": "{0} 项失败",
+  "Stop current task: {0}": "停止当前任务：{0}",
+  "Stop current task ({0})": "停止当前任务（{0}）",
+  "ADB connected to {0}, but the Android lock screen is active. Unlock the device and enter the home screen before running a task.": "ADB 已连接到 {0}，但设备处于锁屏状态。请解锁并进入主屏幕后再运行任务。",
+  "ADB connected to {0}, but Android lock-screen state could not be verified. Keep the device unlocked on the home screen and check again.": "ADB 已连接到 {0}，但无法确认锁屏状态。请保持设备解锁并停留在主屏幕，然后再次检查。"
+}

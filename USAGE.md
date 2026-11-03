@@ -1,5 +1,7 @@
 # Appium 录制器使用说明
 
+[简体中文](./USAGE.md) | [English](./USAGE.en.md)
+
 本文档说明 Appium 组件树录制器的完整使用方式，包括每个操作按钮的用途、录制方法和示例。
 
 本文档随 npm 包发布，也可以从 README 的“功能文档”直接打开。常见问题请查看 [FAQ.md](./FAQ.md)。

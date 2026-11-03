@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, ref, watch } from 'vue';
 import { Collection, VideoPlay, CircleCheck, Warning } from '@element-plus/icons-vue';
 import type { AnalysisResponse } from '../../analytics/summary';
@@ -66,20 +67,20 @@ function ringStyle(entries: { value: number; color: string }[]) {
 </script>
 
 <template>
-  <section class="analysis-charts" aria-label="测试数据图表">
+  <section class="analysis-charts" :aria-label="t('测试数据图表')">
     <div class="analysis-metrics">
       <article v-for="card in cards" :key="card.name" class="analysis-chart-card metric-card">
-        <h2>{{ card.name }}</h2>
+        <h2>{{ t(card.name) }}</h2>
         <div class="metric-card__value"><strong>{{ card.value }}</strong><el-icon :style="{ color: card.color, backgroundColor: `${card.color}16` }"><component :is="card.icon" /></el-icon></div>
-        <p>{{ card.note }}</p>
+        <p>{{ t(card.note) }}</p>
       </article>
     </div>
 
-    <section class="analysis-chart-card trend-card" aria-label="测试执行趋势">
+    <section class="analysis-chart-card trend-card" :aria-label="t('测试执行趋势')">
       <div class="chart-heading">
-        <div class="trend-tabs" role="group" aria-label="趋势图时间粒度">
-          <button :class="{ active: mode === 'daily' }" :aria-pressed="mode === 'daily'" @click="mode = 'daily'">执行趋势</button>
-          <button :class="{ active: mode === 'monthly' }" :aria-pressed="mode === 'monthly'" @click="mode = 'monthly'">月执行量</button>
+        <div class="trend-tabs" role="group" :aria-label="t('趋势图时间粒度')">
+          <button :class="{ active: mode === 'daily' }" :aria-pressed="mode === 'daily'" @click="mode = 'daily'">{{ t("执行趋势") }}</button>
+          <button :class="{ active: mode === 'monthly' }" :aria-pressed="mode === 'monthly'" @click="mode = 'monthly'">{{ t("月执行量") }}</button>
         </div>
         <div class="trend-legend">
           <button v-for="engine in (['midscene', 'appium'] as const)" :key="engine" :aria-pressed="shown[engine]" :class="{ muted: !shown[engine] }" @click="shown[engine] = !shown[engine]">
@@ -87,9 +88,9 @@ function ringStyle(entries: { value: number; color: string }[]) {
           </button>
         </div>
       </div>
-      <div class="chart-caption"><span>{{ chartDescription }} · 执行次数</span><span role="status">{{ selected ? `${selected.date} · Midscene ${selected.midscene} 次 · Appium ${selected.appium} 次` : '悬停查看数据，聚焦图表后可用左右方向键切换' }}</span></div>
+      <div class="chart-caption"><span>{{ t(chartDescription) }} {{ t("· 执行次数") }}</span><span role="status">{{ selected ? t("{0} · Midscene {1} 次 · Appium {2} 次", { 0: selected.date, 1: selected.midscene, 2: selected.appium }) : t("悬停查看数据，聚焦图表后可用左右方向键切换") }}</span></div>
       <div class="trend-chart-scroll">
-        <svg class="trend-chart" viewBox="0 0 1000 284" role="img" aria-label="Midscene 与 Appium 执行趋势，左右方向键查看日期数据" tabindex="0" @keydown="navigatePoint">
+        <svg class="trend-chart" viewBox="0 0 1000 284" role="img" :aria-label="t('Midscene 与 Appium 执行趋势，左右方向键查看日期数据')" tabindex="0" @keydown="navigatePoint">
           <defs>
             <linearGradient id="midscene-trend-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4ea9ee" stop-opacity=".45" /><stop offset="100%" stop-color="#4ea9ee" stop-opacity=".05" /></linearGradient>
             <linearGradient id="appium-trend-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#13b8a6" stop-opacity=".4" /><stop offset="100%" stop-color="#13b8a6" stop-opacity=".05" /></linearGradient>
@@ -112,28 +113,28 @@ function ringStyle(entries: { value: number; color: string }[]) {
           </template>
           <line v-if="selectedPoint !== null" :x1="x(selectedPoint)" :x2="x(selectedPoint)" y1="32" y2="242" stroke="var(--ui-text-muted)" stroke-dasharray="4 4" />
           <rect v-for="(point, index) in points" :key="point.date" :x="Math.max(40, x(index) - 460 / Math.max(1, points.length - 1))" y="24" :width="920 / Math.max(1, points.length - 1)" height="224" fill="transparent" @mouseenter="selectedPoint = index">
-            <title>{{ point.date }}：Midscene {{ point.midscene }} 次，Appium {{ point.appium }} 次</title>
+            <title>{{ point.date }}：Midscene {{ point.midscene }} {{ t("次，Appium") }} {{ point.appium }} {{ t("次") }}</title>
           </rect>
-          <text v-if="!points.some(point => point.midscene || point.appium)" x="512" y="126" text-anchor="middle">此时间范围暂无执行记录</text>
+          <text v-if="!points.some(point => point.midscene || point.appium)" x="512" y="126" text-anchor="middle">{{ t("此时间范围暂无执行记录") }}</text>
         </svg>
       </div>
     </section>
 
     <div class="analysis-distributions">
-      <section v-for="chart in distributions" :key="chart.title" class="analysis-chart-card distribution-card" :aria-label="chart.title">
-        <h2>{{ chart.title }}</h2>
+      <section v-for="chart in distributions" :key="chart.title" class="analysis-chart-card distribution-card" :aria-label="t(chart.title)">
+        <h2>{{ t(chart.title) }}</h2>
         <div class="distribution-card__body">
-          <div class="donut" :style="ringStyle(chart.entries)" role="img" :aria-label="chart.entries.map(entry => `${entry.name} ${entry.value} 次`).join('，')">
-            <div class="donut__center"><strong>{{ total.runs }}</strong><span>{{ total.runs ? chart.center : '暂无记录' }}</span></div>
+          <div class="donut" :style="ringStyle(chart.entries)" role="img" :aria-label="chart.entries.map(entry => t('{0} {1} 次', { 0: entry.name, 1: entry.value })).join('，')">
+            <div class="donut__center"><strong>{{ total.runs }}</strong><span>{{ total.runs ? t(chart.center) : t("暂无记录") }}</span></div>
           </div>
-          <ul class="distribution-legend"><li v-for="entry in chart.entries" :key="entry.name"><span><i :style="{ background: entry.color }" />{{ entry.name }}</span><strong>{{ entry.value }}</strong><small>{{ total.runs ? `${(entry.value / total.runs * 100).toFixed(1)}%` : '—' }}</small></li></ul>
+          <ul class="distribution-legend"><li v-for="entry in chart.entries" :key="entry.name"><span><i :style="{ background: entry.color }" />{{ t(entry.name) }}</span><strong>{{ entry.value }}</strong><small>{{ total.runs ? `${(entry.value / total.runs * 100).toFixed(1)}%` : '—' }}</small></li></ul>
         </div>
       </section>
-      <section class="analysis-chart-card failures-card" aria-label="失败次数排行">
-        <h2>失败次数排行 <small>TOP 5</small></h2>
-        <div v-if="!failures.length" class="chart-empty">所选范围暂无失败记录</div>
+      <section class="analysis-chart-card failures-card" :aria-label="t('失败次数排行')">
+        <h2>{{ t("失败次数排行") }} <small>TOP 5</small></h2>
+        <div v-if="!failures.length" class="chart-empty">{{ t("所选范围暂无失败记录") }}</div>
         <ol v-else class="failure-bars"><li v-for="(row, index) in failures" :key="`${row.engine}-${row.id}`">
-          <div><span :title="row.name">{{ index + 1 }}. {{ row.name }}</span><strong>{{ row.failed }} 次</strong></div>
+          <div><span :title="row.name">{{ index + 1 }}. {{ row.name }}</span><strong>{{ row.failed }} {{ t("次") }}</strong></div>
           <div class="failure-bars__track"><span :style="{ width: `${row.failed / failures[0].failed * 100}%` }" /></div>
           <small>{{ row.engine }}</small>
         </li></ol>

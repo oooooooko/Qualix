@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { shallowRef, watch, onBeforeUnmount } from 'vue';
 import { QuestionFilled } from '@element-plus/icons-vue';
 import { APP_BASE } from '../../api';
@@ -34,15 +35,15 @@ async function load() {
   <el-tooltip placement="bottom" effect="dark" :show-after="200" @before-show="load">
     <template #content>
       <div class="device-info">
-        <div v-if="!deviceId">未选择设备</div>
+        <div v-if="!deviceId">{{ t("未选择设备") }}</div>
         <template v-else>
-          <div v-if="loading">正在读取设备信息…</div>
-          <div v-if="error" role="status">{{ error }}</div>
-          <dl><template v-for="[key, label] in fields" :key="key"><dt>{{ label }}</dt><dd>{{ details?.[key] || '未知' }}</dd></template></dl>
+          <div v-if="loading">{{ t("正在读取设备信息…") }}</div>
+          <div v-if="error" role="status">{{ t(error) }}</div>
+          <dl><template v-for="[key, label] in fields" :key="key"><dt>{{ t(label) }}</dt><dd>{{ details?.[key] || t("未知") }}</dd></template></dl>
         </template>
       </div>
     </template>
-    <el-button class="device-info-help" :icon="QuestionFilled" text aria-label="设备信息" />
+    <el-button class="device-info-help" :icon="QuestionFilled" text :aria-label="t('设备信息')" />
   </el-tooltip>
 </template>
 

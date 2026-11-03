@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed } from 'vue';
 import { Aim } from '@element-plus/icons-vue';
 import type { AppiumVisualChangeConfig } from '../types';
@@ -40,7 +41,7 @@ function patchRegion(key: keyof AppiumVisualChangeConfig['region'], value: unkno
 <template>
   <el-dialog
     :model-value="modelValue"
-    title="检测画面变化"
+    :title="t('检测画面变化')"
     width="480px"
     top="9vh"
     class="appium-visual-change-dialog"
@@ -53,15 +54,13 @@ function patchRegion(key: keyof AppiumVisualChangeConfig['region'], value: unkno
     @update:model-value="emit('update:modelValue', $event)"
   >
     <el-form label-position="top" size="small" class="appium-visual-change-form">
-      <el-form-item label="检测目标">
+      <el-form-item :label="t('检测目标')">
         <el-radio-group
           :model-value="normalizedConfig.mode"
           @update:model-value="patchConfig({ mode: $event as AppiumVisualChangeConfig['mode'] })"
         >
-          <el-radio-button label="selectedElement" :disabled="!hasSelectedElement">
-            当前选中元素
-          </el-radio-button>
-          <el-radio-button label="region">手动框选区域</el-radio-button>
+          <el-radio-button label="selectedElement" :disabled="!hasSelectedElement"> {{ t("当前选中元素") }} </el-radio-button>
+          <el-radio-button label="region">{{ t("手动框选区域") }}</el-radio-button>
         </el-radio-group>
       </el-form-item>
 
@@ -70,12 +69,12 @@ function patchRegion(key: keyof AppiumVisualChangeConfig['region'], value: unkno
         type="warning"
         :closable="false"
         show-icon
-        title="当前没有可用的选中元素，请先选择组件或改为手动框选区域"
+        :title="t('当前没有可用的选中元素，请先选择组件或改为手动框选区域')"
       />
 
-      <el-form-item v-if="normalizedConfig.mode === 'region'" label="框选区域">
+      <el-form-item v-if="normalizedConfig.mode === 'region'" :label="t('框选区域')">
         <el-button :icon="Aim" :loading="pickingRegion" @click="emit('pickRegion')">
-          {{ pickingRegion ? '请在设备预览拖拽' : '框选/拖动区域' }}
+          {{ pickingRegion ? t("请在设备预览拖拽") : t("框选/拖动区域") }}
         </el-button>
       </el-form-item>
 
@@ -100,7 +99,7 @@ function patchRegion(key: keyof AppiumVisualChangeConfig['region'], value: unkno
             @update:model-value="patchRegion('y', $event)"
           />
         </el-form-item>
-        <el-form-item label="宽度">
+        <el-form-item :label="t('宽度')">
           <el-input-number
             :model-value="normalizedConfig.region.width"
             :min="1"
@@ -110,7 +109,7 @@ function patchRegion(key: keyof AppiumVisualChangeConfig['region'], value: unkno
             @update:model-value="patchRegion('width', $event)"
           />
         </el-form-item>
-        <el-form-item label="高度">
+        <el-form-item :label="t('高度')">
           <el-input-number
             :model-value="normalizedConfig.region.height"
             :min="1"
@@ -120,7 +119,7 @@ function patchRegion(key: keyof AppiumVisualChangeConfig['region'], value: unkno
             @update:model-value="patchRegion('height', $event)"
           />
         </el-form-item>
-        <el-form-item label="变化阈值 %">
+        <el-form-item :label="t('变化阈值 %')">
           <el-input-number
             :model-value="normalizedConfig.changeRatioThreshold"
             :min="0.01"
@@ -130,7 +129,7 @@ function patchRegion(key: keyof AppiumVisualChangeConfig['region'], value: unkno
             @update:model-value="patchConfig({ changeRatioThreshold: Number($event) })"
           />
         </el-form-item>
-        <el-form-item label="像素容差">
+        <el-form-item :label="t('像素容差')">
           <el-input-number
             :model-value="normalizedConfig.pixelmatchThreshold"
             :min="0"
@@ -144,8 +143,8 @@ function patchRegion(key: keyof AppiumVisualChangeConfig['region'], value: unkno
     </el-form>
 
     <template #footer>
-      <el-button @click="emit('update:modelValue', false)">取消</el-button>
-      <el-button type="primary" @click="emit('confirm')">添加开始节点</el-button>
+      <el-button @click="emit('update:modelValue', false)">{{ t("取消") }}</el-button>
+      <el-button type="primary" @click="emit('confirm')">{{ t("添加开始节点") }}</el-button>
     </template>
   </el-dialog>
 </template>

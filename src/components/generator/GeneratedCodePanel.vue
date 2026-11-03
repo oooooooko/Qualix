@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { CopyDocument, Edit, RefreshLeft } from '@element-plus/icons-vue';
 
 defineProps<{
@@ -22,36 +23,28 @@ defineEmits<{
   <el-card shadow="never" class="generator-code-card">
     <template #header>
       <div class="panel-header">
-        <span>生成代码</span>
+        <span>{{ t("生成代码") }}</span>
         <div class="panel-header__actions">
           <el-button
             type="success"
             :icon="CopyDocument"
             :disabled="!showCode"
             @click="$emit('copy')"
-          >
-            复制
-          </el-button>
+          > {{ t("复制") }} </el-button>
           <el-button
             v-if="!editing"
             type="primary"
             :icon="Edit"
             :disabled="!showCode"
             @click="$emit('edit')"
-          >
-            编辑
-          </el-button>
+          > {{ t("编辑") }} </el-button>
           <template v-else>
-            <el-button :icon="RefreshLeft" :disabled="saving" @click="$emit('undo')">
-              撤回修改
-            </el-button>
+            <el-button :icon="RefreshLeft" :disabled="saving" @click="$emit('undo')"> {{ t("撤回修改") }} </el-button>
             <el-button
               type="primary"
               :loading="saving"
               @click="$emit('save')"
-            >
-              保存
-            </el-button>
+            > {{ t("保存") }} </el-button>
           </template>
         </div>
       </div>

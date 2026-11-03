@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { locale, t } from '../../i18n';
 import { computed, ref, watch } from 'vue';
 import type { AnalysisSummary, AnalysisRow } from '../../analytics/summary';
 const props = defineProps<{ title: string; summary: AnalysisSummary }>();
@@ -23,34 +24,34 @@ const rate = (value: number | null) => value === null ? '—' : `${(value * 100)
 const duration = (value: number | null) => value === null ? '—' : value < 1000 ? `${Math.round(value)} 毫秒` : `${(value / 1000).toFixed(1)} 秒`;
 const statusText = { passed: '通过', failed: '失败', stopped: '已停止', running: '运行中' };
 const statusType = { passed: 'success', failed: 'danger', stopped: 'info', running: 'warning' } as const;
-const date = (value: string) => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleString('zh-CN', { hour12: false }) : '—';
+const date = (value: string) => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleString(locale.value, { hour12: false }) : '—';
 </script>
 
 <template>
-  <section class="report-analysis" :aria-label="`${title} 测试报告分析`">
+  <section class="report-analysis" :aria-label="t('{0} 测试报告分析', { 0: title })">
     <div class="report-analysis__heading">
-      <div><h2>{{ title }} 测试报告</h2><p>现有脚本 {{ summary.scripts }} 个 · 其中 {{ summary.testedScripts }} 个在所选范围内有执行记录</p></div>
-      <el-input v-model="search" clearable placeholder="搜索脚本名称" :aria-label="`搜索 ${title} 脚本`" class="report-analysis__search" />
+      <div><h2>{{ title }} {{ t("测试报告") }}</h2><p>{{ t("现有脚本") }} {{ summary.scripts }} {{ t("个 · 其中") }} {{ summary.testedScripts }} {{ t("个在所选范围内有执行记录") }}</p></div>
+      <el-input v-model="search" clearable :placeholder="t('搜索脚本名称')" :aria-label="t('搜索 {0} 脚本', { 0: title })" class="report-analysis__search" />
     </div>
     <div class="report-analysis__metrics">
-      <div><span>执行次数</span><strong>{{ summary.runs }}</strong></div>
-      <div><span>通过率</span><strong class="metric-primary">{{ rate(summary.passRate) }}</strong></div>
-      <div><span>通过 / 失败</span><strong><span class="metric-success">{{ summary.passed }}</span> / <span :class="{ 'metric-danger': summary.failed > 0 }">{{ summary.failed }}</span></strong></div>
-      <div><span>停止 / 运行中</span><strong>{{ summary.stopped }} / {{ summary.running }}</strong></div>
+      <div><span>{{ t("执行次数") }}</span><strong>{{ summary.runs }}</strong></div>
+      <div><span>{{ t("通过率") }}</span><strong class="metric-primary">{{ rate(summary.passRate) }}</strong></div>
+      <div><span>{{ t("通过 / 失败") }}</span><strong><span class="metric-success">{{ summary.passed }}</span> / <span :class="{ 'metric-danger': summary.failed > 0 }">{{ summary.failed }}</span></strong></div>
+      <div><span>{{ t("停止 / 运行中") }}</span><strong>{{ summary.stopped }} / {{ summary.running }}</strong></div>
     </div>
     <el-table :data="rows" row-key="id" stripe :default-sort="{ prop: 'lastRunAt', order: 'descending' }"
-      :empty-text="search ? '没有匹配的脚本' : '暂无脚本或测试记录'" @sort-change="sort = $event">
-      <el-table-column prop="name" label="脚本名称" min-width="200" sortable="custom">
-        <template #default="{ row }"><span>{{ row.name }}</span><el-tag v-if="row.archived" size="small" type="info" class="report-analysis__historical">历史脚本</el-tag></template>
+      :empty-text="search ? t('没有匹配的脚本') : t('暂无脚本或测试记录')" @sort-change="sort = $event">
+      <el-table-column prop="name" :label="t('脚本名称')" min-width="200" sortable="custom">
+        <template #default="{ row }"><span>{{ row.name }}</span><el-tag v-if="row.archived" size="small" type="info" class="report-analysis__historical">{{ t("历史脚本") }}</el-tag></template>
       </el-table-column>
-      <el-table-column prop="runs" label="执行次数" width="110" sortable="custom" />
-      <el-table-column prop="passed" label="通过" width="85" sortable="custom" />
-      <el-table-column prop="failed" label="失败" width="85" sortable="custom" />
-      <el-table-column label="停止 / 运行中" width="120"><template #default="{ row }">{{ row.stopped }} / {{ row.running }}</template></el-table-column>
-      <el-table-column prop="passRate" label="通过率" width="105" sortable="custom"><template #default="{ row }">{{ rate(row.passRate) }}</template></el-table-column>
-      <el-table-column prop="averageDurationMs" label="平均耗时" width="125" sortable="custom"><template #default="{ row }">{{ duration(row.averageDurationMs) }}</template></el-table-column>
-      <el-table-column label="最近状态" width="105"><template #default="{ row }"><el-tag v-if="row.lastStatus" :type="statusType[row.lastStatus as keyof typeof statusType]" effect="light">{{ statusText[row.lastStatus as keyof typeof statusText] }}</el-tag><span v-else class="report-analysis__muted">未执行</span></template></el-table-column>
-      <el-table-column prop="lastRunAt" label="最近执行" min-width="180" sortable="custom"><template #default="{ row }">{{ date(row.lastRunAt) }}</template></el-table-column>
+      <el-table-column prop="runs" :label="t('执行次数')" width="110" sortable="custom" />
+      <el-table-column prop="passed" :label="t('通过')" width="85" sortable="custom" />
+      <el-table-column prop="failed" :label="t('失败')" width="85" sortable="custom" />
+      <el-table-column :label="t('停止 / 运行中')" width="120"><template #default="{ row }">{{ row.stopped }} / {{ row.running }}</template></el-table-column>
+      <el-table-column prop="passRate" :label="t('通过率')" width="105" sortable="custom"><template #default="{ row }">{{ rate(row.passRate) }}</template></el-table-column>
+      <el-table-column prop="averageDurationMs" :label="t('平均耗时')" width="125" sortable="custom"><template #default="{ row }">{{ duration(row.averageDurationMs) }}</template></el-table-column>
+      <el-table-column :label="t('最近状态')" width="105"><template #default="{ row }"><el-tag v-if="row.lastStatus" :type="statusType[row.lastStatus as keyof typeof statusType]" effect="light">{{ t(statusText[row.lastStatus as keyof typeof statusText]) }}</el-tag><span v-else class="report-analysis__muted">{{ t("未执行") }}</span></template></el-table-column>
+      <el-table-column prop="lastRunAt" :label="t('最近执行')" min-width="180" sortable="custom"><template #default="{ row }">{{ date(row.lastRunAt) }}</template></el-table-column>
     </el-table>
     <el-pagination v-if="filteredRows.length > 10" v-model:current-page="page" :total="filteredRows.length" :page-size="10" layout="total, prev, pager, next" class="report-analysis__pagination" />
   </section>

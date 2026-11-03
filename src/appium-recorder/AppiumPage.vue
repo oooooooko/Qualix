@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { locale, t } from '../i18n';
 import { computed, h, nextTick, onMounted, onUnmounted, provide, reactive, shallowRef, useTemplateRef, watch } from 'vue';
 import { flowBackgroundKey, normalizeFlowBackground, flowLineColorKey, normalizeFlowLineColor, flowLineStyleKey, normalizeFlowLineStyle, type FlowLineStyle, flowLayoutDirectionKey, normalizeFlowLayoutDirection, type FlowLayoutDirection, flowNodeColorKey, normalizeFlowNodeColor, flowNodeBorderColorKey, normalizeFlowNodeBorderColor } from './flow-appearance';
 import { useCoordinatePicker } from './coordinate-preview';
@@ -232,7 +233,7 @@ const stopwatchTargets = computed(() => [
   { name: form.name || '当前脚本', steps: steps.value },
 ].flatMap(script => script.steps.flatMap((step, index) => step.type === 'stopwatch' && step.stopwatch?.action === 'start' && step.stopwatch.timerId
   ? [{ timerId: step.stopwatch.timerId, name: step.stopwatch.name,
-    label: `${step.stopwatch.name} · ${script.name} · 节点 ${index + 1} · ${step.stopwatch.timerId}` }] : [])));
+    label: t("{0} · {1} · 节点 {2} · {3}", { 0: step.stopwatch.name, 1: script.name, 2: index + 1, 3: step.stopwatch.timerId }) }] : [])));
 provide(stopwatchTargetsKey, stopwatchTargets);
 const scriptVariables = shallowRef<TestVariable[]>([]);
 const globalVariables = shallowRef<TestVariable[]>([]);
@@ -432,19 +433,19 @@ function insertStep(step: AppiumRecordedStep, index?: number, branchTarget?: Bra
 function copyFlowNodes(indexes: number[]) {
   try {
     flowClipboard.value = createFlowClipboard(steps.value, indexes);
-    ElMessage.success(`已复制 ${flowClipboardCount.value} 个节点`);
+    ElMessage.success(t("已复制 {0} 个节点", { 0: flowClipboardCount.value }));
   } catch (error) {
-    ElMessage.warning(error instanceof Error ? error.message : '复制节点失败');
+    ElMessage.warning(t(error instanceof Error ? error.message : t("复制节点失败")));
   }
 }
 
 function pasteFlowNodes(index: number, branch?: BranchName, beforeStepId?: string) {
   if (!flowClipboard.value) {
-    ElMessage.warning('请先复制节点');
+    ElMessage.warning(t("请先复制节点"));
     return;
   }
   if (recordingBusy.value) {
-    ElMessage.warning('页面操作处理中，请稍后再粘贴');
+    ElMessage.warning(t("页面操作处理中，请稍后再粘贴"));
     return;
   }
   try {
@@ -455,10 +456,10 @@ function pasteFlowNodes(index: number, branch?: BranchName, beforeStepId?: strin
     });
     validateLoopSteps(nextSteps);
     steps.value = nextSteps;
-    ElMessage.success(`已粘贴 ${flowClipboardCount.value} 个节点${branch ? `到${branch === 'yes' ? '是' : '否'}分支` : ''}`);
+    ElMessage.success(t("已粘贴 {0} 个节点{1}", { 0: flowClipboardCount.value, 1: branch ? `到${branch === 'yes' ? '是' : '否'}分支` : '' }));
     flowClipboard.value = null;
   } catch (error) {
-    ElMessage.warning(error instanceof Error ? error.message : '粘贴节点失败');
+    ElMessage.warning(t(error instanceof Error ? error.message : t("粘贴节点失败")));
   }
 }
 
@@ -554,7 +555,7 @@ function createStep(type: NodeStepType, node: AppiumNode): AppiumRecordedStep {
   return {
     id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     type,
-    label: `${labelMap[type]} ${node.label}`,
+    label: `${t(labelMap[type])} ${node.label}`,
     selector: node.selector,
     contextSelector: node.contextSelector,
     selectorChain: node.xpath && node.selector.value !== node.xpath
@@ -575,7 +576,7 @@ function createStep(type: NodeStepType, node: AppiumNode): AppiumRecordedStep {
 async function copyReplayOutput() {
   if (!replayOutput.value) return;
   await navigator.clipboard.writeText(replayOutput.value);
-  ElMessage.success('回放输出已复制');
+  ElMessage.success(t("回放输出已复制"));
 }
 
 function clearReplayOutput() {
@@ -587,7 +588,7 @@ function createDelayStep(timeoutMs: number): AppiumRecordedStep {
   return {
     id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     type: 'delay',
-    label: `延时 ${timeoutMs}ms`,
+    label: t("延时 {0}ms", { 0: timeoutMs }),
     timeoutMs,
   };
 }
@@ -601,7 +602,7 @@ function createNodeActionStep(
   return {
     id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     type,
-    label: `${label} ${node.label}`,
+    label: `${t(label)} ${node.label}`,
     selector: node.selector,
     contextSelector: node.contextSelector,
     selectorChain: node.xpath && node.selector.value !== node.xpath
@@ -623,7 +624,7 @@ function createKeyStep(keyCode: number, label = '按返回键'): AppiumRecordedS
   return {
     id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     type: 'key',
-    label,
+    label: t(label),
     keyCode,
   };
 }
@@ -645,7 +646,7 @@ function swipePreset(direction: string): { direction: string; label: string; swi
   const labelMap: Record<string, string> = { up: '上滑', down: '下滑', left: '左滑', right: '右滑' };
   return {
     direction: normalizedDirection,
-    label: labelMap[normalizedDirection] || '滑动',
+    label: t(labelMap[normalizedDirection] || '滑动'),
     swipe: swipeMap[normalizedDirection] || swipeMap.up,
   };
 }
@@ -663,7 +664,7 @@ function createWaitActivityStep(activity: string): AppiumRecordedStep {
   return {
     id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     type: 'waitActivity',
-    label: `等待 Activity ${activity}`,
+    label: t("等待 Activity {0}", { 0: activity }),
     value: activity,
     timeoutMs: DEFAULT_NODE_TIMEOUT_MS,
   };
@@ -673,7 +674,7 @@ function createRunScriptStep(script: AppiumRecordedScript): AppiumRecordedStep {
   return {
     id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     type: 'runScript',
-    label: `连接脚本 ${script.name}`,
+    label: t("连接脚本 {0}", { 0: script.name }),
     value: script.id,
     flow: { nodeKind: 'action' },
   };
@@ -683,7 +684,7 @@ function createNoopStep(): AppiumRecordedStep {
   return {
     id: createStepId(),
     type: 'noop',
-    label: '空节点',
+    label: t("空节点"),
     flow: { nodeKind: 'action' },
   };
 }
@@ -727,7 +728,7 @@ function confirmImageCheck() {
     } else insertStep(draft, imageCheckIndex, imageCheckBranch);
     imageCheckDraft.value = null;
     imageCheckPicking.value = false;
-  } catch (error) { ElMessage.warning((error as Error).message); }
+  } catch (error) { ElMessage.warning(t((error as Error).message)); }
 }
 
 function currentVisualChangeConfig() {
@@ -755,7 +756,7 @@ function createVisualChangeStartStep(config: AppiumVisualChangeConfig): AppiumRe
     const step = createNodeActionStep('visualChange', `${pairLabel}-开始节点`, node);
     return {
       ...step,
-      label: `${pairLabel}-开始节点`,
+      label: t("{0}-开始节点", { 0: pairLabel }),
       visualChange,
       flow: { ...(step.flow || {}), nodeKind: 'assertion' },
     };
@@ -763,7 +764,7 @@ function createVisualChangeStartStep(config: AppiumVisualChangeConfig): AppiumRe
   return {
     id: createStepId(),
     type: 'visualChange',
-    label: `${pairLabel}-开始节点`,
+    label: t("{0}-开始节点", { 0: pairLabel }),
     visualChange,
     flow: { nodeKind: 'assertion' },
   };
@@ -777,7 +778,7 @@ function createVisualChangeEndStep(startStep: AppiumRecordedStep): AppiumRecorde
   return {
     id,
     type: 'visualChange',
-    label: `${pairLabel}-结束节点`,
+    label: t("{0}-结束节点", { 0: pairLabel }),
     visualChange: {
       ...config,
       role: 'end',
@@ -863,13 +864,13 @@ function currentPageSnapshot(node = selectedNode.value) {
 
 function ensureAppPackageSelected() {
   if (hasSelectedAppPackage.value) return true;
-  ElMessage.warning('请先从预设 App 参数中选择 App 包名');
+  ElMessage.warning(t("请先从预设 App 参数中选择 App 包名"));
   return false;
 }
 
 function getSelectedNode() {
   if (selectedNode.value) return selectedNode.value;
-  ElMessage.warning('请先选择组件');
+  ElMessage.warning(t("请先选择组件"));
   return null;
 }
 
@@ -956,14 +957,14 @@ async function triggerDeviceKey(keyCode: number) {
     await props.triggerDeviceKey(keyCode);
     scheduleAutoTreeRefresh(500);
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '设备操作失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("设备操作失败")));
   }
 }
 
 async function refreshTree() {
   if (loadingTree.value || replaying.value) return;
   if (!selectedDeviceId.value) {
-    ElMessage.warning('请选择设备');
+    ElMessage.warning(t("请选择设备"));
     return;
   }
   loadingTree.value = true;
@@ -971,7 +972,7 @@ async function refreshTree() {
     await loadTreeSnapshot(true, true);
     props.refreshDevicePreview();
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '刷新组件树失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("刷新组件树失败")));
   } finally {
     loadingTree.value = false;
   }
@@ -980,19 +981,19 @@ async function refreshTree() {
 async function executeFlowStep(index: number) {
   const step = steps.value[index];
   if (step?.type === 'aiRecognition') {
-    if (replaying.value || recordingBusy.value) { ElMessage.warning('设备正在执行操作，请稍后测试'); return; }
+    if (replaying.value || recordingBusy.value) { ElMessage.warning(t("设备正在执行操作，请稍后测试")); return; }
     aiRecognitionTestStep.value = { ...step };
     return;
   }
   if (!step || (step.type !== 'launchApp' && step.type !== 'clearAppData')) return;
   if (launchingApp.value) return;
   if (!selectedDeviceId.value) {
-    ElMessage.warning('请选择设备');
+    ElMessage.warning(t("请选择设备"));
     return;
   }
   const packageName = step.value?.trim() || form.appPackage;
   if (!packageName || !props.appPresets.some((app) => app.packageName === packageName)) {
-    ElMessage.warning('当前节点没有匹配的预设 App');
+    ElMessage.warning(t("当前节点没有匹配的预设 App"));
     return;
   }
 
@@ -1023,14 +1024,14 @@ async function executeFlowStep(index: number) {
     await loadTreeSnapshot(true, true);
     props.refreshDevicePreview();
     if (step.type === 'clearAppData') {
-      ElMessage.success('App 数据与缓存已清理');
+      ElMessage.success(t("App 数据与缓存已清理"));
     } else if (scriptActivityMismatch.value) {
-      ElMessage.warning(`App 已启动，当前页面仍为 ${currentActivity.value || '-'}`);
+      ElMessage.warning(t("App 已启动，当前页面仍为 {0}", { 0: currentActivity.value || '-' }));
     } else {
-      ElMessage.success('已进入脚本绑定页面');
+      ElMessage.success(t("已进入脚本绑定页面"));
     }
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : 'App 操作失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("App 操作失败")));
   } finally {
     launchingApp.value = false;
     executingAppStepId.value = '';
@@ -1048,7 +1049,7 @@ function selectNodeFromPoint(point: { x: number; y: number }) {
     workspaceRef.value?.showTree();
     return;
   }
-  ElMessage.warning('未命中组件树节点');
+  ElMessage.warning(t("未命中组件树节点"));
 }
 
 async function swipePreview(gesture: {
@@ -1070,7 +1071,7 @@ async function swipePreview(gesture: {
     );
     scheduleAutoTreeRefresh(500);
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '滑动失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("滑动失败")));
   }
 }
 
@@ -1078,13 +1079,13 @@ async function recordTapStep(index?: number, branchTarget?: BranchTarget) {
   if (!selectedNode.value || recordingTap.value) return;
   if (!ensureAppPackageSelected()) return;
   if (!selectedDeviceId.value) {
-    ElMessage.warning('请选择设备');
+    ElMessage.warning(t("请选择设备"));
     return;
   }
   const node = selectedNode.value;
   const bounds = node.bounds;
   if (!bounds) {
-    ElMessage.warning('当前组件没有可点击坐标');
+    ElMessage.warning(t("当前组件没有可点击坐标"));
     return;
   }
   const beforeActivity = currentActivity.value;
@@ -1106,10 +1107,10 @@ async function recordTapStep(index?: number, branchTarget?: BranchTarget) {
       };
       return step;
     }
-    ElMessage.success('已录制点击');
+    ElMessage.success(t("已录制点击"));
     return step;
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '录制点击失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("录制点击失败")));
     return undefined;
   } finally {
     recordingTap.value = false;
@@ -1172,7 +1173,7 @@ function renderSwipeForm(form: SwipeForm) {
   }));
 
   return h(ElForm, { labelPosition: 'top', size: 'small', class: 'appium-swipe-dialog-form' }, () => [
-    h(ElFormItem, { label: '滑动方向' }, () => h(ElSelect, {
+    h(ElFormItem, { label: t("滑动方向") }, () => h(ElSelect, {
       modelValue: form.direction,
       'onUpdate:modelValue': (value: string) => {
         const preset = swipePreset(value);
@@ -1180,10 +1181,10 @@ function renderSwipeForm(form: SwipeForm) {
         Object.assign(form, preset.swipe);
       },
     }, () => [
-      h(ElOption, { label: '上滑', value: 'up' }),
-      h(ElOption, { label: '下滑', value: 'down' }),
-      h(ElOption, { label: '左滑', value: 'left' }),
-      h(ElOption, { label: '右滑', value: 'right' }),
+      h(ElOption, { label: t("上滑"), value: 'up' }),
+      h(ElOption, { label: t("下滑"), value: 'down' }),
+      h(ElOption, { label: t("左滑"), value: 'left' }),
+      h(ElOption, { label: t("右滑"), value: 'right' }),
     ])),
     h('div', { class: 'appium-swipe-dialog-grid' }, () => [
       coordinateInput('起点 X', 'startX'),
@@ -1202,11 +1203,11 @@ async function addSwipeStep(index?: number, branchTarget?: BranchTarget) {
     ...preset.swipe,
   });
   const result = await ElMessageBox({
-    title: '添加滑动',
+    title: t("添加滑动"),
     message: renderSwipeForm(form),
     showCancelButton: true,
-    confirmButtonText: '添加',
-    cancelButtonText: '取消',
+    confirmButtonText: t("添加"),
+    cancelButtonText: t("取消"),
     customClass: 'appium-swipe-message-box',
   }).catch(() => null);
   if (!result) return;
@@ -1226,13 +1227,13 @@ async function addSwipeStep(index?: number, branchTarget?: BranchTarget) {
 function openLinkedScriptDialog(index?: number, branchTarget?: BranchTarget) {
   linkedScriptEditingId.value = '';
   if (!linkableScripts.value.length) {
-    ElMessage.warning('暂无可连接的已保存脚本');
+    ElMessage.warning(t("暂无可连接的已保存脚本"));
     return;
   }
   linkedScriptBranchTarget.value = branchTarget || null;
   linkedScriptExpectedActivity.value = expectedActivityAfterStep(index);
   if (!compatibleLinkableScripts.value.length) {
-    ElMessage.warning('没有属于当前 App 的可连接脚本');
+    ElMessage.warning(t("没有属于当前 App 的可连接脚本"));
     linkedScriptExpectedActivity.value = '';
     linkedScriptBranchTarget.value = null;
     return;
@@ -1249,19 +1250,19 @@ function addLinkedScriptStep() {
   catch (error) { ElMessage.error(String(error)); return; }
   const script = scripts.value.find((item) => item.id === linkedScriptTargetId.value);
   if (!script) {
-    ElMessage.warning('请选择要连接的脚本');
+    ElMessage.warning(t("请选择要连接的脚本"));
     return;
   }
   if (script.appPackage !== form.appPackage) {
-    ElMessage.error('连接脚本必须属于当前 App');
+    ElMessage.error(t("连接脚本必须属于当前 App"));
     return;
   }
   const editingIndex = linkedScriptEditingId.value ? steps.value.findIndex(step => step.id === linkedScriptEditingId.value) : -1;
-  if (linkedScriptEditingId.value && editingIndex < 0) { ElMessage.warning('原节点已删除，请重新打开'); return; }
+  if (linkedScriptEditingId.value && editingIndex < 0) { ElMessage.warning(t("原节点已删除，请重新打开")); return; }
   if (editingIndex >= 0) {
     const original = steps.value[editingIndex]!;
     updateStep(editingIndex, { ...original, value: script.id,
-      ...(original.label.startsWith('连接脚本 ') ? { label: `连接脚本 ${script.name}` } : {}),
+      ...(original.label.startsWith('连接脚本 ') ? { label: t("连接脚本 {0}", { 0: script.name }) } : {}),
       parameters: JSON.parse(JSON.stringify(linkedParameters.parameters || [])), returns: JSON.parse(JSON.stringify(linkedParameters.returns || [])) });
   } else insertStep(
     { ...createRunScriptStep(script), parameters: JSON.parse(JSON.stringify(linkedParameters.parameters || [])), returns: JSON.parse(JSON.stringify(linkedParameters.returns || [])) },
@@ -1272,7 +1273,7 @@ function addLinkedScriptStep() {
   linkedScriptBranchTarget.value = null;
   linkedScriptExpectedActivity.value = '';
   linkedScriptDialogVisible.value = false;
-  ElMessage.success(editingIndex >= 0 ? '已修改连接脚本' : '已添加连接脚本步骤');
+  ElMessage.success(t(editingIndex >= 0 ? t("已修改连接脚本") : t("已添加连接脚本步骤")));
   linkedScriptEditingId.value = '';
 }
 
@@ -1287,7 +1288,7 @@ function closeLinkedScriptDialog() {
 function openLinkedScriptPreview(scriptId = linkedScriptTargetId.value) {
   const script = scripts.value.find((item) => item.id === scriptId);
   if (!script) {
-    ElMessage.warning('请选择要预览的脚本');
+    ElMessage.warning(t("请选择要预览的脚本"));
     return;
   }
   linkedScriptPreviewScriptId.value = script.id;
@@ -1327,7 +1328,7 @@ function updateVisualChangeConfig(config: AppiumVisualChangeConfig) {
 
 function pickVisualChangeRegion() {
   if (!selectedDeviceId.value) {
-    ElMessage.warning('请选择设备');
+    ElMessage.warning(t("请选择设备"));
     return;
   }
   visualChangeConfig.value = normalizeVisualChangeConfig({
@@ -1336,7 +1337,7 @@ function pickVisualChangeRegion() {
   });
   visualChangePicking.value = true;
   workspaceRef.value?.showPreview();
-  ElMessage.info('请在设备预览中拖拽框选检测区域');
+  ElMessage.info(t("请在设备预览中拖拽框选检测区域"));
 }
 
 function applyVisualChangeRegion(region: AppiumVisualChangeRegion) {
@@ -1351,13 +1352,13 @@ function applyVisualChangeRegion(region: AppiumVisualChangeRegion) {
     region,
   });
   visualChangePicking.value = false;
-  ElMessage.success('已选择检测区域');
+  ElMessage.success(t("已选择检测区域"));
 }
 
 function confirmVisualChangeStep() {
   const config = normalizeVisualChangeConfig(visualChangeConfig.value);
   if (config.mode === 'selectedElement' && !selectedNode.value?.bounds) {
-    ElMessage.warning('当前没有可用的选中元素，请先选择组件或改为手动框选区域');
+    ElMessage.warning(t("当前没有可用的选中元素，请先选择组件或改为手动框选区域"));
     return;
   }
   const step = createVisualChangeStartStep(config);
@@ -1367,7 +1368,7 @@ function confirmVisualChangeStep() {
     visualChangeBranchTarget.value || undefined,
   );
   closeVisualChangeDialog();
-  ElMessage.success('已添加检测画面变化开始节点');
+  ElMessage.success(t("已添加检测画面变化开始节点"));
 }
 
 function isReadonlyFlowActionDisabled(_action: InsertAction) {
@@ -1397,11 +1398,11 @@ async function addAction(
   if (recordingBusy.value) return;
   if (!ensureAppPackageSelected()) return;
   if (action === 'clearAppData' && steps.value.some((step) => step.type === 'clearAppData')) {
-    ElMessage.warning('清理 App 缓存节点只能添加一个');
+    ElMessage.warning(t("清理 App 缓存节点只能添加一个"));
     return;
   }
   if (action === 'clearAppData' && index !== -1) {
-    ElMessage.warning('清理 App 缓存只能从开始节点添加');
+    ElMessage.warning(t("清理 App 缓存只能从开始节点添加"));
     return;
   }
   if (action === 'runScript') {
@@ -1412,21 +1413,21 @@ async function addAction(
     return addDelayStep(index, branchTarget);
   }
   if (action === 'openGallery') {
-    return insertStep({ id: createStepId(), type: 'openGallery', label: '启动相册', flow: { nodeKind: 'action' } }, index, branchTarget);
+    return insertStep({ id: createStepId(), type: 'openGallery', label: t("启动相册"), flow: { nodeKind: 'action' } }, index, branchTarget);
   }
   if (action === 'endFlow') {
-    return insertStep({ id: createStepId(), type: 'endFlow', label: '终止流程', flow: { nodeKind: 'action' } }, index, branchTarget);
+    return insertStep({ id: createStepId(), type: 'endFlow', label: t("终止流程"), flow: { nodeKind: 'action' } }, index, branchTarget);
   }
   if (action === 'loop') {
     const step = reactive<AppiumRecordedStep>({
-      id: createStepId(), type: 'loop', label: '有界循环', loop: defaultLoopConfig(),
+      id: createStepId(), type: 'loop', label: t("有界循环"), loop: defaultLoopConfig(),
       selector: selectedNode.value?.selector ? { ...selectedNode.value.selector } : { strategy: 'id', value: '' },
       flow: { nodeKind: 'condition' },
     });
     const result = await ElMessageBox({
-      title: '添加有界循环',
+      title: t("添加有界循环"),
       message: h(ElForm, { labelPosition: 'top' }, () => h(LoopSettings, { step, onUpdate: (patch) => Object.assign(step, patch) })),
-      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
           try { validateLoop(step); } catch (error) { ElMessage.warning((error as Error).message); return; }
@@ -1438,15 +1439,15 @@ async function addAction(
     return;
   }
   if (action === 'breakLoop') {
-    const step: AppiumRecordedStep = { id: createStepId(), type: 'breakLoop', label: '退出循环', flow: { nodeKind: 'action' } };
+    const step: AppiumRecordedStep = { id: createStepId(), type: 'breakLoop', label: t("退出循环"), flow: { nodeKind: 'action' } };
     const scoped = reactive(branchTarget ? stepWithBranchTarget(step, branchTarget) : step);
     const loops = enclosingLoops(steps.value, scoped);
-    if (!loops.length) { ElMessage.warning('退出循环只能添加在循环体内'); return; }
+    if (!loops.length) { ElMessage.warning(t("退出循环只能添加在循环体内")); return; }
     scoped.breakLoopTargetId = loops[0]!.id;
     const result = await ElMessageBox({
-      title: '添加退出循环',
+      title: t("添加退出循环"),
       message: h(ElForm, { labelPosition: 'top' }, () => h(BreakLoopSettings, { step: scoped, steps: steps.value, onUpdate: (patch) => Object.assign(scoped, patch) })),
-      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
           try { breakLoopTarget(steps.value, scoped); } catch (error) { ElMessage.warning((error as Error).message); return; }
@@ -1458,20 +1459,20 @@ async function addAction(
     return;
   }
   if (action === 'continueLoop') {
-    const step: AppiumRecordedStep = { id: createStepId(), type: 'continueLoop', label: '继续下一次循环', flow: { nodeKind: 'action' } };
+    const step: AppiumRecordedStep = { id: createStepId(), type: 'continueLoop', label: t("继续下一次循环"), flow: { nodeKind: 'action' } };
     const scoped = reactive(branchTarget ? stepWithBranchTarget(step, branchTarget) : step);
     const loops = enclosingLoops(steps.value, scoped);
-    if (!loops.length) { ElMessage.warning('继续下一次循环只能添加在循环体内'); return; }
+    if (!loops.length) { ElMessage.warning(t("继续下一次循环只能添加在循环体内")); return; }
     scoped.continueLoopTargetId = loops[0]!.id;
     const result = await ElMessageBox({
-      title: '添加继续下一次循环',
+      title: t("添加继续下一次循环"),
       message: h(ElForm, { labelPosition: 'top' }, () => h(BreakLoopSettings, {
         step: scoped,
         steps: steps.value,
         mode: 'continue',
         onUpdate: (patch) => Object.assign(scoped, patch),
       })),
-      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
           try { continueLoopTarget(steps.value, scoped); } catch (error) { ElMessage.warning((error as Error).message); return; }
@@ -1487,7 +1488,7 @@ async function addAction(
     imageCheckBranch = branchTarget;
     imageCheckEditing = false;
     imageCheckPicking.value = false;
-    imageCheckDraft.value = { id: createStepId(), type: 'imageCheck', label: '图像判断', flow: { nodeKind: 'condition' },
+    imageCheckDraft.value = { id: createStepId(), type: 'imageCheck', label: t("图像判断"), flow: { nodeKind: 'condition' },
       imageCheck: { ...createImageCheckConfig(), region: defaultVisualChangeRegion(), screenWidth: props.deviceWidth || 0, screenHeight: props.deviceHeight || 0 } };
     if (selectedNode.value?.bounds) useImageCheckElement();
     return;
@@ -1495,15 +1496,15 @@ async function addAction(
   if (action === 'aiRecognition') {
     const draft = reactive({ value: '', error: '' });
     const result = await ElMessageBox({
-      title: '添加 AI 识别',
+      title: t("添加 AI 识别"),
       message: () => h(ElForm, { labelPosition: 'top', style: { width: 'min(380px, calc(100vw - 64px))' } },
-        () => h(ElFormItem, { label: '识别内容', error: draft.error },
+        () => h(ElFormItem, { label: t("识别内容"), error: draft.error },
           () => h(AiRecognitionPromptInput, {
             modelValue: draft.value, presets: availableAiPromptPresets.value,
-            placeholder: '例如：检查当前画面有没有显示黑屏',
+            placeholder: t("例如：检查当前画面有没有显示黑屏"),
             'onUpdate:modelValue': (value: string) => { draft.value = value; draft.error = ''; },
           }))),
-      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
           try { draft.value = validateAiRecognitionPrompt(draft.value); }
@@ -1513,18 +1514,18 @@ async function addAction(
       },
     }).catch(() => null);
     if (!result) return;
-    return insertStep({ id: createStepId(), type: 'aiRecognition', label: 'AI 识别', value: draft.value, aiBranchEnabled: false, timeoutMs: DEFAULT_NODE_TIMEOUT_MS, flow: { nodeKind: 'action' } }, index, branchTarget);
+    return insertStep({ id: createStepId(), type: 'aiRecognition', label: t("AI 识别"), value: draft.value, aiBranchEnabled: false, timeoutMs: DEFAULT_NODE_TIMEOUT_MS, flow: { nodeKind: 'action' } }, index, branchTarget);
   }
   if (action === 'textClick') {
     const step = reactive<AppiumRecordedStep>({
-      id: createStepId(), type: 'textClick', label: '文字点击', value: '', timeoutMs: DEFAULT_NODE_TIMEOUT_MS,
+      id: createStepId(), type: 'textClick', label: t("文字点击"), value: '', timeoutMs: DEFAULT_NODE_TIMEOUT_MS,
       flow: { nodeKind: 'condition', textMatch: 'exact' },
     });
     const result = await ElMessageBox({
-      title: '添加文字点击',
+      title: t("添加文字点击"),
       message: h(ElForm, { labelPosition: 'top', style: { width: 'min(380px, calc(100vw - 64px))' } },
         () => h(TextClickSettings, { step, onUpdate: (patch) => Object.assign(step, patch) })),
-      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
           try { textClickSelector(step); }
@@ -1570,13 +1571,13 @@ async function addAction(
   if (action === 'visualChangeEnd') {
     const candidates = findOpenVisualChangeStarts(steps.value, index, branchTarget);
     if (!candidates.length) {
-      ElMessage.warning('当前分支没有可对应的检测画面变化开始节点');
+      ElMessage.warning(t("当前分支没有可对应的检测画面变化开始节点"));
       return;
     }
     let selectedId = candidates.length === 1 ? candidates[0].id : '';
     if (candidates.length > 1) {
       selectedId = await new Promise<string>((resolve) => { void ElMessageBox({
-        title: '选择要结束的画面变化检测',
+        title: t("选择要结束的画面变化检测"),
         showConfirmButton: false,
         showCancelButton: false,
         callback: () => resolve(''),
@@ -1590,11 +1591,11 @@ async function addAction(
     // 选择期间流程可能发生变化；插入前重新检查配对，不能使用过期候选。
     const startStep = findOpenVisualChangeStarts(steps.value, index, branchTarget).find(step => step.id === selectedId);
     if (!startStep) {
-      ElMessage.warning('该开始节点已结束或不再属于当前路径，请重新选择');
+      ElMessage.warning(t("该开始节点已结束或不再属于当前路径，请重新选择"));
       return;
     }
     const inserted = insertStep(createVisualChangeEndStep(startStep), index, branchTarget);
-    ElMessage.success(`已添加 ${inserted.label}`);
+    ElMessage.success(t("已添加 {0}", { 0: inserted.label }));
     return inserted;
   }
   if (action === 'pinch') {
@@ -1610,7 +1611,7 @@ async function addAction(
     return insertStep({
       id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
       type: 'pinch',
-      label: direction === 'out' ? '双指放大' : '双指缩小',
+      label: direction === 'out' ? t('双指放大') : t('双指缩小'),
       pinch: {
         direction,
         centerX: Math.round((props.deviceWidth || 1080) / 2),
@@ -1624,14 +1625,14 @@ async function addAction(
   }
   if (action === 'log') {
     const step = reactive<AppiumRecordedStep>({
-      id: createStepId(), type: 'log', label: '输出日志', logPrefix: DEFAULT_LOG_PREFIX, value: '',
+      id: createStepId(), type: 'log', label: t("输出日志"), logPrefix: DEFAULT_LOG_PREFIX, value: '',
     });
     const result = await ElMessageBox({
-      title: '添加输出日志',
+      title: t("添加输出日志"),
       message: h(ElForm, { labelPosition: 'top', style: { width: 'min(380px, calc(100vw - 64px))' } }, () => h(StageLogSettings, {
         step, onUpdate: (patch) => Object.assign(step, patch),
       })),
-      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         const error = action === 'confirm' ? validateStageLog(step) : '';
         if (error) { ElMessage.warning(error); return; }
@@ -1642,11 +1643,11 @@ async function addAction(
     return;
   }
   if (action === 'stopwatch') {
-    const step = reactive<AppiumRecordedStep>({ id: createStepId(), type: 'stopwatch', label: '计时打点', stopwatch: defaultStopwatch(), flow: { nodeKind: 'action' } });
+    const step = reactive<AppiumRecordedStep>({ id: createStepId(), type: 'stopwatch', label: t("计时打点"), stopwatch: defaultStopwatch(), flow: { nodeKind: 'action' } });
     const result = await ElMessageBox({
-      title: '添加计时打点',
+      title: t("添加计时打点"),
       message: h(ElForm, { labelPosition: 'top', style: { width: 'min(380px, calc(100vw - 64px))' } }, () => h(StopwatchSettings, { step, targets: stopwatchTargets.value, onUpdate: patch => Object.assign(step, patch) })),
-      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
           try { validateStopwatch(step.stopwatch); } catch (error) { ElMessage.warning((error as Error).message); return; }
@@ -1659,7 +1660,7 @@ async function addAction(
   }
   if (action === 'randomValue') {
     const step = reactive<AppiumRecordedStep>(pendingRandomValue.value?.step || {
-      id: createStepId(), type: 'randomValue', label: '获取随机值', randomValue: { ...defaultRandomValue(), name: '' }, flow: { nodeKind: 'action' },
+      id: createStepId(), type: 'randomValue', label: t("获取随机值"), randomValue: { ...defaultRandomValue(), name: '' }, flow: { nodeKind: 'action' },
     });
     pendingRandomValue.value = null;
     const dialogPresets: VariablePresetContext = { ...variablePresets, open: () => {
@@ -1668,11 +1669,11 @@ async function addAction(
       variablePresets.open();
     } };
     const result = await ElMessageBox({
-      title: '添加获取随机值',
+      title: t("添加获取随机值"),
       message: h(ElForm, { labelPosition: 'top', style: { width: 'min(380px, calc(100vw - 64px))', maxHeight: '65vh', overflowY: 'auto', paddingRight: '4px' } }, () => h(RandomValueSettings, {
         step, presets: dialogPresets, onUpdate: patch => Object.assign(step, patch),
       })),
-      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
           try {
@@ -1691,19 +1692,19 @@ async function addAction(
     return insertStep({
       id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
       type: 'launchApp',
-      label: `启动 APP ${form.appPackage}`,
+      label: t("启动 APP {0}", { 0: form.appPackage }),
       value: form.appPackage,
     }, index, branchTarget);
   }
   if (action === 'stopApp') {
-    return insertStep({ id: createStepId(), type: 'stopApp', label: `杀死 APP ${form.appPackage}`,
+    return insertStep({ id: createStepId(), type: 'stopApp', label: t("杀死 APP {0}", { 0: form.appPackage }),
       value: form.appPackage, flow: { nodeKind: 'action' } }, index, branchTarget);
   }
   if (action === 'clearAppData') {
     return insertStep({
       id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
       type: 'clearAppData',
-      label: `清理 APP 缓存（含数据）${form.appPackage}`,
+      label: t("清理 APP 缓存（含数据）{0}", { 0: form.appPackage }),
       value: form.appPackage,
     }, index);
   }
@@ -1712,9 +1713,9 @@ async function addAction(
   if (action === 'extractVariable') {
     const step = reactive<AppiumRecordedStep>({ ...createNodeActionStep('extractVariable', '提取变量', node), extractVariable: { name: '', attribute: 'text', sensitive: false }, flow: { nodeKind: 'action' } });
     const result = await ElMessageBox({
-      title: '提取组件到变量',
+      title: t("提取组件到变量"),
       message: h(ElForm, { labelPosition: 'top' }, () => h(VariableExtractionSettings, { step, onUpdate: patch => Object.assign(step, patch) })),
-      showCancelButton: true, confirmButtonText: '添加', cancelButtonText: '取消',
+      showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
           try { validateExtraction(step.extractVariable); } catch (error) { ElMessage.error(String(error)); return; }
@@ -1728,7 +1729,7 @@ async function addAction(
   if (action === 'checkboxState' || action === 'radioButtonState' || action === 'checkedState') {
     const controlName = nativeControlName(action);
     if (!matchesNativeControl(action, node.className) || node.checkable !== true) {
-      ElMessage.warning(`请选择原生 ${controlName} 元素，当前选中：${node.className || '未知类型'}`);
+      ElMessage.warning(t("请选择原生 {0} 元素，当前选中：{1}", { 0: controlName, 1: node.className || '未知类型' }));
       return;
     }
     const step = createNodeActionStep(action, action === 'checkedState' ? '判断勾选' : `判断 ${controlName} 状态`, node, { timeoutMs: DEFAULT_NODE_TIMEOUT_MS });
@@ -1738,7 +1739,7 @@ async function addAction(
       step.selectorChain = undefined;
     }
     if (!step.selector?.value || step.selector.strategy === 'bounds') {
-      ElMessage.warning(`当前 ${controlName} 没有可用的元素定位器`);
+      ElMessage.warning(t("当前 {0} 没有可用的元素定位器", { 0: controlName }));
       return;
     }
     // 只保存定位信息，回放时读取实时状态；坐标不能用于判断元素属性。
@@ -1749,7 +1750,7 @@ async function addAction(
   if (action === 'popupCondition') {
     const step = createNodeActionStep('assertExists', '判断存在', node, { timeoutMs: DEFAULT_NODE_TIMEOUT_MS });
     const inserted = insertStep({ ...step, flow: { nodeKind: 'condition' } }, index, branchTarget);
-    ElMessage.success('已添加判断节点，请在节点面板配置是/否分支');
+    ElMessage.success(t("已添加判断节点，请在节点面板配置是/否分支"));
     return inserted;
   }
   if (action === 'tapIfExists') {
@@ -1780,13 +1781,13 @@ async function addAction(
   }
   if (action === 'coordinateTap') {
     if (!node.bounds) {
-      ElMessage.warning('当前组件没有可点击坐标');
+      ElMessage.warning(t("当前组件没有可点击坐标"));
       return;
     }
     return insertStep({
       id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
       type: 'coordinateTap',
-      label: `点击坐标 ${node.bounds.centerX},${node.bounds.centerY}`,
+      label: t("点击坐标 {0},{1}", { 0: node.bounds.centerX, 1: node.bounds.centerY }),
       fallback: { strategy: 'bounds', centerX: node.bounds.centerX, centerY: node.bounds.centerY },
     }, index, branchTarget);
   }
@@ -1802,14 +1803,14 @@ async function addAction(
       step.selectorChain = undefined;
     }
     const result = await ElMessageBox({
-      title: '添加长按',
+      title: t("添加长按"),
       message: h(ElForm, { labelPosition: 'top', size: 'small' }, () => [
-        h(ElFormItem, { label: '当前元素' }, () => h('div', { style: { overflowWrap: 'anywhere' } }, node.label)),
+        h(ElFormItem, { label: t("当前元素") }, () => h('div', { style: { overflowWrap: 'anywhere' } }, node.label)),
         h(LongPressSettings, { step, onUpdate: (patch) => Object.assign(step, patch) }),
       ]),
       showCancelButton: true,
-      confirmButtonText: '添加',
-      cancelButtonText: '取消',
+      confirmButtonText: t("添加"),
+      cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         const error = action === 'confirm' ? validateLongPress(step) : '';
         if (error) { ElMessage.warning(error); return; }
@@ -1859,7 +1860,7 @@ function continueOnActivityChange() {
   // 跨页面继续录制时，入口仍是首次录制页面，不能改成跳转后的页面。
   form.appActivity ||= pendingNavigation.value.beforeActivity;
   pendingNavigation.value = null;
-  ElMessage.success('已继续录制，后续操作将加入当前脚本');
+  ElMessage.success(t("已继续录制，后续操作将加入当前脚本"));
 }
 
 async function saveOnActivityChange() {
@@ -1884,9 +1885,9 @@ async function saveOnActivityChange() {
     resetCurrentScript();
     form.appActivity = pending.afterActivity;
     markDraftSaved();
-    ElMessage.success(`脚本「${payload.script.name}」已保存，可开始录制新 Activity`);
+    ElMessage.success(t("脚本「{0}」已保存，可开始录制新 Activity", { 0: payload.script.name }));
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '保存脚本失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("保存脚本失败")));
   } finally {
     resolvingNavigation.value = false;
   }
@@ -1998,7 +1999,7 @@ function loadSelectedScript() {
 
 function resetCurrentScript() {
   pendingRandomValue.value = null;
-  void saveVariables('/api/appium-recorder/variables?draft=1', []).catch(() => ElMessage.error('变量草稿清理失败'));
+  void saveVariables('/api/appium-recorder/variables?draft=1', []).catch(() => ElMessage.error(t("变量草稿清理失败")));
   scriptVariables.value = [];
   flowClipboard.value = null;
   selectedScriptId.value = '';
@@ -2036,7 +2037,7 @@ async function saveAndNewScript() {
 function formatScriptTime(value: string) {
   if (!value) return '-';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString(locale.value);
 }
 
 function cloneScriptSteps(stepList: AppiumRecordedStep[]) {
@@ -2073,9 +2074,9 @@ async function duplicateScript(script: AppiumRecordedScript) {
       steps: remapStopwatchIds(cloneScriptSteps(script.steps)),
     });
     await loadScripts();
-    ElMessage.success(`已复制为「${payload.script.name}」`);
+    ElMessage.success(t("已复制为「{0}」", { 0: payload.script.name }));
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '复制脚本失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("复制脚本失败")));
   } finally {
     duplicatingScriptId.value = '';
   }
@@ -2117,9 +2118,9 @@ async function renameScript(script: AppiumRecordedScript) {
         markDraftSaved();
       }
     }
-    ElMessage.success('脚本名称已修改');
+    ElMessage.success(t("脚本名称已修改"));
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '修改脚本名称失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("修改脚本名称失败")));
   } finally {
     renamingScriptId.value = '';
   }
@@ -2127,9 +2128,9 @@ async function renameScript(script: AppiumRecordedScript) {
 
 async function removeScript(script: AppiumRecordedScript) {
   try {
-    await ElMessageBox.confirm(`确定删除脚本「${script.name}」吗？`, '删除脚本', {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t("确定删除脚本「{0}」吗？", { 0: script.name }), t("删除脚本"), {
+      confirmButtonText: t("删除"),
+      cancelButtonText: t("取消"),
       type: 'warning',
       confirmButtonClass: 'el-button--danger',
     });
@@ -2145,9 +2146,9 @@ async function removeScript(script: AppiumRecordedScript) {
     if (wasCurrent) {
       resetCurrentScript();
     }
-    ElMessage.success('脚本已删除');
+    ElMessage.success(t("脚本已删除"));
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '删除脚本失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("删除脚本失败")));
   } finally {
     deletingScriptId.value = '';
   }
@@ -2167,7 +2168,7 @@ async function downloadScript(script: AppiumRecordedScript) {
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '导出脚本失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("导出脚本失败")));
   } finally {
     downloadingScriptId.value = '';
   }
@@ -2215,15 +2216,15 @@ async function importScriptFile(event: Event) {
       try {
         await loadScripts();
       } catch (error) {
-        ElMessage.warning(`脚本已导入，但刷新列表失败：${error instanceof Error ? error.message : '未知错误'}`);
+        ElMessage.warning(t("脚本已导入，但刷新列表失败：{0}", { 0: error instanceof Error ? error.message : '未知错误' }));
         return;
       }
     }
 
     if (!failedFiles.length) {
-      ElMessage.success(files.length === 1
-        ? `脚本「${importedScripts[0].name}」已导入`
-        : `已成功导入 ${importedScripts.length} 个脚本`);
+      ElMessage.success(t(files.length === 1
+        ? t("脚本「{0}」已导入", { 0: importedScripts[0].name })
+        : t("已成功导入 {0} 个脚本", { 0: importedScripts.length })));
       return;
     }
 
@@ -2231,9 +2232,9 @@ async function importScriptFile(event: Event) {
       .map(({ name, reason }) => `${name}（${reason}）`)
       .join('；');
     if (importedScripts.length) {
-      ElMessage.warning(`已导入 ${importedScripts.length} 个脚本，${failedFiles.length} 个失败：${failedSummary}`);
+      ElMessage.warning(t("已导入 {0} 个脚本，{1} 个失败：{2}", { 0: importedScripts.length, 1: failedFiles.length, 2: failedSummary }));
     } else {
-      ElMessage.error(`导入失败：${failedSummary}`);
+      ElMessage.error(t("导入失败：{0}", { 0: failedSummary }));
     }
   } finally {
     importingScript.value = false;
@@ -2258,12 +2259,12 @@ async function saveScript() {
     });
     await loadScripts();
     selectedScriptId.value = payload.script.id;
-    if (wasNew) void saveVariables('/api/appium-recorder/variables?draft=1', []).catch(() => ElMessage.error('变量草稿清理失败'));
+    if (wasNew) void saveVariables('/api/appium-recorder/variables?draft=1', []).catch(() => ElMessage.error(t("变量草稿清理失败")));
     markDraftSaved();
-    ElMessage.success('Appium 脚本已保存');
+    ElMessage.success(t("Appium 脚本已保存"));
     return true;
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '保存失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("保存失败")));
     return false;
   } finally {
     saving.value = false;
@@ -2273,7 +2274,7 @@ async function saveScript() {
 async function replayScript() {
   if (preparingReplay.value || replaying.value) return;
   if (!selectedScript.value) {
-    ElMessage.warning('请选择已保存脚本');
+    ElMessage.warning(t("请选择已保存脚本"));
     return;
   }
   if (hasUnsavedChanges.value) {
@@ -2326,18 +2327,18 @@ async function replayScript() {
     );
     replayOutput.value = result.output || '';
     if (result.stopped) {
-      ElMessage.info('回放已终止，报告、日志和截图回放已生成');
+      ElMessage.info(t("回放已终止，报告、日志和截图回放已生成"));
     } else if (result.softFailureCount) {
-      ElMessage.warning(`回放完成，但存在 ${result.softFailureCount} 个视觉变化未达预期节点`);
+      ElMessage.warning(t("回放完成，但存在 {0} 个视觉变化未达预期节点", { 0: result.softFailureCount }));
     } else if (result.success) {
-      ElMessage.success('回放完成');
+      ElMessage.success(t("回放完成"));
     } else {
-      ElMessage.error('回放失败，详情见回放输出');
+      ElMessage.error(t("回放失败，详情见回放输出"));
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : '回放失败';
     replayOutput.value += `${replayOutput.value ? '\n' : ''}${message}`;
-    ElMessage.error('回放失败，详情见回放输出');
+    ElMessage.error(t("回放失败，详情见回放输出"));
   } finally {
     replaying.value = false;
     stoppingReplay.value = false;
@@ -2353,11 +2354,11 @@ async function stopReplay() {
     const result = await stopAppiumReplay(activeReplayDeviceId.value);
     if (!result.stopped) {
       stoppingReplay.value = false;
-      ElMessage.warning('当前没有可终止的回放任务');
+      ElMessage.warning(t("当前没有可终止的回放任务"));
     }
   } catch (error) {
     stoppingReplay.value = false;
-    ElMessage.error(error instanceof Error ? error.message : '终止回放失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("终止回放失败")));
   }
 }
 
@@ -2375,9 +2376,9 @@ watch(() => form.appPackage, (packageName) => {
   if (!packageName) return;
   steps.value = steps.value.map((step) => (
     step.type === 'launchApp'
-      ? { ...step, label: `启动 APP ${packageName}`, value: packageName }
+      ? { ...step, label: t("启动 APP {0}", { 0: packageName }), value: packageName }
       : step.type === 'clearAppData'
-        ? { ...step, label: `清理 APP 缓存（含数据）${packageName}`, value: packageName }
+        ? { ...step, label: t("清理 APP 缓存（含数据）{0}", { 0: packageName }), value: packageName }
         : step
   ));
 });
@@ -2401,14 +2402,14 @@ watch(
       <el-select
         v-model="selectedScriptId"
         clearable
-        placeholder="选择脚本"
+        :placeholder="t('选择脚本')"
         class="appium-header-actions__script"
         @change="loadSelectedScript"
       >
         <el-option v-for="script in scripts" :key="script.id" :label="script.name" :value="script.id" />
       </el-select>
-      <el-button :icon="Plus" :disabled="newScriptDisabled || newScriptDialogVisible" @click="requestNewScript">新建</el-button>
-      <el-button :icon="Check" :loading="saving" @click="saveScript">保存</el-button>
+      <el-button :icon="Plus" :disabled="newScriptDisabled || newScriptDialogVisible" @click="requestNewScript">{{ t("新建") }}</el-button>
+      <el-button :icon="Check" :loading="saving" @click="saveScript">{{ t("保存") }}</el-button>
       <el-button-group class="replay-button-group">
         <el-button
           type="primary"
@@ -2416,21 +2417,19 @@ watch(
           :loading="replaying || preparingReplay"
           :disabled="!selectedScript"
           @click="replayScript"
-        >
-          回放
-        </el-button>
+        > {{ t("回放") }} </el-button>
         <el-popover trigger="click" placement="bottom" :width="320">
-          <template #reference><el-button type="primary" :icon="ArrowDown" :disabled="replaying || preparingReplay" aria-label="回放设置" title="回放设置" class="replay-settings-toggle" /></template>
+          <template #reference><el-button type="primary" :icon="ArrowDown" :disabled="replaying || preparingReplay" :aria-label="t('回放设置')" :title="t('回放设置')" class="replay-settings-toggle" /></template>
           <div class="replay-settings-panel">
-            <el-tooltip content="使用内置服务端后台录制，无需安装 scrcpy 或 FFmpeg。含敏感变量的运行不录制；分享 HTML 报告时需同时携带 MP4。" placement="bottom" :show-after="300">
-              <el-checkbox v-model="recordReplayVideo" :disabled="replaying || preparingReplay">录制回放视频</el-checkbox>
+            <el-tooltip :content="t('使用内置服务端后台录制，无需安装 scrcpy 或 FFmpeg。含敏感变量的运行不录制；分享 HTML 报告时需同时携带 MP4。')" placement="bottom" :show-after="300">
+              <el-checkbox v-model="recordReplayVideo" :disabled="replaying || preparingReplay">{{ t("录制回放视频") }}</el-checkbox>
             </el-tooltip>
             <div class="replay-report-template">
-              <span>报告模板</span>
-              <el-select v-model="selectedReportTemplateName" clearable :disabled="replaying || preparingReplay || !reportSummary?.enabled" placeholder="默认测试报告（未选择时使用）">
-                <el-option v-for="template in availableReportTemplates" :key="template.name" :label="template.name" :value="template.name" />
+              <span>{{ t("报告模板") }}</span>
+              <el-select v-model="selectedReportTemplateName" clearable :disabled="replaying || preparingReplay || !reportSummary?.enabled" :placeholder="t('默认测试报告（未选择时使用）')">
+                <el-option v-for="template in availableReportTemplates" :key="template.name" :label="t(template.name)" :value="template.name" />
               </el-select>
-              <small v-if="!reportSummary?.enabled">需先在参数配置中开启回放报告总结。</small>
+              <small v-if="!reportSummary?.enabled">{{ t("需先在参数配置中开启回放报告总结。") }}</small>
             </div>
           </div>
         </el-popover>
@@ -2441,9 +2440,7 @@ watch(
         :icon="CircleClose"
         :loading="stoppingReplay"
         @click="stopReplay"
-      >
-        终止
-      </el-button>
+      > {{ t("终止") }} </el-button>
     </div>
 
     </Teleport>
@@ -2487,11 +2484,11 @@ watch(
           class="appium-workbench-tabs"
           @tab-click="setActiveWorkbenchTab($event.paneName)"
         >
-          <el-tab-pane label="当前录制" name="recording">
+          <el-tab-pane :label="t('当前录制')" name="recording">
             <div class="appium-workbench">
               <section class="appium-workbench__section">
                 <div class="appium-section-title">
-                  <h3>节点与脚本</h3>
+                  <h3>{{ t("节点与脚本") }}</h3>
                   <div class="appium-section-title__actions">
                     <LlmPromptActions
                       :draft="{ id: selectedScriptId || 'llm_draft', name: form.name.trim() || '当前录制流程', appPackage: form.appPackage, appActivity: form.appActivity, deviceId: '', steps, variables: scriptVariables }"
@@ -2499,11 +2496,11 @@ watch(
                   </div>
                 </div>
                 <div class="appium-side-form">
-                  <el-input v-model="form.name" placeholder="脚本名称" />
+                  <el-input v-model="form.name" :placeholder="t('脚本名称')" />
                   <el-select
                     v-model="form.appPackage"
                     filterable
-                    placeholder="选择预设 App 参数"
+                    :placeholder="t('选择预设 App 参数')"
                   >
                     <el-option
                       v-for="app in appPresets"
@@ -2543,11 +2540,11 @@ watch(
             </div>
           </el-tab-pane>
 
-          <el-tab-pane label="脚本列表" name="scripts">
+          <el-tab-pane :label="t('脚本列表')" name="scripts">
             <div class="appium-script-list">
               <div class="appium-script-list__toolbar">
-                <el-tooltip content="导入脚本（支持多选）" placement="top" :show-after="200"><span class="appium-script-icon">
-                  <el-button size="small" :icon="Upload" aria-label="导入脚本" :loading="importingScript" @click="chooseScriptImportFile" />
+                <el-tooltip :content="t('导入脚本（支持多选）')" placement="top" :show-after="200"><span class="appium-script-icon">
+                  <el-button size="small" :icon="Upload" :aria-label="t('导入脚本')" :loading="importingScript" @click="chooseScriptImportFile" />
                 </span></el-tooltip>
                 <input
                   ref="scriptImportInput"
@@ -2558,7 +2555,7 @@ watch(
                   @change="importScriptFile"
                 >
               </div>
-              <el-empty v-if="!scripts.length" description="暂无录制脚本" />
+              <el-empty v-if="!scripts.length" :description="t('暂无录制脚本')" />
               <template v-else>
                 <article
                   v-for="script in scripts"
@@ -2569,50 +2566,50 @@ watch(
                   <div class="appium-script-list__main">
                     <strong>{{ script.name }}</strong>
                     <span>{{ script.appPackage }}</span>
-                    <small>{{ script.steps.length }} 步 · {{ formatScriptTime(script.updatedAt) }}</small>
+                    <small>{{ script.steps.length }} {{ t("步 ·") }} {{ formatScriptTime(script.updatedAt) }}</small>
                   </div>
                   <div class="appium-script-list__actions">
-                    <el-tooltip content="历史结果对比" placement="top" :show-after="200"><span class="appium-script-icon">
-                      <el-button size="small" :icon="Clock" aria-label="历史结果对比" @click.stop="historyScript = { id: script.id, name: script.name }" />
+                    <el-tooltip :content="t('历史结果对比')" placement="top" :show-after="200"><span class="appium-script-icon">
+                      <el-button size="small" :icon="Clock" :aria-label="t('历史结果对比')" @click.stop="historyScript = { id: script.id, name: script.name }" />
                     </span></el-tooltip>
-                    <el-tooltip content="加载" placement="top" :show-after="200"><span class="appium-script-icon">
-                      <el-button size="small" :icon="FolderOpened" aria-label="加载" @click.stop="loadScript(script)" />
+                    <el-tooltip :content="t('加载')" placement="top" :show-after="200"><span class="appium-script-icon">
+                      <el-button size="small" :icon="FolderOpened" :aria-label="t('加载')" @click.stop="loadScript(script)" />
                     </span></el-tooltip>
-                    <el-tooltip content="修改脚本名称" placement="top" :show-after="200"><span class="appium-script-icon">
+                    <el-tooltip :content="t('修改脚本名称')" placement="top" :show-after="200"><span class="appium-script-icon">
                     <el-button
                       size="small"
                       :icon="Edit"
                       :loading="renamingScriptId === script.id"
-                      aria-label="修改脚本名称"
+                      :aria-label="t('修改脚本名称')"
                       @click.stop="renameScript(script)"
                     />
                     </span></el-tooltip>
-                    <el-tooltip content="复制脚本" placement="top" :show-after="200"><span class="appium-script-icon">
+                    <el-tooltip :content="t('复制脚本')" placement="top" :show-after="200"><span class="appium-script-icon">
                     <el-button
                       size="small"
                       :icon="CopyDocument"
                       :loading="duplicatingScriptId === script.id"
-                      aria-label="复制脚本"
+                      :aria-label="t('复制脚本')"
                       @click.stop="duplicateScript(script)"
                     />
                     </span></el-tooltip>
-                    <el-tooltip content="下载脚本" placement="top" :show-after="200"><span class="appium-script-icon">
+                    <el-tooltip :content="t('下载脚本')" placement="top" :show-after="200"><span class="appium-script-icon">
                     <el-button
                       size="small"
                       :icon="Download"
                       :loading="downloadingScriptId === script.id"
                       :disabled="Boolean(downloadingScriptId) && downloadingScriptId !== script.id"
-                      aria-label="下载脚本"
+                      :aria-label="t('下载脚本')"
                       @click.stop="downloadScript(script)"
                     />
                     </span></el-tooltip>
-                    <el-tooltip content="删除脚本" placement="top" :show-after="200"><span class="appium-script-icon">
+                    <el-tooltip :content="t('删除脚本')" placement="top" :show-after="200"><span class="appium-script-icon">
                     <el-button
                       size="small"
                       type="danger"
                       :icon="Delete"
                       :loading="deletingScriptId === script.id"
-                      aria-label="删除脚本"
+                      :aria-label="t('删除脚本')"
                       @click.stop="removeScript(script)"
                     />
                     </span></el-tooltip>
@@ -2621,10 +2618,10 @@ watch(
               </template>
             </div>
           </el-tab-pane>
-          <el-tab-pane label="预设变量" name="variables" lazy>
+          <el-tab-pane :label="t('预设变量')" name="variables" lazy>
             <div v-if="pendingRandomValue" class="random-value-return">
-              <span>随机值节点配置已保留</span>
-              <el-button type="primary" plain :disabled="recordingLocked" @click="resumeRandomValue">返回节点配置</el-button>
+              <span>{{ t("随机值节点配置已保留") }}</span>
+              <el-button type="primary" plain :disabled="recordingLocked" @click="resumeRandomValue">{{ t("返回节点配置") }}</el-button>
             </div>
             <PresetVariables :key="`${selectedScriptId}:${newScriptRevision}`" v-model:variables="scriptVariables" v-model:globals="globalVariables" :script-id="selectedScriptId" :script-name="form.name" :disabled="recordingBusy || saving" @saved="onVariablesSaved" />
           </el-tab-pane>
@@ -2667,57 +2664,57 @@ watch(
 
     <el-dialog
       :model-value="Boolean(pendingNavigation)"
-      title="检测到 Activity 跳转"
+      :title="t('检测到 Activity 跳转')"
       width="560px"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
       :show-close="false"
     >
       <div class="appium-navigation-dialog">
-        <p>检测到 Activity 已跳转。可以继续在当前脚本中录制后续操作，或保存当前脚本并开始录制新页面。</p>
+        <p>{{ t("检测到 Activity 已跳转。可以继续在当前脚本中录制后续操作，或保存当前脚本并开始录制新页面。") }}</p>
         <dl>
           <div>
-            <dt>点击前</dt>
+            <dt>{{ t("点击前") }}</dt>
             <dd>{{ pendingNavigation?.beforeActivity || '-' }}</dd>
           </div>
           <div>
-            <dt>点击后</dt>
+            <dt>{{ t("点击后") }}</dt>
             <dd>{{ pendingNavigation?.afterActivity || '-' }}</dd>
           </div>
         </dl>
       </div>
       <template #footer>
         <div class="appium-navigation-footer">
-          <el-button :disabled="resolvingNavigation" @click="continueOnActivityChange">继续录制</el-button>
-          <el-button type="primary" :loading="resolvingNavigation" @click="saveOnActivityChange">保存脚本</el-button>
+          <el-button :disabled="resolvingNavigation" @click="continueOnActivityChange">{{ t("继续录制") }}</el-button>
+          <el-button type="primary" :loading="resolvingNavigation" @click="saveOnActivityChange">{{ t("保存脚本") }}</el-button>
         </div>
       </template>
     </el-dialog>
 
     <el-dialog
       v-model="linkedScriptDialogVisible"
-      title="连接脚本"
+      :title="t('连接脚本')"
       width="640px"
       class="appium-linked-script-dialog"
       align-center
       @closed="closeLinkedScriptDialog"
     >
       <el-form label-position="top">
-        <el-form-item :label="linkedScriptBranchTarget ? '分支录制 Activity' : '插入点 Activity'">
+        <el-form-item :label="linkedScriptBranchTarget ? t('分支录制 Activity') : t('插入点 Activity')">
           <code class="appium-linked-script-activity">{{ linkedScriptExpectedActivity || '-' }}</code>
         </el-form-item>
-        <el-form-item label="选择同一 App 的脚本">
+        <el-form-item :label="t('选择同一 App 的脚本')">
           <div class="appium-linked-script-picker">
             <el-select
               v-model="linkedScriptTargetId"
               filterable
-              placeholder="选择要连接的脚本"
+              :placeholder="t('选择要连接的脚本')"
               class="appium-linked-script-select"
             >
               <el-option
                 v-for="script in compatibleLinkableScripts"
                 :key="script.id"
-                :label="`${script.name} · ${script.appActivity || '未绑定 Activity'} · ${script.steps.length} 步`"
+                :label="t('{0} · {1} · {2} 步', { 0: script.name, 1: script.appActivity || '未绑定 Activity', 2: script.steps.length })"
                 :value="script.id"
               />
             </el-select>
@@ -2725,27 +2722,25 @@ watch(
               :icon="View"
               :disabled="!linkedScriptTarget"
               @click="openLinkedScriptPreview()"
-            >
-              预览
-            </el-button>
+            > {{ t("预览") }} </el-button>
           </div>
         </el-form-item>
         <el-alert v-if="linkedScriptTarget" :closable="false" type="info" show-icon
           :title="linkedScriptTarget.appActivity
-            ? `回放时等待进入 ${linkedScriptTarget.appActivity}，请在前序步骤中完成页面跳转。`
-            : '此脚本未绑定入口 Activity，将直接从当前画面执行。请确保前序步骤已进入目标页面。'"
+            ? t('回放时等待进入 {0}，请在前序步骤中完成页面跳转。', { 0: linkedScriptTarget.appActivity })
+            : t('此脚本未绑定入口 Activity，将直接从当前画面执行。请确保前序步骤已进入目标页面。')"
         />
         <ScriptParameterSettings :step="linkedParameters" @update="Object.assign(linkedParameters, $event)" />
       </el-form>
       <template #footer>
-        <el-button @click="closeLinkedScriptDialog">取消</el-button>
-        <el-button type="primary" @click="addLinkedScriptStep">{{ linkedScriptEditingId ? '保存' : '添加连接' }}</el-button>
+        <el-button @click="closeLinkedScriptDialog">{{ t("取消") }}</el-button>
+        <el-button type="primary" @click="addLinkedScriptStep">{{ linkedScriptEditingId ? t("保存") : t("添加连接") }}</el-button>
       </template>
     </el-dialog>
 
     <el-dialog
       v-model="linkedScriptPreviewVisible"
-      :title="linkedScriptPreviewScript ? `预览脚本：${linkedScriptPreviewScript.name}` : '预览脚本'"
+      :title="linkedScriptPreviewScript ? t('预览脚本：{0}', { 0: linkedScriptPreviewScript.name }) : t('预览脚本')"
       width="86vw"
       top="6vh"
       class="appium-linked-script-preview-dialog"
@@ -2757,9 +2752,8 @@ watch(
           <strong>{{ linkedScriptPreviewScript.name }}</strong>
           <span>
             {{ linkedScriptPreviewScript.appPackage || '-' }}
-            · {{ linkedScriptPreviewScript.appActivity || '未绑定 Activity' }}
-            · {{ linkedScriptPreviewScript.steps.length }} 步
-          </span>
+            · {{ linkedScriptPreviewScript.appActivity || t("未绑定 Activity") }}
+            · {{ linkedScriptPreviewScript.steps.length }} {{ t("步") }} </span>
         </div>
         <FlowCanvas
           id="appium-linked-script-preview"
@@ -2784,20 +2778,18 @@ watch(
         />
       </template>
       <template #footer>
-        <el-button @click="linkedScriptPreviewVisible = false">关闭</el-button>
+        <el-button @click="linkedScriptPreviewVisible = false">{{ t("关闭") }}</el-button>
         <el-button
           type="primary"
           :disabled="!linkedScriptPreviewScript"
           @click="loadPreviewScriptForEditing"
-        >
-          加载后修改
-        </el-button>
+        > {{ t("加载后修改") }} </el-button>
       </template>
     </el-dialog>
 
     <el-dialog
       :model-value="stoppingReplay"
-      title="报告正在生成中"
+      :title="t('报告正在生成中')"
       width="420px"
       align-center
       append-to-body
@@ -2807,13 +2799,13 @@ watch(
     >
       <div class="appium-report-progress" role="status" aria-live="polite">
         <el-icon class="is-loading" aria-hidden="true"><Loading /></el-icon>
-        <span>正在终止回放并生成报告、日志和截图回放，请稍候。</span>
+        <span>{{ t("正在终止回放并生成报告、日志和截图回放，请稍候。") }}</span>
       </div>
     </el-dialog>
 
     <el-dialog
       v-model="replayOutputDialogVisible"
-      title="回放输出"
+      :title="t('回放输出')"
       width="820px"
       top="8vh"
       class="appium-replay-dialog"
@@ -2822,13 +2814,13 @@ watch(
     >
       <pre class="appium-replay-output appium-replay-output--dialog">{{ replayOutput }}</pre>
       <template #footer>
-        <el-button :icon="CopyDocument" :disabled="!replayOutput" @click="copyReplayOutput">复制</el-button>
-        <el-button :icon="Delete" :disabled="!replayOutput" @click="clearReplayOutput">清除</el-button>
-        <el-button type="primary" @click="replayOutputDialogVisible = false">关闭</el-button>
+        <el-button :icon="CopyDocument" :disabled="!replayOutput" @click="copyReplayOutput">{{ t("复制") }}</el-button>
+        <el-button :icon="Delete" :disabled="!replayOutput" @click="clearReplayOutput">{{ t("清除") }}</el-button>
+        <el-button type="primary" @click="replayOutputDialogVisible = false">{{ t("关闭") }}</el-button>
       </template>
     </el-dialog>
 
-    <el-tooltip v-if="active" content="查看回放输出" placement="left">
+    <el-tooltip v-if="active" :content="t('查看回放输出')" placement="left">
       <el-badge
         :is-dot="Boolean(replayOutput) && !replayOutputDialogVisible"
         class="appium-replay-fab"
@@ -2838,7 +2830,7 @@ watch(
           circle
           :icon="Document"
           :class="{ 'appium-replay-fab__button--running': replaying }"
-          aria-label="查看回放输出"
+          :aria-label="t('查看回放输出')"
           @click="replayOutputDialogVisible = true"
         />
       </el-badge>

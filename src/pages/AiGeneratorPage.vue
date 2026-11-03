@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../i18n';
 import { shallowRef, useTemplateRef } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Delete, Edit, QuestionFilled, Upload } from '@element-plus/icons-vue';
@@ -31,7 +32,7 @@ const promptFileInput = useTemplateRef<HTMLInputElement>('promptFileInput');
 const applyPromptPreset = (id: string) => {
   const preset = props.promptPresets.find((item) => item.id === id);
   if (!preset) return;
-  sourcePrompt.value = preset.content;
+  sourcePrompt.value = t(preset.content);
 };
 
 const openPromptEditor = () => {
@@ -56,13 +57,13 @@ const handlePromptFileChange = async (event: Event) => {
   try {
     const content = (await file.text()).trim();
     if (!content) {
-      ElMessage.warning('上传的提示词为空');
+      ElMessage.warning(t("上传的提示词为空"));
       return;
     }
     sourcePrompt.value = content;
-    ElMessage.success('提示词已上传');
+    ElMessage.success(t("提示词已上传"));
   } catch {
-    ElMessage.error('提示词文件读取失败');
+    ElMessage.error(t("提示词文件读取失败"));
   } finally {
     input.value = '';
   }
@@ -72,16 +73,16 @@ const handlePromptFileChange = async (event: Event) => {
 <template>
   <section class="page-grid">
     <el-card shadow="never">
-      <template #header>基础配置</template>
+      <template #header>{{ t("基础配置") }}</template>
       <el-form label-position="top">
-        <el-form-item label="脚本名称">
-          <el-input v-model="form.testName" placeholder="请输入脚本名称" />
+        <el-form-item :label="t('脚本名称')">
+          <el-input v-model="form.testName" :placeholder="t('请输入脚本名称')" />
         </el-form-item>
-        <el-form-item label="场景标题">
-          <el-input v-model="form.promptTitle" placeholder="请输入场景标题" />
+        <el-form-item :label="t('场景标题')">
+          <el-input v-model="form.promptTitle" :placeholder="t('请输入场景标题')" />
         </el-form-item>
-        <el-form-item label="选择 App">
-          <el-select v-model="form.appPresetId" placeholder="选择预设 App">
+        <el-form-item :label="t('选择 App')">
+          <el-select v-model="form.appPresetId" :placeholder="t('选择预设 App')">
             <el-option
               v-for="app in appPresets"
               :key="app.id"
@@ -90,11 +91,11 @@ const handlePromptFileChange = async (event: Event) => {
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="提示词模板">
+        <el-form-item :label="t('提示词模板')">
           <div class="prompt-template-row">
             <el-select
               v-model="promptPresetId"
-              placeholder="选择提示词模板"
+              :placeholder="t('选择提示词模板')"
               popper-class="prompt-template-dropdown"
               :disabled="generating"
               @change="applyPromptPreset"
@@ -102,22 +103,18 @@ const handlePromptFileChange = async (event: Event) => {
               <el-option
                 v-for="preset in promptPresets"
                 :key="preset.id"
-                :label="preset.name"
+                :label="t(preset.name)"
                 :value="preset.id"
               >
                 <div class="prompt-template-option">
-                  <span class="prompt-template-option__name">{{ preset.name }}</span>
-                  <span class="prompt-template-option__description">{{ preset.description }}</span>
+                  <span class="prompt-template-option__name">{{ t(preset.name) }}</span>
+                  <span class="prompt-template-option__description">{{ t(preset.description) }}</span>
                 </div>
               </el-option>
             </el-select>
             <div class="prompt-template-actions">
-              <el-button size="small" :icon="Edit" :disabled="generating" @click="openPromptEditor">
-                编辑
-              </el-button>
-              <el-button size="small" :icon="Upload" :disabled="generating" @click="openPromptFilePicker">
-                上传
-              </el-button>
+              <el-button size="small" :icon="Edit" :disabled="generating" @click="openPromptEditor"> {{ t("编辑") }} </el-button>
+              <el-button size="small" :icon="Upload" :disabled="generating" @click="openPromptFilePicker"> {{ t("上传") }} </el-button>
             </div>
             <input
               ref="promptFileInput"
@@ -134,7 +131,7 @@ const handlePromptFileChange = async (event: Event) => {
     <el-card shadow="never" class="prompt-card">
       <template #header>
         <div class="panel-header">
-          <span>原始 Prompt</span>
+          <span>{{ t("原始 Prompt") }}</span>
           <div class="panel-header__actions prompt-card__actions">
             <TestCaseFileUpload
               :uploading="importingTestCase || generating"
@@ -146,13 +143,11 @@ const handlePromptFileChange = async (event: Event) => {
               :icon="Delete"
               :disabled="importingTestCase || generating"
               @click="$emit('clearAll')"
-            >
-              清除
-            </el-button>
+            > {{ t("清除") }} </el-button>
             <el-button
               text
               :icon="QuestionFilled"
-              aria-label="查看示例文案"
+              :aria-label="t('查看示例文案')"
               @click="promptExampleVisible = true"
             />
           </div>
@@ -164,27 +159,27 @@ const handlePromptFileChange = async (event: Event) => {
         type="textarea"
         :rows="14"
         :disabled="generating"
-        placeholder="请输入原始 Prompt，或点击右上角问号查看示例"
+        :placeholder="t('请输入原始 Prompt，或点击右上角问号查看示例')"
       />
     </el-card>
   </section>
 
-  <el-dialog v-model="promptExampleVisible" title="原始 Prompt 示例" width="720px">
-    <pre class="prompt-example"><code>{{ promptExample }}</code></pre>
+  <el-dialog v-model="promptExampleVisible" :title="t('原始 Prompt 示例')" width="720px">
+    <pre class="prompt-example"><code>{{ t(promptExample) }}</code></pre>
   </el-dialog>
 
-  <el-dialog v-model="promptEditorVisible" title="编辑提示词" width="760px">
+  <el-dialog v-model="promptEditorVisible" :title="t('编辑提示词')" width="760px">
     <el-input
       v-model="promptEditorDraft"
       class="prompt-editor-input"
       type="textarea"
       :rows="18"
       :disabled="generating"
-      placeholder="请输入提示词"
+      :placeholder="t('请输入提示词')"
     />
     <template #footer>
-      <el-button @click="promptEditorVisible = false">取消</el-button>
-      <el-button type="primary" :disabled="generating" @click="savePromptEditor">保存</el-button>
+      <el-button @click="promptEditorVisible = false">{{ t("取消") }}</el-button>
+      <el-button type="primary" :disabled="generating" @click="savePromptEditor">{{ t("保存") }}</el-button>
     </template>
   </el-dialog>
 </template>

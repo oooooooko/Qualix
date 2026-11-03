@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { locale, t } from './i18n';
 import { computed, defineAsyncComponent, onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
@@ -196,7 +197,7 @@ function formatScriptTime(value: string) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
+  return date.toLocaleString(locale.value);
 }
 
 async function loadSavedScripts(preferredId = selectedScriptId.value) {
@@ -277,7 +278,7 @@ const openCodeDialog = (script: SavedScript) => {
 
 const copyDialogCode = async () => {
   await navigator.clipboard.writeText(codeDialog.editing ? codeDialog.draftCode : codeDialog.code);
-  ElMessage.success('代码已复制');
+  ElMessage.success(t("代码已复制"));
 };
 
 const editCodeDialog = () => {
@@ -304,9 +305,9 @@ const saveCodeDialog = async () => {
     codeDialog.draftCode = codeDialog.code;
     codeDialog.editing = false;
     await loadSavedScripts(payload.script?.id || codeDialog.scriptId);
-    ElMessage.success('代码已保存');
+    ElMessage.success(t("代码已保存"));
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '代码格式错误，无法保存');
+    ElMessage.error(t(error instanceof Error ? error.message : t("代码格式错误，无法保存")));
   } finally {
     codeDialog.saving = false;
   }
@@ -337,7 +338,7 @@ const removeStep = (id: string) => {
 const copyCode = async () => {
   const code = generatedCodeEditing.value ? generatedCodeDraft.value : generatedCode.value;
   await navigator.clipboard.writeText(code);
-  ElMessage.success('代码已复制');
+  ElMessage.success(t("代码已复制"));
 };
 
 const editGeneratedCode = () => {
@@ -359,9 +360,9 @@ const saveGeneratedCodeChanges = async () => {
     await api.validateScriptCode({ code: generatedCodeDraft.value });
     generatedCodeOverride.value = generatedCodeDraft.value;
     generatedCodeEditing.value = false;
-    ElMessage.success('代码修改已保存');
+    ElMessage.success(t("代码修改已保存"));
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '代码格式错误，无法保存');
+    ElMessage.error(t(error instanceof Error ? error.message : t("代码格式错误，无法保存")));
   } finally {
     generatedCodeEditSaving.value = false;
   }
@@ -379,9 +380,9 @@ const importTestCase = async (file: File) => {
     showGeneratedCode.value = false;
     errorMessage.value = '';
     resetGeneratedCodeEditor();
-    ElMessage.success(`已导入 ${result.caseCount} 条测试用例`);
+    ElMessage.success(t("已导入 {0} 条测试用例", { 0: result.caseCount }));
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '测试用例文件导入失败');
+    ElMessage.error(t(error instanceof Error ? error.message : t("测试用例文件导入失败")));
   } finally {
     importingTestCase.value = false;
   }
@@ -398,7 +399,7 @@ const clearGeneratorPage = () => {
   importedTestCaseFileName.value = '';
   errorMessage.value = '';
   resetGeneratedCodeEditor();
-  ElMessage.success('页面内容已清除');
+  ElMessage.success(t("页面内容已清除"));
 };
 
 const clearExecutionLog = () => {
@@ -409,7 +410,7 @@ const copyExecutionLog = async () => {
   if (!executionLog.value) return;
 
   await navigator.clipboard.writeText(executionLog.value);
-  ElMessage.success('日志已复制');
+  ElMessage.success(t("日志已复制"));
 };
 
 const validateBaseGeneratorInputs = () => {
@@ -417,12 +418,12 @@ const validateBaseGeneratorInputs = () => {
   const promptTitle = form.promptTitle.trim();
 
   if (!scriptName) {
-    ElMessage.error('请输入脚本名称');
+    ElMessage.error(t("请输入脚本名称"));
     return null;
   }
 
   if (!promptTitle) {
-    ElMessage.error('请输入场景标题');
+    ElMessage.error(t("请输入场景标题"));
     return null;
   }
 
@@ -435,7 +436,7 @@ const validateAiGeneratorInputs = () => {
 
   const rawPrompt = sourcePrompt.value.trim();
   if (!rawPrompt) {
-    ElMessage.error('请输入原始 Prompt');
+    ElMessage.error(t("请输入原始 Prompt"));
     return null;
   }
 
@@ -448,13 +449,13 @@ const validateManualGeneratorInputs = () => {
 
   const enabledSteps = steps.value.filter((step) => step.enabled !== false);
   if (!enabledSteps.length) {
-    ElMessage.error('请至少新增一个开启状态的步骤');
+    ElMessage.error(t("请至少新增一个开启状态的步骤"));
     return null;
   }
 
   const emptyPromptStep = enabledSteps.find((step) => !step.prompt.trim());
   if (emptyPromptStep) {
-    ElMessage.error(`步骤“${emptyPromptStep.label || '未命名步骤'}”的 Prompt 不能为空`);
+    ElMessage.error(t("步骤“{0}”的 Prompt 不能为空", { 0: emptyPromptStep.label || '未命名步骤' }));
     return null;
   }
 
@@ -479,12 +480,12 @@ const saveCurrentScript = async () => {
   if (!validInput) return false;
 
   if (generatedCodeEditing.value) {
-    ElMessage.error('请先保存或撤回代码修改');
+    ElMessage.error(t("请先保存或撤回代码修改"));
     return false;
   }
 
   if (!showGeneratedCode.value || !generatedCode.value.trim()) {
-    ElMessage.error('请先点击 AI 生成，生成代码后再保存脚本');
+    ElMessage.error(t("请先点击 AI 生成，生成代码后再保存脚本"));
     return false;
   }
 
@@ -493,10 +494,10 @@ const saveCurrentScript = async () => {
 
   if (checkPayload.exists) {
     try {
-      await ElMessageBox.confirm(`已存在同名脚本“${scriptName}”，是否覆盖？`, '提示', {
+      await ElMessageBox.confirm(t("已存在同名脚本“{0}”，是否覆盖？", { 0: scriptName }), t("提示"), {
         type: 'warning',
-        confirmButtonText: '覆盖',
-        cancelButtonText: '取消',
+        confirmButtonText: t("覆盖"),
+        cancelButtonText: t("取消"),
       });
     } catch {
       return false;
@@ -531,12 +532,12 @@ const confirmUnsavedGeneratorNavigation = async () => {
 
   try {
     await ElMessageBox.confirm(
-      '当前生成内容尚未保存。可以先保存脚本，或暂不保存并继续切换页面。',
-      '未保存的测试脚本',
+      t("当前生成内容尚未保存。可以先保存脚本，或暂不保存并继续切换页面。"),
+      t("未保存的测试脚本"),
       {
         type: 'warning',
-        confirmButtonText: '保存脚本',
-        cancelButtonText: '暂不保存',
+        confirmButtonText: t("保存脚本"),
+        cancelButtonText: t("暂不保存"),
         distinguishCancelAndClose: true,
         closeOnClickModal: false,
       },
@@ -560,12 +561,12 @@ const removeSavedScript = async (id: string) => {
   const script = savedScripts.value.find((item) => item.id === id);
   try {
     await ElMessageBox.confirm(
-      `确定删除脚本“${script?.promptTitle || script?.name || '未命名脚本'}”吗？删除后对应的脚本文件也会移除。`,
-      '删除脚本',
+      t("确定删除脚本“{0}”吗？删除后对应的脚本文件也会移除。", { 0: script?.promptTitle || script?.name || '未命名脚本' }),
+      t("删除脚本"),
       {
         type: 'warning',
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
+        confirmButtonText: t("删除"),
+        cancelButtonText: t("取消"),
       },
     );
   } catch {
@@ -591,7 +592,7 @@ const generateWithModel = async () => {
   if (activeGeneratorMode.value === 'manual') {
     resetGeneratedCodeEditor();
     showGeneratedCode.value = true;
-    ElMessage.success('代码已生成');
+    ElMessage.success(t("代码已生成"));
     return;
   }
 
@@ -667,7 +668,7 @@ const saveAppPreset = async () => {
       form.appPresetId = payload.app.id;
     }
     resetAppPresetForm();
-    ElMessage.success(editing ? 'App 配置已更新' : 'App 已添加');
+    ElMessage.success(t(editing ? t("App 配置已更新") : t("App 已添加")));
   } catch (error) {
     const message = error instanceof Error ? error.message : 'App 配置保存失败';
     void ElMessageBox.alert(message, 'App 配置保存失败', { type: 'error' }).catch(() => {});
@@ -678,10 +679,10 @@ const saveAppPreset = async () => {
 
 const removeAppPreset = async (id: string) => {
   try {
-    await ElMessageBox.confirm('确定删除这个 App 配置吗？', '删除 App 配置', {
+    await ElMessageBox.confirm(t("确定删除这个 App 配置吗？"), t("删除 App 配置"), {
       type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
+      confirmButtonText: t("删除"),
+      cancelButtonText: t("取消"),
     });
   } catch {
     return;
@@ -726,7 +727,7 @@ const warnBeforeUnload = (event: BeforeUnloadEvent) => {
 onMounted(async () => {
   window.addEventListener('beforeunload', warnBeforeUnload);
   try { await migrateLegacySavedScripts(); }
-  catch (error) { ElMessage.warning(error instanceof Error ? error.message : '脚本缓存迁移失败'); }
+  catch (error) { ElMessage.warning(t(error instanceof Error ? error.message : t("脚本缓存迁移失败"))); }
   await Promise.all(initialResources.map(resource => resource.load()));
 });
 onUnmounted(() => {
@@ -739,7 +740,7 @@ onUnmounted(() => {
   <div class="layout" :class="{ 'layout--collapsed': sidebarCollapsed }">
     <el-dialog
       v-model="actionDialog.visible"
-      :title="actionDialog.title"
+      :title="t(actionDialog.title)"
       width="min(440px, calc(100vw - 32px))"
       align-center
       append-to-body
@@ -750,10 +751,10 @@ onUnmounted(() => {
     >
       <div v-if="actionDialog.loading" class="action-dialog__body">
         <el-icon class="action-dialog__spinner"><Loading /></el-icon>
-        <span>处理中...</span>
+        <span>{{ t("处理中...") }}</span>
       </div>
       <div v-else-if="actionDialog.error" class="action-dialog__error">
-        {{ actionDialog.error }}
+        {{ t(actionDialog.error) }}
       </div>
       <template #footer>
         <div v-if="actionDialog.loading" class="action-dialog__footer-actions">
@@ -764,31 +765,27 @@ onUnmounted(() => {
             :loading="actionDialog.canceling"
             @click="stopGenerateWithModel"
           >
-            {{ actionDialog.cancelText === '终止' ? '终止生成' : actionDialog.cancelText }}
+            {{ actionDialog.cancelText === '终止' ? t("终止生成") : actionDialog.cancelText }}
           </el-button>
           <el-button
             v-if="actionDialog.canRunInBackground"
             type="primary"
             class="action-dialog__footer-button"
             @click="sendActionDialogToBackground"
-          >
-            后台处理
-          </el-button>
+          > {{ t("后台处理") }} </el-button>
         </div>
         <el-button
           v-else
           type="primary"
           class="action-dialog__footer-button"
           @click="closeActionDialog"
-        >
-          关闭
-        </el-button>
+        > {{ t("关闭") }} </el-button>
       </template>
     </el-dialog>
 
     <el-dialog
       v-model="codeDialog.visible"
-      :title="codeDialog.title"
+      :title="t(codeDialog.title)"
       width="760px"
       class="code-dialog"
     >
@@ -799,19 +796,13 @@ onUnmounted(() => {
         resize="none"
         class="code-dialog__editor"
       />
-      <pre v-else class="code-block code-dialog__body"><code>{{ codeDialog.code || '暂无代码' }}</code></pre>
+      <pre v-else class="code-block code-dialog__body"><code>{{ codeDialog.code || t("暂无代码") }}</code></pre>
       <template #footer>
-        <el-button :icon="CopyDocument" @click="copyDialogCode">复制</el-button>
-        <el-button v-if="!codeDialog.editing" type="primary" :icon="Edit" @click="editCodeDialog">
-          编辑
-        </el-button>
+        <el-button :icon="CopyDocument" @click="copyDialogCode">{{ t("复制") }}</el-button>
+        <el-button v-if="!codeDialog.editing" type="primary" :icon="Edit" @click="editCodeDialog"> {{ t("编辑") }} </el-button>
         <template v-else>
-          <el-button :icon="RefreshLeft" :disabled="codeDialog.saving" @click="undoCodeDialogChanges">
-            撤回修改
-          </el-button>
-          <el-button type="primary" :loading="codeDialog.saving" @click="saveCodeDialog">
-            保存
-          </el-button>
+          <el-button :icon="RefreshLeft" :disabled="codeDialog.saving" @click="undoCodeDialogChanges"> {{ t("撤回修改") }} </el-button>
+          <el-button type="primary" :loading="codeDialog.saving" @click="saveCodeDialog"> {{ t("保存") }} </el-button>
         </template>
       </template>
     </el-dialog>
@@ -823,10 +814,10 @@ onUnmounted(() => {
       <header class="layout-header">
         <div class="layout-header__title">
           <el-button text class="layout-collapse" :icon="sidebarCollapsed ? Expand : Fold"
-            :aria-label="sidebarCollapsed ? '展开导航' : '收起导航'" :aria-expanded="!sidebarCollapsed"
+            :aria-label="sidebarCollapsed ? t('展开导航') : t('收起导航')" :aria-expanded="!sidebarCollapsed"
             @click="sidebarCollapsed = !sidebarCollapsed" />
-          <span class="layout-header__breadcrumb">工作空间 <span>/</span></span>
-          <span>{{ activeMenuLabel }}</span>
+          <span class="layout-header__breadcrumb">{{ t("工作空间") }} <span>/</span></span>
+          <span>{{ t(activeMenuLabel) }}</span>
         </div>
         <div class="layout-header__actions">
           <div id="appium-header-actions" v-show="activeMenu === 'appium'"></div>
@@ -837,24 +828,20 @@ onUnmounted(() => {
             :class="{ 'layout-header__button--loading': isGenerating }"
             @click="generateWithModel"
           >
-            {{ isGenerating ? 'AI 生成中' : 'AI 生成' }}
+            {{ isGenerating ? t("AI 生成中") : t("AI 生成") }}
           </el-button>
           <el-button
             v-if="activeMenu === 'generator'"
             :icon="Check"
             :disabled="!showGeneratedCode || generatedCodeEditing"
             @click="saveCurrentScript"
-          >
-            保存脚本
-          </el-button>
+          > {{ t("保存脚本") }} </el-button>
           <el-button
             v-if="activeMenu === 'automation' && !isRunningScript"
             type="primary"
             :icon="VideoPlay"
             @click="runSelectedScript"
-          >
-            开始执行
-          </el-button>
+          > {{ t("开始执行") }} </el-button>
           <el-button
             v-if="activeMenu === 'automation' && isRunningScript"
             type="danger"
@@ -862,19 +849,19 @@ onUnmounted(() => {
             :loading="isStoppingScript"
             @click="stopSelectedScript"
           >
-            {{ isStoppingScript ? '停止中' : '停止执行' }}
+            {{ isStoppingScript ? t("停止中") : t("停止执行") }}
           </el-button>
         </div>
       </header>
 
-      <nav class="layout-page-tabs" aria-label="页面导航">
+      <nav class="layout-page-tabs" :aria-label="t('页面导航')">
         <div v-for="item in visibleMenuItems" :key="item.key" class="layout-page-tab" :class="{ 'is-active': activeMenu === item.key }">
           <button type="button" class="layout-page-tab__select"
             :aria-current="activeMenu === item.key ? 'page' : undefined" @click="selectMenu(item.key)">
-            <el-icon><component :is="item.icon" /></el-icon>{{ item.label }}
+            <el-icon><component :is="item.icon" /></el-icon>{{ t(item.label) }}
           </button>
-          <button type="button" class="layout-page-tab__close" :aria-label="`关闭${item.label}页签`"
-            :disabled="openMenus.length === 1" :title="openMenus.length === 1 ? '至少保留一个页签' : '关闭页签，编辑状态仍保留'" @click="closeMenu(item.key)">
+          <button type="button" class="layout-page-tab__close" :aria-label="t('关闭{0}页签', { 0: item.label })"
+            :disabled="openMenus.length === 1" :title="openMenus.length === 1 ? t('至少保留一个页签') : t('关闭页签，编辑状态仍保留')" @click="closeMenu(item.key)">
             <el-icon><Close /></el-icon>
           </button>
         </div>
@@ -882,11 +869,11 @@ onUnmounted(() => {
 
       <MidsceneMaintenanceNotice v-if="activeMenu === 'generator' || activeMenu === 'automation'" />
       <div v-if="connectionError" class="connection-status" role="status">
-        <span>{{ connectionError }}</span><el-button link type="primary" :loading="reconnecting" @click="reconnect">重新连接</el-button>
+        <span>{{ t(connectionError) }}</span><el-button link type="primary" :loading="reconnecting" @click="reconnect">{{ t("重新连接") }}</el-button>
       </div>
       <div v-for="resource in failedResources" :key="resource.name" class="connection-status" role="alert">
-        <span>{{ resource.name }}加载失败：{{ resource.error.value }}</span>
-        <el-button link type="primary" :loading="resource.loading.value" @click="resource.load">重试</el-button>
+        <span>{{ t(resource.name) }}{{ t("加载失败：") }}{{ t(resource.error.value) }}</span>
+        <el-button link type="primary" :loading="resource.loading.value" @click="resource.load">{{ t("重试") }}</el-button>
       </div>
       <main
         class="page-body"
@@ -897,7 +884,7 @@ onUnmounted(() => {
         }"
       >
         <el-alert v-if="activeMenu !== 'appium' && activeMenu !== 'artemis' && activeMenu !== 'config' && activeMenu !== 'midscene-config' && activeMenu !== 'about' && errorMessage" type="error" :closable="false" show-icon class="page-alert">
-          <template #title>{{ errorMessage }}</template>
+          <template #title>{{ t(errorMessage) }}</template>
         </el-alert>
 
         <AnalysisPage v-if="visitedMenus.has('analysis')" v-show="activeMenu === 'analysis'" :active="activeMenu === 'analysis'" />
@@ -931,13 +918,13 @@ onUnmounted(() => {
           @clear-all="clearGeneratorPage"
         />
 
-        <div v-if="(activeMenu === 'config' || activeMenu === 'midscene-config') && !configReady && !configResource.error.value" class="page-loading" role="status">正在加载参数配置…</div>
+        <div v-if="(activeMenu === 'config' || activeMenu === 'midscene-config') && !configReady && !configResource.error.value" class="page-loading" role="status">{{ t("正在加载参数配置…") }}</div>
 
         <MidsceneConfigPanel
           v-if="visitedMenus.has('midscene-config') && configReady"
           v-show="activeMenu === 'midscene-config'"
           role="region"
-          aria-label="Midscene参数配置"
+          :aria-label="t('Midscene参数配置')"
           :config-form="configForm"
           :testing-model-key="testingModelKey"
           :model-test-status="modelTestStatus"

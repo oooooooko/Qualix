@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { getAppiumLlmPrompt } from '../api';
@@ -16,9 +17,9 @@ async function copyPrompt() {
     }
     const { prompt } = await getAppiumLlmPrompt(props.draft);
     await navigator.clipboard.writeText(prompt);
-    ElMessage.success('已复制流程、节点说明及连接规则，可粘贴给 LLM 使用');
+    ElMessage.success(t("已复制流程、节点说明及连接规则，可粘贴给 LLM 使用"));
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '获取流程内容失败，请重试');
+    ElMessage.error(t(error instanceof Error ? error.message : t("获取流程内容失败，请重试")));
   } finally {
     busy.value = false;
   }
@@ -27,7 +28,7 @@ async function copyPrompt() {
 
 <template>
   <div class="llm-prompt-actions" :aria-busy="busy">
-    <button type="button" class="llm-prompt-actions__link" :disabled="busy" @click="copyPrompt">复制给 LLM</button>
+    <button type="button" class="llm-prompt-actions__link" :disabled="busy" @click="copyPrompt">{{ t("复制给 LLM") }}</button>
   </div>
 </template>
 

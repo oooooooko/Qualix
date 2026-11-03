@@ -1,122 +1,30 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-
-type DocumentBlock =
-  | { type: 'heading'; level: number; text: string }
-  | { type: 'paragraph'; text: string }
-  | { type: 'list'; ordered: boolean; items: string[] }
-  | { type: 'code'; text: string }
-  | { type: 'table'; headers: string[]; rows: string[][] };
-
+import { t } from '../../i18n';
+import { parseMarkdownDocument } from './markdown';
 const props = defineProps<{ content: string }>();
-
-const cleanText = (value: string) => value
-  .replace(/\[([^\]]+)]\([^)]+\)/g, '$1')
-  .replace(/\*\*([^*]+)\*\*/g, '$1')
-  .replace(/`([^`]+)`/g, '$1')
-  .trim();
-
-const splitTableRow = (line: string) => line
-  .replace(/^\||\|$/g, '')
-  .split('|')
-  .map(cell => cleanText(cell));
-
-const blocks = computed<DocumentBlock[]>(() => {
-  const lines = props.content.replace(/\r\n/g, '\n').split('\n');
-  const result: DocumentBlock[] = [];
-  let index = 0;
-
-  while (index < lines.length) {
-    const line = lines[index] ?? '';
-    const trimmed = line.trim();
-    if (!trimmed) {
-      index += 1;
-      continue;
-    }
-
-    if (/^([-*_])\1{2,}$/.test(trimmed)) {
-      index += 1;
-      continue;
-    }
-
-    if (trimmed.startsWith('```')) {
-      const code: string[] = [];
-      index += 1;
-      while (index < lines.length && !lines[index]!.trim().startsWith('```')) {
-        code.push(lines[index]!);
-        index += 1;
-      }
-      result.push({ type: 'code', text: code.join('\n') });
-      index += 1;
-      continue;
-    }
-
-    const heading = /^(#{1,6})\s+(.+)$/.exec(trimmed);
-    if (heading) {
-      result.push({ type: 'heading', level: heading[1]!.length, text: cleanText(heading[2]!) });
-      index += 1;
-      continue;
-    }
-
-    if (trimmed.includes('|') && /^\s*\|?\s*:?-{3,}/.test(lines[index + 1] ?? '')) {
-      const headers = splitTableRow(trimmed);
-      const rows: string[][] = [];
-      index += 2;
-      while (index < lines.length && lines[index]!.includes('|') && lines[index]!.trim()) {
-        rows.push(splitTableRow(lines[index]!));
-        index += 1;
-      }
-      result.push({ type: 'table', headers, rows });
-      continue;
-    }
-
-    const listMatch = /^(?:[-*]\s+|(\d+)\.\s+)(.+)$/.exec(trimmed);
-    if (listMatch) {
-      const ordered = Boolean(listMatch[1]);
-      const items: string[] = [];
-      while (index < lines.length) {
-        const item = /^(?:[-*]\s+|(\d+)\.\s+)(.+)$/.exec(lines[index]!.trim());
-        if (!item || Boolean(item[1]) !== ordered) break;
-        items.push(cleanText(item[2]!));
-        index += 1;
-      }
-      result.push({ type: 'list', ordered, items });
-      continue;
-    }
-
-    const paragraph: string[] = [];
-    while (index < lines.length) {
-      const next = lines[index]!.trim();
-      if (!next || /^(#{1,6})\s+/.test(next) || next.startsWith('```') || /^(?:[-*]\s+|\d+\.\s+)/.test(next)) break;
-      if (next.includes('|') && /^\s*\|?\s*:?-{3,}/.test(lines[index + 1] ?? '')) break;
-      paragraph.push(cleanText(next));
-      index += 1;
-    }
-    result.push({ type: 'paragraph', text: paragraph.join(' ') });
-  }
-
-  return result;
-});
+const blocks = computed(() => parseMarkdownDocument(props.content));
+const exampleText = (text: string) => text.split('\n').map(line => t(line)).join('\n');
 </script>
 
 <template>
   <article class="markdown-document">
     <template v-for="(block, index) in blocks" :key="`${block.type}-${index}`">
-      <h1 v-if="block.type === 'heading' && block.level === 1" class="markdown-document__h1">{{ block.text }}</h1>
-      <h2 v-else-if="block.type === 'heading' && block.level === 2" class="markdown-document__h2">{{ block.text }}</h2>
-      <h3 v-else-if="block.type === 'heading'" class="markdown-document__h3">{{ block.text }}</h3>
-      <p v-else-if="block.type === 'paragraph'" class="markdown-document__paragraph">{{ block.text }}</p>
+      <h1 v-if="block.type === 'heading' && block.level === 1" class="markdown-document__h1">{{ t(block.text) }}</h1>
+      <h2 v-else-if="block.type === 'heading' && block.level === 2" class="markdown-document__h2">{{ t(block.text) }}</h2>
+      <h3 v-else-if="block.type === 'heading'" class="markdown-document__h3">{{ t(block.text) }}</h3>
+      <p v-else-if="block.type === 'paragraph'" class="markdown-document__paragraph">{{ t(block.text) }}</p>
       <ol v-else-if="block.type === 'list' && block.ordered" class="markdown-document__list">
-        <li v-for="item in block.items" :key="item">{{ item }}</li>
+        <li v-for="item in block.items" :key="item">{{ t(item) }}</li>
       </ol>
       <ul v-else-if="block.type === 'list'" class="markdown-document__list">
-        <li v-for="item in block.items" :key="item">{{ item }}</li>
+        <li v-for="item in block.items" :key="item">{{ t(item) }}</li>
       </ul>
-      <pre v-else-if="block.type === 'code'" class="markdown-document__code"><code>{{ block.text }}</code></pre>
+      <pre v-else-if="block.type === 'code'" class="markdown-document__code"><code>{{ block.language === 'text' ? exampleText(block.text) : block.text }}</code></pre>
       <div v-else-if="block.type === 'table'" class="markdown-document__table-wrap">
         <table class="markdown-document__table">
-          <thead><tr><th v-for="header in block.headers" :key="header">{{ header }}</th></tr></thead>
-          <tbody><tr v-for="(row, rowIndex) in block.rows" :key="rowIndex"><td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td></tr></tbody>
+          <thead><tr><th v-for="header in block.headers" :key="header">{{ t(header) }}</th></tr></thead>
+          <tbody><tr v-for="(row, rowIndex) in block.rows" :key="rowIndex"><td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ t(cell) }}</td></tr></tbody>
         </table>
       </div>
     </template>

@@ -1,4 +1,8 @@
-# Qualix
+# <img src="./assets/qualix-logo.png" width="64" height="64" alt="" /> Qualix
+
+[![npm version](https://img.shields.io/npm/v/qualix?color=2563eb&logo=npm)](https://www.npmjs.com/package/qualix) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](./LICENSE) [![Language: TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=white)](./src) [![Python: 3.12+](https://img.shields.io/badge/python-3.12%2B-3776ab?logo=python&logoColor=white)](./artemis-main/pyproject.toml) [![Appium: 3.5.0](https://img.shields.io/badge/Appium-3.5.0-662d91?logo=appium&logoColor=white)](https://www.npmjs.com/package/appium/v/3.5.0) [![npm downloads](https://img.shields.io/npm/dm/qualix?color=16a34a&logo=npm)](https://www.npmjs.com/package/qualix)
+
+[![简体中文](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-2563eb?style=for-the-badge)](./README.md) [![English](https://img.shields.io/badge/English-64748b?style=for-the-badge)](./README.en.md)
 
 一个面向移动应用的自动化测试平台，集成 Appium 组件树录制回放、Artemis 自然语言任务执行和 Midscene AI 测试。当前支持 Android，后续计划扩展 iOS 和鸿蒙。
 
@@ -70,6 +74,12 @@ http://127.0.0.1:5173/
 npx qualix --port 5174
 ```
 
+
+## 界面语言
+
+在“参数配置 → 基础配置 → 界面设置 → 界面语言”切换简体中文和 English。选择会被浏览器记住，并统一应用于主界面、内置组件和嵌入式 Artemis。
+
+语言文件集中在 `locales/`，维护和新增语言的方法见[多语言维护说明](./locales/README.md)。README、操作说明、FAQ 和“复制给 LLM”的说明模板提供英文版本；用户输入、脚本内容和模型回答保持原文。
 
 ## 功能文档
 
@@ -166,6 +176,10 @@ http://localhost:5173/
 ```sh
 appium
 ```
+
+## 许可证
+
+Qualix 自有代码采用 [MIT 许可证](./LICENSE)。内置 Artemis 及其他第三方代码沿用各自许可证，详见相应目录中的许可证文件。
 
 <!-- generated-docs:start -->
 
@@ -279,8 +293,11 @@ Linux: ~/.local/share/android-midscene-automation
 
 # 项目更新记录
 
+## [2.0.4]
+- [多语言]新增简体中文与英文界面，在“参数配置 → 基础配置 → 界面设置”。
+- [Appium]“复制给 LLM”根据界面语言生成中英文流程说明、节点参考和连接规则，保留脚本名称、用户备注、变量及定位内容原文。
+
 ## [2.0.3]
-- [发布]Git 停止跟踪单元测试、端到端测试、夹具及测试专用配置，保留本地副本供开发验证。
 - [发布]npm 包排除全部测试文件和测试夹具，包括内置 Artemis 测试；同步调整构建范围，保留运行所需模块。
 
 ## [2.0.2]

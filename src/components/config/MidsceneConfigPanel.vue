@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, reactive } from 'vue';
 import { ArrowDown, QuestionFilled } from '@element-plus/icons-vue';
 import {
@@ -71,13 +72,13 @@ const openModelConfigGuide = () => {
     <template #header>
       <div class="panel-header">
         <span class="panel-header__title">
-          <span>模型配置</span>
-          <el-tooltip content="模型参考配置" placement="top" :show-after="200">
+          <span>{{ t("模型配置") }}</span>
+          <el-tooltip :content="t('模型参考配置')" placement="top" :show-after="200">
             <el-button
               class="config-model-help"
               text
               :icon="QuestionFilled"
-              aria-label="模型参考配置"
+              :aria-label="t('模型参考配置')"
               @click="openModelConfigGuide"
             />
           </el-tooltip>
@@ -88,40 +89,38 @@ const openModelConfigGuide = () => {
     <div class="config-model-grid">
       <section>
         <div class="panel-header panel-header--sub">
-          <span>Midscene 模型</span>
+          <span>{{ t("Midscene 模型") }}</span>
           <el-button type="primary" plain
             :loading="testingModelKey === 'midscene'"
             :disabled="!!testingModelKey"
             @click="$emit('testModel', 'midscene')"
-          >
-            测试并保存
-          </el-button>
+          > {{ t("测试并保存") }} </el-button>
         </div>
         <el-form label-position="top" :disabled="!!testingModelKey">
-          <el-form-item label="接入方式">
+          <el-form-item :label="t('接入方式')">
             <el-select
               :model-value="activeMidsceneProvider"
               @change="updateMidsceneProvider"
             >
-              <el-option label="自定义提供方" value="custom" />
+              <el-option :label="t('自定义提供方')" value="custom" />
               <el-option v-for="preset in midsceneModelPresets" :key="preset.key" :label="preset.label" :value="preset.key" />
-              <el-option label="使用 Codex" value="codex" />
+              <el-option :label="t('使用 Codex')" value="codex" />
             </el-select>
           </el-form-item>
 
           <template v-if="activeMidsceneProvider !== 'codex'">
-            <el-alert v-if="activePreset?.hint" class="config-form-alert" type="info" :closable="false" :title="activePreset.hint" />
+            <el-alert v-if="activePreset?.hint" class="config-form-alert" type="info" :closable="false" :title="t(activePreset.hint)" />
             <el-form-item label="Base URL">
               <el-input
                 v-model="configForm.midscene.model.baseUrl"
-                placeholder="选择接入方式自动填充，也可手动修改"
+                :placeholder="t('选择接入方式自动填充，也可手动修改')"
               />
             </el-form-item>
             <el-form-item label="API Key">
               <el-input
                 v-model="configForm.midscene.model.apiKey"
                 type="password"
-                placeholder="已保存的 Key 显示为掩码，可输入新 Key 替换"
+                :placeholder="t('已保存的 Key 显示为掩码，可输入新 Key 替换')"
                 show-password
               />
             </el-form-item>
@@ -131,7 +130,7 @@ const openModelConfigGuide = () => {
               class="config-form-alert"
               type="info"
               :closable="false"
-              title="复用 Codex 登录态，无需 API Key。请确保 codex 在 PATH 中可用，并已完成 codex login。"
+              :title="t('复用 Codex 登录态，无需 API Key。请确保 codex 在 PATH 中可用，并已完成 codex login。')"
             />
             <el-form-item label="Base URL">
               <el-input :model-value="configForm.midscene.model.baseUrl" readonly />
@@ -145,7 +144,7 @@ const openModelConfigGuide = () => {
               :debounce="0"
               :suffix-icon="ArrowDown"
               fit-input-width
-              placeholder="选择或输入模型名称"
+              :placeholder="t('选择或输入模型名称')"
               @focus="modelSearchActive.name = false"
               @input="modelSearchActive.name = true"
               @update:model-value="updateMidsceneModelName"
@@ -159,12 +158,12 @@ const openModelConfigGuide = () => {
               :debounce="0"
               :suffix-icon="ArrowDown"
               fit-input-width
-              placeholder="选择或输入模型系列"
+              :placeholder="t('选择或输入模型系列')"
               @focus="modelSearchActive.family = false"
               @input="modelSearchActive.family = true"
             />
           </el-form-item>
-          <el-form-item v-if="modelTestStatus.midscene" label="测试结果">
+          <el-form-item v-if="modelTestStatus.midscene" :label="t('测试结果')">
             <el-input :model-value="modelTestStatus.midscene" readonly />
           </el-form-item>
         </el-form>
@@ -172,14 +171,12 @@ const openModelConfigGuide = () => {
 
       <section>
         <div class="panel-header panel-header--sub">
-          <span>脚本优化模型</span>
+          <span>{{ t("脚本优化模型") }}</span>
           <el-button type="primary" plain
             :loading="testingModelKey === 'scriptOptimizer'"
             :disabled="!!testingModelKey"
             @click="$emit('testModel', 'scriptOptimizer')"
-          >
-            测试并保存
-          </el-button>
+          > {{ t("测试并保存") }} </el-button>
         </div>
         <el-form label-position="top" :disabled="!!testingModelKey">
           <el-form-item label="Base URL">
@@ -189,14 +186,14 @@ const openModelConfigGuide = () => {
             <el-input
               v-model="configForm.scriptOptimizer.model.apiKey"
               type="password"
-              placeholder="已保存的 Key 显示为掩码，可输入新 Key 替换"
+              :placeholder="t('已保存的 Key 显示为掩码，可输入新 Key 替换')"
               show-password
             />
           </el-form-item>
           <el-form-item label="Model Name">
             <el-input v-model="configForm.scriptOptimizer.model.name" />
           </el-form-item>
-          <el-form-item v-if="modelTestStatus.scriptOptimizer" label="测试结果">
+          <el-form-item v-if="modelTestStatus.scriptOptimizer" :label="t('测试结果')">
             <el-input :model-value="modelTestStatus.scriptOptimizer" readonly />
           </el-form-item>
         </el-form>

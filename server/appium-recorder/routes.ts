@@ -1,3 +1,4 @@
+import { normalizeLocale } from '../../locales';
 import { readBody, requestErrorStatus } from '../request-body';
 import type { AiObservationConfig } from '../../src/appium-recorder/ai-recognition';
 import { execFile } from 'node:child_process';
@@ -294,8 +295,8 @@ export async function handleAppiumRecorderRequest(
       }
     }
     if (pathname === '/api/appium-recorder/llm-prompt' && req.method === 'POST') {
-      const draft = await readBody<AppiumScriptDraft>(req);
-      const prompt = createAppiumLlmPrompt(draft, getAppiumRecordedScript, getPresetVariables());
+      const draft = await readBody<AppiumScriptDraft & { locale?: string }>(req);
+      const prompt = createAppiumLlmPrompt(draft, getAppiumRecordedScript, getPresetVariables(), normalizeLocale(draft.locale));
       sendJson(res, { prompt });
       return true;
     }

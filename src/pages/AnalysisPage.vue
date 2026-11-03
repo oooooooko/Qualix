@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { locale, t } from '../i18n';
 import { shallowRef, watch } from 'vue';
 import { Refresh } from '@element-plus/icons-vue';
 import { getTestAnalytics } from '../api';
@@ -26,25 +27,25 @@ watch(days, () => { void refresh(); });
 <template>
   <div class="analysis-page" :aria-busy="loading">
     <div class="analysis-page__heading">
-      <div><h1>测试分析</h1><p>基于已保存脚本与测试执行记录，查看两种引擎的运行情况。</p></div>
+      <div><h1>{{ t("测试分析") }}</h1><p>{{ t("基于已保存脚本与测试执行记录，查看两种引擎的运行情况。") }}</p></div>
       <div class="analysis-page__actions">
-        <el-select v-model="days" aria-label="统计时间范围" style="width: 150px">
-          <el-option label="全部时间" :value="0" /><el-option label="最近 7 天" :value="7" /><el-option label="最近 30 天" :value="30" /><el-option label="最近 90 天" :value="90" />
+        <el-select v-model="days" :aria-label="t('统计时间范围')" style="width: 150px">
+          <el-option :label="t('全部时间')" :value="0" /><el-option :label="t('最近 7 天')" :value="7" /><el-option :label="t('最近 30 天')" :value="30" /><el-option :label="t('最近 90 天')" :value="90" />
         </el-select>
-        <el-button :icon="Refresh" :loading="loading" @click="refresh">刷新统计</el-button>
+        <el-button :icon="Refresh" :loading="loading" @click="refresh">{{ t("刷新统计") }}</el-button>
       </div>
     </div>
-    <el-alert v-if="error" type="error" :closable="false" show-icon :title="error"><el-button link type="primary" @click="refresh">重新加载</el-button></el-alert>
-    <div v-if="loading && !data" class="page-loading" role="status">正在汇总测试记录…</div>
+    <el-alert v-if="error" type="error" :closable="false" show-icon :title="t(error)"><el-button link type="primary" @click="refresh">{{ t("重新加载") }}</el-button></el-alert>
+    <div v-if="loading && !data" class="page-loading" role="status">{{ t("正在汇总测试记录…") }}</div>
     <template v-if="data">
       <div class="analysis-page__note">
-        <span>{{ data.days ? `最近 ${data.days} 天` : '全部时间' }} · 通过率 = 通过 ÷（通过 + 失败）；平均耗时仅统计已完成测试，停止和运行中单独列出。</span>
-        <span>更新于 {{ new Date(data.generatedAt).toLocaleString('zh-CN', { hour12: false }) }}{{ loading ? ' · 更新中…' : '' }}</span>
+        <span>{{ data.days ? t("最近 {0} 天", { 0: data.days }) : t("全部时间") }} {{ t("· 通过率 = 通过 ÷（通过 + 失败）；平均耗时仅统计已完成测试，停止和运行中单独列出。") }}</span>
+        <span>{{ t("更新于") }} {{ new Date(data.generatedAt).toLocaleString(locale, { hour12: false }) }}{{ loading ? t("· 更新中…") : '' }}</span>
       </div>
       <AnalysisCharts :data="data" />
       <ReportAnalysis title="Midscene" :summary="data.midscene" />
       <ReportAnalysis title="Appium" :summary="data.appium" />
-      <p class="analysis-page__footnote">统计来自数据库中的执行记录，不依赖 HTML 报告开关。Midscene 按历史脚本名称关联，Appium 按脚本 ID 关联；已删除或无法匹配的记录标记为“历史脚本”。未保存执行记录的测试不计入统计。</p>
+      <p class="analysis-page__footnote">{{ t("统计来自数据库中的执行记录，不依赖 HTML 报告开关。Midscene 按历史脚本名称关联，Appium 按脚本 ID 关联；已删除或无法匹配的记录标记为“历史脚本”。未保存执行记录的测试不计入统计。") }}</p>
     </template>
   </div>
 </template>

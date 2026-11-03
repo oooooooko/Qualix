@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, shallowRef, watch } from 'vue';
 import { InfoFilled, QuestionFilled, Tools, Refresh, Cpu, Cellphone } from '@element-plus/icons-vue';
 import { getAppiumVersion, getArtemisVersion } from '../../api';
@@ -115,52 +116,52 @@ const switchOperationType = (value: OperationType) => {
 </script>
 
 <template>
-  <section class="help-center-page" aria-label="关于">
+  <section class="help-center-page" :aria-label="t('关于')">
     <el-tabs v-model="activeTab" class="help-center">
       <el-tab-pane name="about">
-        <template #label><el-icon><InfoFilled /></el-icon><span>关于</span></template>
+        <template #label><el-icon><InfoFilled /></el-icon><span>{{ t("关于") }}</span></template>
         <div class="help-center__content">
           <div class="help-center__version-heading">
-            <h2>版本信息</h2>
-            <el-button text :icon="Refresh" :loading="loadingVersion" @click="refreshVersion(true)">刷新版本</el-button>
+            <h2>{{ t("版本信息") }}</h2>
+            <el-button text :icon="Refresh" :loading="loadingVersion" @click="refreshVersion(true)">{{ t("刷新版本") }}</el-button>
           </div>
           <div class="help-center__versions" aria-live="polite" :aria-busy="loadingVersion">
             <article v-for="item in versions" :key="item.name" class="help-center__version-card">
               <div class="help-center__version-label"><el-icon><component :is="item.icon" /></el-icon><span>{{ item.name }}</span></div>
-              <strong>{{ item.version }}</strong>
-              <p class="help-center__version-status">{{ item.status }}</p>
+              <strong>{{ t(item.version) }}</strong>
+              <p class="help-center__version-status">{{ t(item.status) }}</p>
               <div class="help-center__framework-details">
-                <h3>框架简介</h3>
-                <p>{{ item.description }}</p>
-                <h3>适合场景</h3>
-                <ul><li v-for="scenario in item.scenarios" :key="scenario">{{ scenario }}</li></ul>
-                <p class="help-center__integration">{{ item.integration }}</p>
+                <h3>{{ t("框架简介") }}</h3>
+                <p>{{ t(item.description) }}</p>
+                <h3>{{ t("适合场景") }}</h3>
+                <ul><li v-for="scenario in item.scenarios" :key="scenario">{{ t(scenario) }}</li></ul>
+                <p class="help-center__integration">{{ t(item.integration) }}</p>
               </div>
-              <a class="help-center__framework-link" :href="item.url" target="_blank" rel="noopener noreferrer" :aria-label="`${item.name} 官方文档（新窗口打开）`">官方文档 ↗</a>
+              <a class="help-center__framework-link" :href="item.url" target="_blank" rel="noopener noreferrer" :aria-label="t('{0} 官方文档（新窗口打开）', { 0: item.name })">{{ t("官方文档 ↗") }}</a>
             </article>
           </div>
 
         </div>
       </el-tab-pane>
       <el-tab-pane name="guide">
-        <template #label><el-icon><QuestionFilled /></el-icon><span>操作说明</span></template>
+        <template #label><el-icon><QuestionFilled /></el-icon><span>{{ t("操作说明") }}</span></template>
         <div class="help-center__operations">
           <el-radio-group :model-value="operationType" class="help-center__operation-types" @change="switchOperationType">
             <el-radio-button value="midscene">Midscene</el-radio-button>
             <el-radio-button value="appium">Appium</el-radio-button>
-            <el-radio-button value="aiRecognition">AI 识别</el-radio-button>
-            <el-radio-button value="faq">常见问题</el-radio-button>
+            <el-radio-button value="aiRecognition">{{ t("AI 识别") }}</el-radio-button>
+            <el-radio-button value="faq">{{ t("常见问题") }}</el-radio-button>
           </el-radio-group>
           <el-collapse v-model="activeOperation" accordion class="help-center__operation-menu">
             <el-collapse-item v-for="item in visibleOperations" :key="item.id" :name="item.id">
-              <template #title><span class="help-center__operation-title">{{ item.title }}</span></template>
+              <template #title><span class="help-center__operation-title">{{ t(item.title) }}</span></template>
               <MarkdownDocument :content="item.content" />
             </el-collapse-item>
           </el-collapse>
         </div>
       </el-tab-pane>
       <el-tab-pane name="changelog">
-        <template #label><el-icon><Tools /></el-icon><span>更新记录</span></template>
+        <template #label><el-icon><Tools /></el-icon><span>{{ t("更新记录") }}</span></template>
         <div class="help-center__document"><MarkdownDocument :content="changelog" /></div>
       </el-tab-pane>
     </el-tabs>

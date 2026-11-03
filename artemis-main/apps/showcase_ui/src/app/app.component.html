@@ -15,10 +15,4 @@
 -->
 
 <app-nav-switcher></app-nav-switcher>
-<div class="language-switch" role="group" aria-label="界面语言 / Interface language">
-  <button type="button" lang="zh-CN" (click)="language.setLanguage('zh')"
-    [class.active]="language.language() === 'zh'" [attr.aria-pressed]="language.language() === 'zh'">中文</button>
-  <button type="button" lang="en" (click)="language.setLanguage('en')"
-    [class.active]="language.language() === 'en'" [attr.aria-pressed]="language.language() === 'en'">English</button>
-</div>
 <router-outlet></router-outlet>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { Refresh } from '@element-plus/icons-vue';
 import type { AppiumNode } from '../types';
 import ComponentTree from './ComponentTree.vue';
@@ -9,12 +10,12 @@ defineEmits<{ refresh: []; select: [node: AppiumNode] }>();
 
 <template>
   <el-card shadow="never" class="appium-recorder-card component-inspector">
-    <template #header><div class="panel-header"><span>App 组件树</span><el-tooltip content="刷新组件树" placement="top" :show-after="200"><el-button class="recorder-panel-tool" :icon="Refresh" size="small" aria-label="刷新组件树" :loading="loading" :disabled="disabled" @click="$emit('refresh')" /></el-tooltip></div></template>
+    <template #header><div class="panel-header"><span>{{ t("App 组件树") }}</span><el-tooltip :content="t('刷新组件树')" placement="top" :show-after="200"><el-button class="recorder-panel-tool" :icon="Refresh" size="small" :aria-label="t('刷新组件树')" :loading="loading" :disabled="disabled" @click="$emit('refresh')" /></el-tooltip></div></template>
     <ComponentTree :tree="tree" :selected-id="node?.id || ''" @select="$emit('select', $event)" />
     <NodeDetail :node="node" :current-activity="activity" :loading="recording" />
     <div class="component-inspector__activity">
       <span>Activity</span>
-      <el-tooltip :content="activity" :disabled="!activity" placement="top" effect="dark" :show-after="200"
+      <el-tooltip :content="t(activity)" :disabled="!activity" placement="top" effect="dark" :show-after="200"
         :popper-style="{ maxWidth: 'min(480px, calc(100vw - 24px))', overflowWrap: 'anywhere', fontSize: '12px' }">
         <code :tabindex="activity ? 0 : undefined">{{ activity || '-' }}</code>
       </el-tooltip>

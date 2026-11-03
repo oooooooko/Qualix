@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import type { AiRecognitionModel } from '../../appium-recorder/ai-recognition';
 
 const model = defineModel<AiRecognitionModel>({ required: true });
@@ -19,20 +20,20 @@ defineEmits<{ test: [] }>();
     <template #header>
       <div class="panel-header">
         <span class="panel-header__title">
-          <span>{{ title }}</span>
-          <el-tag size="small" effect="plain">{{ badge }}</el-tag>
+          <span>{{ t(title) }}</span>
+          <el-tag size="small" effect="plain">{{ t(badge) }}</el-tag>
         </span>
       </div>
     </template>
-    <p class="appium-model-description">{{ description }}</p>
+    <p class="appium-model-description">{{ t(description) }}</p>
     <el-form label-position="top" :disabled="!!testingModelKey">
-      <el-form-item label="Base URL"><el-input v-model="model.baseUrl" placeholder="兼容 OpenAI 的 API 地址" /></el-form-item>
-      <el-form-item label="API Key"><el-input v-model="model.apiKey" type="password" placeholder="已保存的 Key 显示为掩码，可输入新 Key 替换" show-password /></el-form-item>
-      <el-form-item label="Model Name"><el-input v-model="model.name" :placeholder="namePlaceholder" /></el-form-item>
-      <el-alert v-if="testStatus" class="appium-model-status" :title="testStatus"
+      <el-form-item label="Base URL"><el-input v-model="model.baseUrl" :placeholder="t('兼容 OpenAI 的 API 地址')" /></el-form-item>
+      <el-form-item label="API Key"><el-input v-model="model.apiKey" type="password" :placeholder="t('已保存的 Key 显示为掩码，可输入新 Key 替换')" show-password /></el-form-item>
+      <el-form-item label="Model Name"><el-input v-model="model.name" :placeholder="t(namePlaceholder)" /></el-form-item>
+      <el-alert v-if="testStatus" class="appium-model-status" :title="t(testStatus)"
         :type="testStatus.startsWith('测试通过') ? 'success' : 'warning'" :closable="false" show-icon />
       <div class="appium-model-actions">
-        <el-button type="primary" plain :loading="testingModelKey === modelKey" :disabled="!!testingModelKey && testingModelKey !== modelKey" @click="$emit('test')">测试并保存</el-button>
+        <el-button type="primary" plain :loading="testingModelKey === modelKey" :disabled="!!testingModelKey && testingModelKey !== modelKey" @click="$emit('test')">{{ t("测试并保存") }}</el-button>
       </div>
     </el-form>
   </el-card>

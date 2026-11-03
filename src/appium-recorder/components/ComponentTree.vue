@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../../i18n';
 import { computed, nextTick, ref, watch } from 'vue';
 import type { AppiumNode } from '../types';
 import { ArrowDown, ArrowUp, Search } from '@element-plus/icons-vue';
@@ -80,22 +81,22 @@ watch(
       size="small"
       :prefix-icon="Search"
       clearable
-      placeholder="搜索文字、ID、组件类型"
-      aria-label="搜索组件"
+      :placeholder="t('搜索文字、ID、组件类型')"
+      :aria-label="t('搜索组件')"
       @keydown.enter.prevent="focusMatch(currentMatchIndex + ($event.shiftKey ? -1 : 1))"
       @keydown.up.prevent="focusMatch(currentMatchIndex - 1)"
       @keydown.down.prevent="focusMatch(currentMatchIndex + 1)"
     />
     <span class="appium-tree-search__count" aria-live="polite">{{ matchPosition }}</span>
-    <el-tooltip content="上一个匹配项（Shift + Enter）" placement="top" :show-after="200">
-      <el-button :icon="ArrowUp" size="small" aria-label="上一个匹配项" :disabled="!matches.length" @click="focusMatch(currentMatchIndex - 1)" />
+    <el-tooltip :content="t('上一个匹配项（Shift + Enter）')" placement="top" :show-after="200">
+      <el-button :icon="ArrowUp" size="small" :aria-label="t('上一个匹配项')" :disabled="!matches.length" @click="focusMatch(currentMatchIndex - 1)" />
     </el-tooltip>
-    <el-tooltip content="下一个匹配项（Enter）" placement="top" :show-after="200">
-      <el-button :icon="ArrowDown" size="small" aria-label="下一个匹配项" :disabled="!matches.length" @click="focusMatch(currentMatchIndex + 1)" />
+    <el-tooltip :content="t('下一个匹配项（Enter）')" placement="top" :show-after="200">
+      <el-button :icon="ArrowDown" size="small" :aria-label="t('下一个匹配项')" :disabled="!matches.length" @click="focusMatch(currentMatchIndex + 1)" />
     </el-tooltip>
   </div>
   <div ref="containerRef" class="appium-tree">
-    <el-empty v-if="!tree" description="暂无组件树" />
+    <el-empty v-if="!tree" :description="t('暂无组件树')" />
     <el-tree
       v-else
       ref="treeRef"
@@ -116,7 +117,7 @@ watch(
             class="appium-tree-node__badge"
             :class="{ 'appium-tree-node__badge--duplicate': data.selector.matchCount > 1 }"
           >
-            {{ data.selector.matchCount > 1 ? `重复 ${data.selector.matchCount}` : '唯一' }}
+            {{ data.selector.matchCount > 1 ? t("重复 {0}", { 0: data.selector.matchCount }) : t("唯一") }}
           </span>
         </span>
       </template>
