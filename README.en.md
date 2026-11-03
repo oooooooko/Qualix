@@ -1,8 +1,8 @@
 # <img src="./assets/qualix-logo.png" width="64" height="64" alt="" /> Qualix
 
-[![npm version](https://img.shields.io/npm/v/qualix?color=2563eb&logo=npm)](https://www.npmjs.com/package/qualix) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](./LICENSE) [![Language: TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=white)](./src) [![Python: 3.12+](https://img.shields.io/badge/python-3.12%2B-3776ab?logo=python&logoColor=white)](./artemis-main/pyproject.toml) [![Appium: 3.5.0](https://img.shields.io/badge/Appium-3.5.0-662d91?logo=appium&logoColor=white)](https://www.npmjs.com/package/appium/v/3.5.0) [![npm downloads](https://img.shields.io/npm/dm/qualix?color=16a34a&logo=npm)](https://www.npmjs.com/package/qualix)
+[![npm version](https://img.shields.io/npm/v/qualix?color=2563eb&logo=npm)](https://www.npmjs.com/package/qualix) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](./LICENSE) [![Language: TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=white)](./src) [![Python: 3.12+](https://img.shields.io/badge/python-3.12%2B-3776ab?logo=python&logoColor=white)](./artemis-main/pyproject.toml) [![Appium: 3.5.0](https://img.shields.io/badge/Appium-3.5.0-662d91?logo=appium&logoColor=white)](https://www.npmjs.com/package/appium/v/3.5.0)
 
-[![简体中文](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-64748b?style=for-the-badge)](./README.md) [![English](https://img.shields.io/badge/English-2563eb?style=for-the-badge)](./README.en.md)
+🌐 **English** | [中文](./README.md)
 
 A mobile app testing platform that combines Appium component-tree recording and replay, Artemis natural-language task execution, and Midscene AI testing. Android is supported today; iOS and HarmonyOS support is planned.
 

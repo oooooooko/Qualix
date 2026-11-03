@@ -21,7 +21,7 @@ for (const entry of await readdir(resolve(root, 'locales'), { withFileTypes: tru
   for (const [source] of documents) {
     let content = await readFile(resolve(root, source), 'utf8');
     if (source === 'README.md') content = content.split('<!-- generated-docs:start -->')[0].trimEnd();
-    content = content.replace(/^\[(?:!\[)?简体中文\].*\n+/m, '');
+    content = content.replace(/^(?:\[(?:!\[)?简体中文\]|🌐 ).*\n+/m, '');
     const originalAnchors = new Map();
     let codeLanguage = '';
     const lines = content.split('\n').map(line => {
@@ -54,7 +54,7 @@ for (const entry of await readdir(resolve(root, 'locales'), { withFileTypes: tru
       return `](${filePart ? './' + target : ''}${translatedAnchor ? '#' + translatedAnchor : ''})`;
     });
     const languageLinks = source === 'README.md'
-      ? `\n\n[![简体中文](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-64748b?style=for-the-badge)](./README.md) [![English](https://img.shields.io/badge/English-2563eb?style=for-the-badge)](./${outputNames.get(source)})`
+      ? `\n\n🌐 **English** | [中文](./README.md)`
       : `\n\n[简体中文](./${source}) | [English](./${outputNames.get(source)})`;
     const headingEnd = content.indexOf('\n');
     const badgesStart = source === 'README.md' ? content.indexOf('[![npm version]') : -1;
