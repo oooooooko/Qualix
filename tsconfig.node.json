@@ -12,5 +12,6 @@
     "moduleDetection": "force",
     "noEmit": true
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "scripts/**/*.ts", "server/**/*.ts", "remote-agent/**/*.ts", "e2e/**/*.ts"]
+  "include": ["vite.config.ts", "scripts/**/*.ts", "server/**/*.ts", "remote-agent/**/*.ts"],
+  "exclude": ["**/*.test.ts", "**/*.spec.ts"]
 }

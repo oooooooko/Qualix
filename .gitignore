@@ -46,6 +46,19 @@ output/
 *.pid
 
 # Test and tool output
+**/test/
+**/tests/
+**/e2e/
+**/__tests__/
+*.test.*
+*.spec.*
+test_*.py
+conftest.py
+playwright.config.*
+vitest.config.*
+jest.config.*
+tsconfig.spec.json
+/artemis-main/third_party/mobile_use/testing.py
 playwright-report/
 test-results/
 blob-report/

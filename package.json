@@ -1,7 +1,7 @@
 {
   "name": "qualix",
   "description": "移动应用自动化测试平台，集成 Appium、Artemis 和 Midscene，当前支持 Android。",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/oooooooko/Qualix.git"
@@ -29,7 +29,20 @@
     "流程节点操作说明.md",
     "AI识别操作说明.md",
     "FAQ.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "!**/test/**",
+    "!**/tests/**",
+    "!**/e2e/**",
+    "!**/__tests__/**",
+    "!**/*.test.*",
+    "!**/*.spec.*",
+    "!**/test_*.py",
+    "!**/conftest.py",
+    "!**/playwright.config.*",
+    "!**/vitest.config.*",
+    "!**/jest.config.*",
+    "!**/tsconfig.spec.json",
+    "!artemis-main/third_party/mobile_use/testing.py"
   ],
   "scripts": {
     "artemis": "node bin/start-artemis.mjs",
