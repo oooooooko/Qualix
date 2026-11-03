@@ -199,3 +199,5 @@ export type AppiumRecordedScript = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type AppiumScriptDraft = Omit<AppiumRecordedScript, 'createdAt' | 'updatedAt'>;

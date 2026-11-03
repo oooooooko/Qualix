@@ -1,6 +1,6 @@
 import { buffer } from 'node:stream/consumers';
 import archiver from 'archiver';
-import type { AppiumRecordedScriptRecord } from './repository';
+import type { AppiumScriptDraft } from '../../src/appium-recorder/types';
 import { VariableScope } from './variables';
 import { sensitiveVariableName } from '../../src/appium-recorder/variables';
 
@@ -10,9 +10,9 @@ function safeExportName(name: string) {
   return /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i.test(base) ? `_${base}` : base;
 }
 
-export async function createAppiumScriptExport(
-  root: AppiumRecordedScriptRecord,
-  getScript: (id: string) => AppiumRecordedScriptRecord | null,
+export function collectAppiumScriptDependencies(
+  root: AppiumScriptDraft,
+  getScript: (id: string) => AppiumScriptDraft | null,
 ) {
   const scripts = [root];
   const visited = new Set([root.id]);
@@ -30,14 +30,17 @@ export async function createAppiumScriptExport(
     }
   }
 
-  const exportedAt = new Date().toISOString();
-  const serialize = (script: AppiumRecordedScriptRecord) => {
-    const scope = new VariableScope([], script.variables || []);
-    script.steps.forEach(step => step.parameters?.forEach(item => scope.track(item)));
-    const clearSecrets = (items: typeof script.variables = []) => items.map(item => item.sensitive || sensitiveVariableName(item.name) ? { ...item, value: '', sensitive: true } : item);
-    return JSON.stringify(scope.scrub({
+  return scripts;
+}
+
+export function appiumScriptExportData(
+  script: AppiumScriptDraft,
+  scope = new VariableScope([], script.variables || []),
+) {
+  script.steps.forEach(step => step.parameters?.forEach(item => scope.track(item)));
+  const clearSecrets = (items: typeof script.variables = []) => items.map(item => item.sensitive || sensitiveVariableName(item.name) ? { ...item, value: '', sensitive: true } : item);
+  return scope.scrub({
     schemaVersion: 1,
-    exportedAt,
     script: {
       id: script.id,
       name: script.name,
@@ -48,12 +51,21 @@ export async function createAppiumScriptExport(
       steps: script.steps.map(step => ({ ...step, mergeUndo: undefined,
         ...(step.parameters ? { parameters: clearSecrets(step.parameters) } : {}),
         ...(step.randomValue && (step.randomValue.sensitive || sensitiveVariableName(step.randomValue.name)
-          || script.variables?.find(item => item.name === step.randomValue?.name)?.sensitive)
+          || script.variables?.find(item => item.name === step.randomValue?.name)?.sensitive
+          || scope.globals.get(step.randomValue.name)?.sensitive)
           ? { randomValue: { ...step.randomValue, text: '', sourceName: undefined, sensitive: true } } : {}),
       })),
     },
-  }), null, 2);
-  };
+  });
+}
+
+export async function createAppiumScriptExport(
+  root: AppiumScriptDraft,
+  getScript: (id: string) => AppiumScriptDraft | null,
+) {
+  const scripts = collectAppiumScriptDependencies(root, getScript);
+  const exportedAt = new Date().toISOString();
+  const serialize = (script: AppiumScriptDraft) => JSON.stringify({ ...appiumScriptExportData(script), exportedAt }, null, 2);
   const baseName = safeExportName(root.name);
   if (!root.steps.some((step) => step.type === 'runScript')) {
     return {

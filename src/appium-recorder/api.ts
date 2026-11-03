@@ -1,6 +1,6 @@
 import { APP_BASE } from '../api';
 import type { AiObservationConfig, AiRecognitionResult } from './ai-recognition';
-import type { AppiumRecordedScript, AppiumRecordedStep } from './types';
+import type { AppiumRecordedScript, AppiumRecordedStep, AppiumScriptDraft } from './types';
 import type { TestVariable } from './variables';
 import type { AppiumVisualChangeRegion } from './types';
 
@@ -94,6 +94,10 @@ export function clearAppiumDeviceAppData(input: { deviceId: string; packageName:
 export async function getAppiumScripts() {
   const response = await fetch(`${APP_BASE}/api/appium-recorder/scripts`);
   return readJson<{ scripts: AppiumRecordedScript[] }>(response);
+}
+
+export function getAppiumLlmPrompt(draft: AppiumScriptDraft) {
+  return postJson<{ prompt: string }>(`${APP_BASE}/api/appium-recorder/llm-prompt`, draft);
 }
 
 export function saveAppiumScript(input: {

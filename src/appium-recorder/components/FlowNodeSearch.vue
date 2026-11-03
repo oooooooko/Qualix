@@ -24,7 +24,7 @@ function move(direction: number) {
   <el-popover trigger="click" placement="bottom-start" :width="360" popper-class="flow-node-search-popover" @after-enter="input?.focus()">
     <template #reference><span class="flow-node-search-trigger"><el-tooltip content="搜索节点" placement="top" :show-after="200"><el-button :icon="Search" aria-label="搜索节点" size="small" /></el-tooltip></span></template>
     <div class="flow-node-search">
-      <el-input ref="input" :model-value="query" placeholder="搜索名称、操作、定位内容或日志" aria-label="搜索流程节点" clearable @update:model-value="emit('update:query', $event)" @keydown.enter.prevent="move($event.shiftKey ? -1 : 1)" @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)" />
+      <el-input ref="input" :model-value="query" placeholder="输入序号定位，或搜索名称、操作、定位内容及日志" aria-label="搜索流程节点" clearable @update:model-value="emit('update:query', $event)" @keydown.enter.prevent="move($event.shiftKey ? -1 : 1)" @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)" />
       <div class="flow-node-search__navigation">
         <span aria-live="polite">{{ currentIndex + 1 }} / {{ results.length }}</span>
         <el-tooltip content="上一个结果" placement="top"><span><el-button :icon="ArrowUp" size="small" aria-label="上一个结果" :disabled="!results.length" @click="move(-1)" /></span></el-tooltip>

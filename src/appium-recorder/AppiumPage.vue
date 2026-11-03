@@ -50,6 +50,7 @@ import { defaultRandomValue, validateRandomValue } from './random-value';
 import { variablePresetKey, variablePresetOptions, type VariablePresetContext } from './variable-presets';
 import RecordedSteps from './components/RecordedSteps.vue';
 import NewScriptDialog from './components/NewScriptDialog.vue';
+import LlmPromptActions from './components/LlmPromptActions.vue';
 import VisualChangeDialog from './components/VisualChangeDialog.vue';
 import ImageCheckDialog from './components/ImageCheckDialog.vue';
 import AiRecognitionTestDialog from './components/AiRecognitionTestDialog.vue';
@@ -2489,7 +2490,14 @@ watch(
           <el-tab-pane label="当前录制" name="recording">
             <div class="appium-workbench">
               <section class="appium-workbench__section">
-                <h3>节点与脚本</h3>
+                <div class="appium-section-title">
+                  <h3>节点与脚本</h3>
+                  <div class="appium-section-title__actions">
+                    <LlmPromptActions
+                      :draft="{ id: selectedScriptId || 'llm_draft', name: form.name.trim() || '当前录制流程', appPackage: form.appPackage, appActivity: form.appActivity, deviceId: '', steps, variables: scriptVariables }"
+                    />
+                  </div>
+                </div>
                 <div class="appium-side-form">
                   <el-input v-model="form.name" placeholder="脚本名称" />
                   <el-select

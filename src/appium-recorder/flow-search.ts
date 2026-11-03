@@ -6,12 +6,14 @@ export type FlowSearchResult = { id: string; index: number; title: string; meta:
 export function searchFlowNodes(steps: AppiumRecordedStep[], query: string): FlowSearchResult[] {
   const terms = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   if (!terms.length) return [];
+  const nodeNumber = terms.length === 1 && /^\d+$/.test(terms[0]!) ? Number(terms[0]) : undefined;
   const byId = new Map(steps.map((step) => [step.id, step]));
   return steps.flatMap((step, index) => {
+    if (nodeNumber !== undefined && nodeNumber !== index + 1) return [];
     const label = labelFlowStep(step);
     const content = [label.title, label.meta, label.note, step.type, step.selector?.value, step.contextSelector?.value,
       step.value, step.logPrefix].filter(Boolean).join(' ').toLocaleLowerCase();
-    if (!terms.every((term) => content.includes(term))) return [];
+    if (nodeNumber === undefined && !terms.every((term) => content.includes(term))) return [];
     const path: string[] = [];
     const visited = new Set([step.id]);
     let current = step;

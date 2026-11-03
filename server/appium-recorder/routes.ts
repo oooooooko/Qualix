@@ -11,7 +11,7 @@ import { deleteRunHistory, getRunHistory, listRunHistory, saveRunHistory } from 
 import { readImage, cropImage } from './image-check';
 import { PNG } from 'pngjs';
 import { adbScreenshotBase64 } from './screenshot';
-import type { AppiumVisualChangeRegion } from '../../src/appium-recorder/types';
+import type { AppiumScriptDraft, AppiumVisualChangeRegion } from '../../src/appium-recorder/types';
 import { readFreshWindowHierarchy } from './tree-dump';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import {
@@ -28,6 +28,7 @@ import { clearAppDataOnDevice, launchAppOnDevice, replayAppiumScript } from './a
 import { isRemoteDeviceId, sendRemoteCommand, stopRemoteReplay } from '../remote-agents/registry';
 import { getAdbCommand } from '../android-sdk';
 import { createAppiumScriptExport } from './script-export';
+import { createAppiumLlmPrompt } from './llm-prompt';
 import { resolveReportSummary } from '../../src/appium-recorder/report-summary';
 import { testModelConnection } from '../model-tester';
 
@@ -292,6 +293,13 @@ export async function handleAppiumRecorderRequest(
         sendJson(res, { variables: savePresetVariables(body.variables, scope) }); return true;
       }
     }
+    if (pathname === '/api/appium-recorder/llm-prompt' && req.method === 'POST') {
+      const draft = await readBody<AppiumScriptDraft>(req);
+      const prompt = createAppiumLlmPrompt(draft, getAppiumRecordedScript, getPresetVariables());
+      sendJson(res, { prompt });
+      return true;
+    }
+
     if (pathname === '/api/appium-recorder/scripts' && req.method === 'GET') {
       sendJson(res, { scripts: listAppiumRecordedScripts() });
       return true;

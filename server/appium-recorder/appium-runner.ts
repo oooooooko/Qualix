@@ -3,6 +3,7 @@ import { execFile } from 'node:child_process';
 import { VariableScope, variableContext, resolveVariableStep } from './variables';
 import { RandomValueGenerator } from './random-value';
 import { ReplayStopwatches } from './stopwatch';
+import { STOPWATCH_ACTIONS } from '../../src/appium-recorder/stopwatch';
 import { getPresetVariables } from './variable-store';
 import { validateExtraction, validateVariables, type TestVariable } from '../../src/appium-recorder/variables';
 import { captureHistoryFrames, readAppVersion } from './history-capture';
@@ -932,7 +933,8 @@ async function runStep(
   if (step.type === 'stopwatch') {
     const context = replayContext.getStore();
     if (!context || !step.stopwatch) throw new Error('计时打点配置未初始化');
-    return `TIMER:${JSON.stringify(context.stopwatches.record(step.stopwatch, step.label))}`;
+    const record = context.stopwatches.record(step.stopwatch, step.label);
+    return `计时器[${STOPWATCH_ACTIONS[record.action]}] 名称：${record.name} | ID：${record.timerId} | TIMER:${JSON.stringify(record)}`;
   }
   if (step.type === 'randomValue') {
     const scope = variableContext.getStore();

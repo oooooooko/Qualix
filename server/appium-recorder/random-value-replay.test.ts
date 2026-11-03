@@ -68,6 +68,9 @@ test('replay repeats random nodes, passes literal values through child returns, 
       const result = await replayAppiumScript(timed, 'fake-device', undefined, undefined,
         { screenshotReport: false, reportSummaryEnabled: false, linkedScripts: [timedChild] });
       assert.equal(result.success, true, result.output);
+      for (const action of ['开始计时', '记录时间点', '结束计时']) {
+        assert.ok(result.output.includes(`计时器[${action}] 名称：request | ID：test-timer-id | TIMER:`), result.output);
+      }
       const records = [...result.output.matchAll(/TIMER:(\{[^\n]+\})/g)].map(match => JSON.parse(match[1]!));
       assert.deepEqual(records.map(item => [item.run, item.action]), [
         [1, 'start'], [1, 'mark'], [1, 'end'], [2, 'start'], [2, 'mark'], [2, 'end'],

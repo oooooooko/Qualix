@@ -187,7 +187,7 @@ Linux: ~/.local/share/android-midscene-automation
 
 如果迁移后仍看不到旧数据，请在之前启动过的目录里查找 `.midscene-app/script-cache.sqlite`，再把 `.midscene-app` 复制到上面的固定数据目录。也可以设置 `ANDROID_MIDSCENE_DATA_ROOT` 指向原来的数据目录继续使用。
 
-## [Appium]同一个 id 定位到错误输入框怎么办
+## 同一个 id 定位到错误输入框怎么办
 
 如果账号框和密码框都是 `id/tg_edit`，只按 id 回放可能输入到第一个输入框。
 
@@ -198,7 +198,7 @@ Linux: ~/.local/share/android-midscene-automation
 - 如果推荐定位不准确，展开录制步骤，手动修改父级上下文 selector。
 - 坐标点击只作为最后兜底。
 
-## [Appium]点击后没有检测到页面跳转怎么办
+## 点击后没有检测到页面跳转怎么办
 
 可能原因：
 
@@ -213,20 +213,20 @@ Linux: ~/.local/share/android-midscene-automation
 - 检测到 Activity 变化时可以选择继续在当前脚本录制；也可以拆成两个脚本，再用“连接脚本”串联。
 - 单 Activity App 不要依赖 Activity 变化，应使用页面核心元素判断是否已进入目标状态。
 
-## [Appium]连接脚本后为什么没有进入目标页面
+## 连接脚本后为什么没有进入目标页面
 
 - 连接脚本列表会显示同一 App 的其他已保存脚本，不受入口 Activity 限制。
 - 连接操作本身不会点击页面或主动跳转，前面的点击、输入或启动 App 必须先让设备进入目标脚本需要的页面。
 - 目标脚本绑定了入口 Activity 时，回放会等待该 Activity；未绑定时会直接从当前画面执行。
 - 跨页面连接前建议添加“等待 Activity”或“等待出现”，便于确认页面已经切换完成。
 
-## [Appium]为什么在桌面点击 App 后回放无效
+## 为什么在桌面点击 App 后回放无效
 
 部分厂商系统会限制桌面或启动器页面的控件信息，Appium 可能无法获取桌面图标的稳定 id。此时在桌面录制“点击 App 图标”可能无法回放。
 
 建议在开始节点后添加“启动 App”操作，由系统按包名打开目标 App，替代桌面点击图标。需要重置登录态或缓存时，可以先添加“清理 App 缓存”，再添加“启动 App”。
 
-## [Appium]弹窗只出现一次怎么办
+## 弹窗只出现一次怎么办
 
 使用“判断存在”。
 
@@ -238,7 +238,7 @@ Linux: ~/.local/share/android-midscene-automation
 
 不要直接把弹窗确认按钮作为普通必选点击，否则弹窗不出现时脚本会失败。
 
-## [Appium]什么时候用等待 Activity
+## 什么时候用等待 Activity
 
 适合多 Activity App。
 
@@ -248,7 +248,7 @@ Linux: ~/.local/share/android-midscene-automation
 等待出现 页面核心元素
 ```
 
-## [Appium]什么时候用可选步骤
+## 什么时候用可选步骤
 
 可选步骤适合非主流程阻塞项：
 
@@ -259,7 +259,7 @@ Linux: ~/.local/share/android-midscene-automation
 
 不建议把登录按钮、提交按钮、核心断言设置为可选。
 
-## [Appium]回放时出现 UiAutomation not connected 怎么办
+## 回放时出现 UiAutomation not connected 怎么办
 
 组件树刷新和 Appium 回放不能同时占用 UiAutomation。当前版本会在回放期间暂停组件树自动刷新，并在断开时清理残留抓取进程后重试一次。
 
@@ -270,7 +270,7 @@ Linux: ~/.local/share/android-midscene-automation
 3. 停止其他正在抓取同一设备组件树的工具。
 4. 重新连接设备后再次回放。
 
-## [Appium]设备预览或组件树没有更新怎么办
+## 设备预览或组件树没有更新怎么办
 
 1. 先确认设备仍显示在设备下拉框中。
 2. 点击设备预览刷新按钮重新获取画面。
@@ -279,11 +279,15 @@ Linux: ~/.local/share/android-midscene-automation
 
 # 项目更新记录
 
+## [2.0.2]
+- [Appium]复制流程前检查节点引用、分支归属和连接脚本，目标缺失或脚本循环连接时明确提示。
+- [Appium]计时节点的回放日志显示开始计时、记录时间点或结束计时操作，以及计时器名称和 ID，保留原有时间及耗时数据。
+- [Appium]搜索节点支持输入纯数字按显示序号精确定位，主画布与流程总览同步生效，保留名称、操作、定位内容和日志的文字搜索。
+
 ## [2.0.1]
 - [兼容]旧命令每次启动均联网检查并运行 `qualix@latest`，自动跟随后续主版本升级，保留启动参数、工作目录、应用环境变量和退出码；检查或下载失败时明确报错退出。
 
 ## [2.0.0]
-- [项目]项目更名为 Qualix。
 - [兼容]新增 `android-midscene-automation` 旧命令兼容包，发布后可继续通过原 npx 命令启动 Qualix；启动前提示使用 `npx --yes qualix@latest`，保留原有参数、工作目录、环境变量和退出码。
 - [数据]继续沿用原有用户数据目录、环境变量和浏览器存储键，已有脚本、配置及界面状态无需迁移。
 
