@@ -4,7 +4,7 @@
 
 ## 项目更名说明
 
-自 **2.0.0** 起，**Android Midscene Automation** 正式更名为 **Qualix**，GitHub 仓库地址更新为 [oooooooko/Qualix](https://github.com/oooooooko/Qualix)，npm 新包名为 `qualix`。推荐使用新版启动命令：
+自 **2.0.0** 起，**Android Midscene Automation** 正式更名为 **Qualix**，npm 新包名为 `qualix`。推荐使用新版启动命令：
 
 ```sh
 npx --yes qualix@latest
