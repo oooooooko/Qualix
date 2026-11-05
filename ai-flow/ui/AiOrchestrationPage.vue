@@ -154,7 +154,7 @@ const {
   currentId: conversationId,
 } = history;
 const visibleError = computed(() =>
-  [error.value, historyError.value].filter(Boolean).join("\n"),
+  [error.value, historyError.value].filter(Boolean).map(value => t(value)).join("\n"),
 );
 async function editConversationTitle(id: string, title: string) {
   if (blocked.value) return;

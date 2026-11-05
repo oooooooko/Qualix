@@ -1,7 +1,7 @@
 {
   "name": "qualix",
   "description": "Android 自动化测试平台，提供测试编排、双模式 AI 编排和 Midscene 原版 Playground。",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "license": "MIT",
   "repository": {
     "type": "git",

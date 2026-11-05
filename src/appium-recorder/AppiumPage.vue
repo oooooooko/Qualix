@@ -1019,11 +1019,11 @@ async function executeFlowStep(index: number) {
 
   if (step.type === 'clearAppData') {
     const confirmed = await ElMessageBox.confirm(
-      'Android 将清除该 App 的全部数据和缓存，登录状态与本地设置也会被重置。',
-      '确认清理 App 缓存',
+      t('Android 将清除该 App 的全部数据和缓存，登录状态与本地设置也会被重置。'),
+      t('确认清理 App 缓存'),
       {
-        confirmButtonText: '确认清理',
-        cancelButtonText: '取消',
+        confirmButtonText: t('确认清理'),
+        cancelButtonText: t('取消'),
         type: 'warning',
         center: true,
       },
@@ -1146,10 +1146,10 @@ async function addStep(type: NodeStepType, index?: number, branchTarget?: Branch
   }
   const step = createStep(type, selectedNode.value);
   if (type === 'input') {
-    const input = await ElMessageBox.prompt('', '录制输入', {
+    const input = await ElMessageBox.prompt('', t('录制输入'), {
       inputValue: '',
-      confirmButtonText: '添加',
-      cancelButtonText: '取消',
+      confirmButtonText: t('添加'),
+      cancelButtonText: t('取消'),
       center: true,
     }).catch(() => null);
     if (!input) return;
@@ -1160,12 +1160,12 @@ async function addStep(type: NodeStepType, index?: number, branchTarget?: Branch
 
 async function addDelayStep(index?: number, branchTarget?: BranchTarget) {
   if (recordingBusy.value) return;
-  const input = await ElMessageBox.prompt('请输入延时时间，单位毫秒', '添加延时', {
+  const input = await ElMessageBox.prompt(t('请输入延时时间，单位毫秒'), t('添加延时'), {
     inputValue: '1000',
     inputPattern: /^[1-9]\d{0,5}$/,
-    inputErrorMessage: '请输入 1 到 999999 之间的整数',
-    confirmButtonText: '添加',
-    cancelButtonText: '取消',
+    inputErrorMessage: t('请输入 1 到 999999 之间的整数'),
+    confirmButtonText: t('添加'),
+    cancelButtonText: t('取消'),
   }).catch(() => null);
   if (!input) return;
   const timeoutMs = Number(input.value);
@@ -1267,7 +1267,7 @@ function openLinkedScriptDialog(index?: number, branchTarget?: BranchTarget) {
 
 function addLinkedScriptStep() {
   try { validateVariables(linkedParameters.parameters); validateReturns(linkedParameters.returns); }
-  catch (error) { ElMessage.error(String(error)); return; }
+  catch (error) { ElMessage.error(t(error instanceof Error ? error.message : String(error))); return; }
   const script = scripts.value.find((item) => item.id === linkedScriptTargetId.value);
   if (!script) {
     ElMessage.warning(t("请选择要连接的脚本"));
@@ -1450,7 +1450,7 @@ async function addAction(
       showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
-          try { validateLoop(step); } catch (error) { ElMessage.warning((error as Error).message); return; }
+          try { validateLoop(step); } catch (error) { ElMessage.warning(t((error as Error).message)); return; }
         }
         done();
       },
@@ -1470,7 +1470,7 @@ async function addAction(
       showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
-          try { breakLoopTarget(steps.value, scoped); } catch (error) { ElMessage.warning((error as Error).message); return; }
+          try { breakLoopTarget(steps.value, scoped); } catch (error) { ElMessage.warning(t((error as Error).message)); return; }
         }
         done();
       },
@@ -1495,7 +1495,7 @@ async function addAction(
       showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
-          try { continueLoopTarget(steps.value, scoped); } catch (error) { ElMessage.warning((error as Error).message); return; }
+          try { continueLoopTarget(steps.value, scoped); } catch (error) { ElMessage.warning(t((error as Error).message)); return; }
         }
         done();
       },
@@ -1549,7 +1549,7 @@ async function addAction(
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
           try { textClickSelector(step); }
-          catch (error) { ElMessage.warning((error as Error).message); return; }
+          catch (error) { ElMessage.warning(t((error as Error).message)); return; }
         }
         done();
       },
@@ -1573,10 +1573,10 @@ async function addAction(
     return insertStep(createKeyStep(26, '电源键'), index, branchTarget);
   }
   if (action === 'waitActivity') {
-    const input = await ElMessageBox.prompt('请输入目标 Activity', '等待 Activity', {
+    const input = await ElMessageBox.prompt(t('请输入目标 Activity'), t('等待 Activity'), {
       inputValue: currentActivity.value,
-      confirmButtonText: '添加',
-      cancelButtonText: '取消',
+      confirmButtonText: t('添加'),
+      cancelButtonText: t('取消'),
     }).catch(() => null);
     if (input?.value) return insertStep(createWaitActivityStep(input.value), index, branchTarget);
     return;
@@ -1619,12 +1619,12 @@ async function addAction(
     return inserted;
   }
   if (action === 'pinch') {
-    const input = await ElMessageBox.prompt('请输入缩放方向：放大 / 缩小', '添加双指缩放', {
-      inputValue: '放大',
+    const input = await ElMessageBox.prompt(t('请输入缩放方向：放大 / 缩小'), t('添加双指缩放'), {
+      inputValue: locale.value === 'zh-CN' ? '放大' : 'out',
       inputPattern: /^(放大|缩小|out|in)$/,
-      inputErrorMessage: '只能输入 放大 或 缩小',
-      confirmButtonText: '添加',
-      cancelButtonText: '取消',
+      inputErrorMessage: t('只能输入 放大 或 缩小'),
+      confirmButtonText: t('添加'),
+      cancelButtonText: t('取消'),
     }).catch(() => null);
     if (!input?.value) return;
     const direction = input.value === '缩小' || input.value === 'in' ? 'in' : 'out';
@@ -1655,7 +1655,7 @@ async function addAction(
       showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         const error = action === 'confirm' ? validateStageLog(step) : '';
-        if (error) { ElMessage.warning(error); return; }
+        if (error) { ElMessage.warning(t(error)); return; }
         done();
       },
     }).catch(() => null);
@@ -1670,7 +1670,7 @@ async function addAction(
       showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
-          try { validateStopwatch(step.stopwatch); } catch (error) { ElMessage.warning((error as Error).message); return; }
+          try { validateStopwatch(step.stopwatch); } catch (error) { ElMessage.warning(t((error as Error).message)); return; }
         }
         done();
       },
@@ -1700,7 +1700,7 @@ async function addAction(
             validateRandomValueTarget(step);
             validateRandomValue(step.randomValue);
             if (availableVariablePresets.value.some(variable => variable.name === step.randomValue!.name && variable.sensitive)) step.randomValue!.sensitive = true;
-          } catch (error) { ElMessage.warning(error instanceof Error ? error.message : '随机值配置无效'); return; }
+          } catch (error) { ElMessage.warning(t(error instanceof Error ? error.message : '随机值配置无效')); return; }
         }
         done();
       },
@@ -1738,7 +1738,7 @@ async function addAction(
       showCancelButton: true, confirmButtonText: t("添加"), cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         if (action === 'confirm') {
-          try { validateExtraction(step.extractVariable); } catch (error) { ElMessage.error(String(error)); return; }
+          try { validateExtraction(step.extractVariable); } catch (error) { ElMessage.error(t(error instanceof Error ? error.message : String(error))); return; }
         }
         done();
       },
@@ -1777,10 +1777,10 @@ async function addAction(
     return insertStep(createNodeActionStep('tapIfExists', '存在则点击', node, { timeoutMs: DEFAULT_NODE_TIMEOUT_MS }), index, branchTarget);
   }
   if (action === 'inputIfExists') {
-    const input = await ElMessageBox.prompt('', '存在则输入', {
+    const input = await ElMessageBox.prompt('', t('存在则输入'), {
       inputValue: '',
-      confirmButtonText: '添加',
-      cancelButtonText: '取消',
+      confirmButtonText: t('添加'),
+      cancelButtonText: t('取消'),
       center: true,
     }).catch(() => null);
     if (!input) return;
@@ -1833,7 +1833,7 @@ async function addAction(
       cancelButtonText: t("取消"),
       beforeClose: (action, _instance, done) => {
         const error = action === 'confirm' ? validateLongPress(step) : '';
-        if (error) { ElMessage.warning(error); return; }
+        if (error) { ElMessage.warning(t(error)); return; }
         done();
       },
     }).catch(() => null);
@@ -1974,10 +1974,10 @@ async function editInputStep(index: number) {
     return;
   }
   if (!step || (step.type !== 'input' && step.type !== 'inputIfExists') || recordingBusy.value) return;
-  const input = await ElMessageBox.prompt('', '修改输入内容', {
+  const input = await ElMessageBox.prompt('', t('修改输入内容'), {
     inputValue: step.value || '',
-    confirmButtonText: '保存',
-    cancelButtonText: '取消',
+    confirmButtonText: t('保存'),
+    cancelButtonText: t('取消'),
     center: true,
   }).catch(() => null);
   if (!input) return;
@@ -2104,10 +2104,10 @@ async function duplicateScript(script: AppiumRecordedScript) {
 
 async function renameScript(script: AppiumRecordedScript) {
   if (renamingScriptId.value) return;
-  const input = await ElMessageBox.prompt('请输入新的脚本名称', '修改脚本名称', {
+  const input = await ElMessageBox.prompt(t('请输入新的脚本名称'), t('修改脚本名称'), {
     inputValue: script.name,
-    confirmButtonText: '保存',
-    cancelButtonText: '取消',
+    confirmButtonText: t('保存'),
+    cancelButtonText: t('取消'),
     center: true,
     inputValidator(value) {
       const nextName = String(value || '').trim();
@@ -2312,16 +2312,16 @@ async function replayScript() {
         reportSummaryPrompt = selectedReportTemplate.value?.prompt || DEFAULT_REPORT_SUMMARY_PROMPT;
       } else {
         await ElMessageBox.alert(
-          `当前提示词优化模型不可用${status.message ? `：${status.message}` : ''}。本次将跳过 AI 总结并生成默认格式的基础报告。`,
-          '回放报告总结不可用',
-          { type: 'warning', confirmButtonText: '继续回放' },
+          t(`当前提示词优化模型不可用${status.message ? `：${status.message}` : ''}。本次将跳过 AI 总结并生成默认格式的基础报告。`),
+          t('回放报告总结不可用'),
+          { type: 'warning', confirmButtonText: t('继续回放') },
         ).catch(() => {});
       }
     } catch (error) {
       await ElMessageBox.alert(
-        `无法检测提示词优化模型：${error instanceof Error ? error.message : '未知错误'}。本次将跳过 AI 总结并生成默认格式的基础报告。`,
-        '回放报告总结不可用',
-        { type: 'warning', confirmButtonText: '继续回放' },
+        t(`无法检测提示词优化模型：${error instanceof Error ? error.message : '未知错误'}。本次将跳过 AI 总结并生成默认格式的基础报告。`),
+        t('回放报告总结不可用'),
+        { type: 'warning', confirmButtonText: t('继续回放') },
       ).catch(() => {});
     } finally {
       preparingReplay.value = false;
@@ -2426,7 +2426,7 @@ watch(() => [props.active, props.scriptsRevision, props.requestedScriptId] as co
     }
     loadScript(script);
     emit('scriptOpened');
-  } catch (error) { ElMessage.error(error instanceof Error ? error.message : t('读取脚本列表失败')); }
+  } catch (error) { ElMessage.error(t(error instanceof Error ? error.message : t('读取脚本列表失败'))); }
 }, { immediate: true });
 
 onMounted(() => {

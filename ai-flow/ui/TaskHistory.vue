@@ -2,7 +2,7 @@
 import { ref, onMounted, onScopeDispose } from "vue";
 import { Edit, Delete } from "@element-plus/icons-vue";
 import type { TaskHistoryEntry } from "./workspace-context";
-import { t } from "../../src/i18n";
+import { locale, t } from "../../src/i18n";
 defineProps<{
   items: TaskHistoryEntry[];
   loading: boolean;
@@ -31,7 +31,7 @@ onScopeDispose(() => window.removeEventListener("resize", resizeDrawer));
     append-to-body
   >
     <p v-if="loading" role="status">{{ t("正在加载历史对话…") }}</p>
-    <el-alert v-if="error" :title="error" type="error" :closable="false" />
+    <el-alert v-if="error" :title="t(error)" type="error" :closable="false" />
     <el-empty
       v-if="!loading && !items.length"
       :description="t('暂无历史对话')"
@@ -55,7 +55,7 @@ onScopeDispose(() => window.removeEventListener("resize", resizeDrawer));
             t(item.experience === "flow" ? "流程编排" : "自主任务")
           }}</small
           >{{ item.appName }}</span
-        ><small>{{ new Date(item.updatedAt).toLocaleString() }}</small>
+        ><small>{{ new Date(item.updatedAt).toLocaleString(locale) }}</small>
       </button>
       <el-button
         text

@@ -78,6 +78,6 @@ async function saveRuntime() {
         t("保存运行配置")
       }}</el-button></el-form
     >
-    <el-alert v-if="error" :title="error" type="error" :closable="false" />
+    <el-alert v-if="error" :title="t(error)" type="error" :closable="false" />
   </component>
 </template>

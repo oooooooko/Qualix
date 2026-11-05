@@ -202,6 +202,9 @@ If it still fails:
 
 # Changelog
 
+## [2.0.6]
+- [国际化]更新文案。
+
 ## [2.0.5]
 - [Laboratory] Upgrade Midscene to v1.17.5 and load the original official Android Playground directly, removing the custom script generation, script list and settings pages.
 - [AI Orchestration] Redesign the task home and workspace with a choice of Flow Orchestration or Autonomous Tasks and Flash / Pro modes.

@@ -202,6 +202,9 @@ Linux: ~/.local/share/android-midscene-automation
 
 # 项目更新记录
 
+## [2.0.6]
+- [国际化]更新文案。
+
 ## [2.0.5]
 - [实验室]Midscene 升级至 v1.17.5，入口直接加载官方 Android Playground 原版页面，移除自定义脚本生成、脚本列表与参数配置页面。
 - [AI 编排]重做任务首页与工作区，支持选择流程编排或自主任务及 Flash / Pro 模式。

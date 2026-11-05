@@ -91,12 +91,11 @@ onScopeDispose(() => {
               stroke-width="2"
               stroke-dasharray="42 16"
             /></svg
-        ></el-icon>
-        <p>{{ t("正在启动 Midscene v1.17.5 原版页面…") }}</p></template
+        ></el-icon></template
       ><template v-else
         ><el-alert
           v-if="error"
-          :title="error"
+          :title="t(error)"
           type="error"
           :closable="false"
         /><el-button type="primary" @click="start">{{

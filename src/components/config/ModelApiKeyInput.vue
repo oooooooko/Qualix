@@ -42,7 +42,7 @@ async function toggle() {
     revealedKey.value = result.apiKey;
     visible.value = true;
   } catch (error) {
-    if (!controller.signal.aborted) ElMessage.error(error instanceof Error ? error.message : t('无法显示 API Key'));
+    if (!controller.signal.aborted) ElMessage.error(t(error instanceof Error ? error.message : '无法显示 API Key'));
   } finally {
     if (request === controller) loading.value = false;
   }

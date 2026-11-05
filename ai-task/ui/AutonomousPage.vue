@@ -12,7 +12,7 @@ import type {
   TaskLaunch,
 } from "../../ai-flow/ui/workspace-context";
 import type { AiWorkspaceProps } from "../../ai-flow/ui/workspace-context";
-import { t } from "../../src/i18n";
+import { locale, t } from "../../src/i18n";
 const props = defineProps<AiWorkspaceProps>();
 const drawerWidth = ref(Math.min(520, window.innerWidth * 0.94));
 const resizeDrawer = () => {
@@ -197,7 +197,7 @@ const conversation = computed<TaskConversation>(() => ({
     (deviceBusy.value
       ? t("设备正在执行排队任务，可在任务队列中查看或终止。")
       : ""),
-  error: error.value,
+  error: t(error.value),
   dirty: false,
   canRun: false,
   hasVideo: current.value?.hasVideo || false,
@@ -269,7 +269,7 @@ defineExpose({
       append-to-body
       @update:model-value="!$event && (panel = '')"
     >
-      <el-alert v-if="error" :title="error" type="error" :closable="false" />
+      <el-alert v-if="error" :title="t(error)" type="error" :closable="false" />
       <template v-if="panel === 'queue'">
         <el-empty v-if="!tasks.length" :description="t('暂无任务')" />
         <article v-for="task in tasks" :key="task.id" class="task-tool-item">
@@ -370,7 +370,7 @@ defineExpose({
           class="task-tool-item"
         >
           <strong>{{ task.title }}</strong>
-          <p>{{ new Date(task.updatedAt).toLocaleString() }}</p>
+          <p>{{ new Date(task.updatedAt).toLocaleString(locale) }}</p>
           <el-button size="small" :icon="VideoPlay" @click="play(task.id)">{{
             t("播放录像")
           }}</el-button>

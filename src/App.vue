@@ -59,13 +59,13 @@ async function saveAppPreset() {
   if (isSavingAppPreset.value) return;
   isSavingAppPreset.value = true;
   try { await api.saveAppPreset({ ...appPresetForm }); await loadApps(); resetAppPresetForm(); ElMessage.success(t('App 已保存')); }
-  catch (error) { ElMessage.error(error instanceof Error ? error.message : t('保存失败')); }
+  catch (error) { ElMessage.error(t(error instanceof Error ? error.message : '保存失败')); }
   finally { isSavingAppPreset.value = false; }
 }
 async function removeAppPreset(id: string) {
   if (!await ElMessageBox.confirm(t('确定删除该 App 配置吗？'), t('删除 App'), { type: 'warning' }).then(() => true).catch(() => false)) return;
   try { await api.deleteAppPreset({ id }); await loadApps(); if (appPresetForm.id === id) resetAppPresetForm(); }
-  catch (error) { ElMessage.error(error instanceof Error ? error.message : t('删除失败')); }
+  catch (error) { ElMessage.error(t(error instanceof Error ? error.message : '删除失败')); }
 }
 async function loadResources() {
   resourceError.value = '';
@@ -98,11 +98,11 @@ const deviceActions = [
       <nav class="layout-page-tabs" :aria-label="t('页面导航')">
         <div v-for="item in visibleMenuItems" :key="item.key" class="layout-page-tab" :class="{ 'is-active': activeMenu === item.key }">
           <button type="button" class="layout-page-tab__select" :aria-current="activeMenu === item.key ? 'page' : undefined" @click="selectMenu(item.key)"><el-icon><component :is="item.icon" /></el-icon>{{ t(item.label) }}</button>
-          <button type="button" class="layout-page-tab__close" :aria-label="t('关闭{0}页签', { 0: item.label })" :disabled="openMenus.length === 1" @click="closeMenu(item.key)"><el-icon><Close /></el-icon></button>
+          <button type="button" class="layout-page-tab__close" :aria-label="t('关闭{0}页签', { 0: t(item.label) })" :disabled="openMenus.length === 1" @click="closeMenu(item.key)"><el-icon><Close /></el-icon></button>
         </div>
       </nav>
       <div v-if="connectionError" class="connection-status" role="status"><span>{{ t(connectionError) }}</span><el-button link type="primary" :loading="reconnecting" @click="reconnect">{{ t('重新连接') }}</el-button></div>
-      <div v-if="resourceError" class="connection-status" role="alert"><span>{{ resourceError }}</span><el-button link @click="loadResources">{{ t('重试') }}</el-button></div>
+      <div v-if="resourceError" class="connection-status" role="alert"><span>{{ t(resourceError) }}</span><el-button link @click="loadResources">{{ t('重试') }}</el-button></div>
       <main class="page-body" :class="{ 'page-body--appium': activeMenu === 'appium' || activeMenu === 'ai-orchestration' || activeMenu === 'midscene', 'page-body--config': activeMenu === 'config' }">
         <AnalysisPage v-if="visitedMenus.has('analysis')" v-show="activeMenu === 'analysis'" :active="activeMenu === 'analysis'" />
         <ConfigPage v-if="visitedMenus.has('config') && configReady" v-show="activeMenu === 'config'" :config-form="configForm" :app-presets="appPresets" :app-preset-form="appPresetForm" :testing-model-key="testingModelKey" :is-saving-model-config="isSavingModelConfig" :is-saving-app-preset="isSavingAppPreset" :model-test-status="modelTestStatus" :appium-save-status="appiumAutoSave.status.value" :appium-save-failed="appiumAutoSave.failed.value"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import type { AutonomousTask } from "../types";
-import { t } from "../../src/i18n";
+import { locale, t } from "../../src/i18n";
 
 const props = defineProps<{
   task: AutonomousTask | null;
@@ -81,7 +81,7 @@ watch(
     <div ref="feed" class="activity-feed" @scroll.passive="rememberScroll">
       <el-alert
         v-if="error"
-        :title="error"
+        :title="t(error)"
         type="error"
         :closable="false"
         class="activity-error"
@@ -130,7 +130,7 @@ watch(
                   event.kind === "note" ? t("AI 发现") : t("操作")
                 }}</strong
                 ><time :datetime="event.at">{{
-                  new Date(event.at).toLocaleTimeString()
+                  new Date(event.at).toLocaleTimeString(locale)
                 }}</time>
               </header>
               <p>{{ event.label }}</p>

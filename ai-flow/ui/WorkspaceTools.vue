@@ -3,7 +3,7 @@ import { computed, onMounted, onScopeDispose, ref, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { WorkspaceJob } from "../jobs";
 import { workspaceRequest } from "./workspace-api";
-import { t } from "../../src/i18n";
+import { locale, t } from "../../src/i18n";
 const props = defineProps<{ deviceId: string; jobId: string; busy: boolean }>();
 const emit = defineEmits<{
   openJob: [job: WorkspaceJob];
@@ -143,7 +143,7 @@ async function saveNotes() {
   >
     <el-alert
       v-if="error"
-      :title="error"
+      :title="t(error)"
       type="error"
       :closable="false"
       class="workspace-error"
@@ -174,7 +174,7 @@ async function saveNotes() {
         <small
           >{{ job.input.mode === "flash" ? "Flash" : "Pro" }} ·
           {{ job.input.deviceId }} ·
-          {{ new Date(job.createdAt).toLocaleString() }}</small
+          {{ new Date(job.createdAt).toLocaleString(locale) }}</small
         >
         <p class="workspace-muted">{{ job.message }}</p>
         <footer>

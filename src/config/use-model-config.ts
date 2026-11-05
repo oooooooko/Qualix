@@ -8,6 +8,7 @@ import { normalizeFlowBackground, normalizeFlowLineColor, normalizeFlowLineStyle
 import { useAppiumAutoSave } from './use-appium-auto-save';
 import type { ConfigForm } from '../types';
 import * as api from '../api';
+import { t } from '../i18n';
 
 export function useModelConfig() {
   const isSavingModelConfig = ref(false);
@@ -29,7 +30,7 @@ export function useModelConfig() {
   const appiumAutoSave = useAppiumAutoSave(configForm, async value => {
     await api.saveAppiumConfig(value);
   }, error => {
-    ElMessage.error(error instanceof Error ? error.message : '测试编排配置自动保存失败');
+    ElMessage.error(t(error instanceof Error ? error.message : '测试编排配置自动保存失败'));
   });
 
   const loadConfig = async () => {
@@ -58,10 +59,10 @@ export function useModelConfig() {
     isSavingModelConfig.value = true;
     try {
       await api.saveConfig({ runtime: { ...configForm.runtime } });
-      ElMessage.success('参数配置已保存');
+      ElMessage.success(t('参数配置已保存'));
     } catch (error) {
       const message = error instanceof Error ? error.message : '参数配置保存失败';
-      ElMessage.error(message);
+      ElMessage.error(t(message));
     } finally {
       isSavingModelConfig.value = false;
     }
@@ -81,9 +82,9 @@ export function useModelConfig() {
       const successMessage = `测试通过，配置已保存${payload.content ? `：${payload.content}` : ''}`;
       modelTestStatus[key] = '';
       if (key === 'appium') aiRecognitionModelConfigured.value = isAiRecognitionModelConfigured(model);
-      void ElMessageBox.alert(successMessage, '模型测试成功', {
+      void ElMessageBox.alert(t(successMessage), t('模型测试成功'), {
         type: 'success',
-        confirmButtonText: '确定',
+        confirmButtonText: t('确定'),
       }).catch(() => {});
     } catch (error) {
       modelTestStatus[key] = `未保存：${error instanceof Error ? error.message : '测试失败'}`;

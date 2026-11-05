@@ -41,7 +41,7 @@ function submit() {
   if (unmerging.value) {
     if (props.disabled || !undoPreview.value || typeof undoPreview.value === 'string') return;
     try { emit('confirm', unmergeBranches(props.steps, props.conditionId, addedSide.value).steps); emit('close'); }
-    catch (error) { ElMessage.error(String(error)); }
+    catch (error) { ElMessage.error(t(error instanceof Error ? error.message : String(error))); }
     return;
   }
   if (props.disabled || !preview.value || typeof preview.value === 'string') return;
@@ -49,7 +49,7 @@ function submit() {
   try {
     emit('confirm', mergeBranches(props.steps, props.conditionId, commonId.value, duplicateId.value).steps);
     emit('close');
-  } catch (error) { ElMessage.error(String(error)); }
+  } catch (error) { ElMessage.error(t(error instanceof Error ? error.message : String(error))); }
 }
 </script>
 

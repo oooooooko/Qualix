@@ -158,7 +158,7 @@ function handleEnter(event: KeyboardEvent) {
       >
       <el-alert
         v-if="state.error"
-        :title="state.error"
+        :title="t(state.error)"
         type="error"
         :closable="false"
       />
