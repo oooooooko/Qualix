@@ -18,6 +18,15 @@ const optimizingPrompt = shallowRef(false);
 const error = ref('');
 const branch = computed(() => isAiBranchEnabled(props.step));
 const untilMatch = computed(() => props.step.aiObservation?.mode === 'untilMatch');
+const observationTimers = computed(() => {
+  const active = new Map<string, { timerId: string; name: string }>();
+  for (const step of props.steps) {
+    if (step.id === props.step.id) break;
+    if (step.stopwatch?.action === 'start') active.set(step.stopwatch.timerId, step.stopwatch);
+    if (step.stopwatch?.action === 'end') active.delete(step.stopwatch.timerId);
+  }
+  return [...active.values()];
+});
 const branchChoice = ref(branch.value);
 const fallbackEnabled = shallowRef(Boolean(props.step.aiInvalidResultBranch));
 const activeSections = ref<string[]>(['prompt']);
@@ -149,6 +158,12 @@ async function save(enabled: boolean, observation?: AiObservationConfig) {
           </el-radio-group>
         </el-form-item>
         <template v-if="step.aiObservation">
+          <el-form-item :label="t('观察时间原点')">
+            <el-select :model-value="step.aiObservation.timerId || ''" :disabled="disabled || busy" @update:model-value="updateObservation({ timerId: $event || undefined })">
+              <el-option :label="t('从本次观察开始计时')" value="" />
+              <el-option v-for="timer in observationTimers" :key="timer.timerId" :label="timer.name" :value="timer.timerId" />
+            </el-select>
+          </el-form-item>
           <el-form-item :label="t('观察模式')">
             <template #label>
               <span class="recognition-label">{{ t("观察模式") }} <el-tooltip placement="top" :show-after="200">

@@ -12,7 +12,7 @@ export type AnalysisSummary = {
   scripts: number; testedScripts: number; runs: number; passed: number; failed: number; stopped: number; running: number;
   passRate: number | null; rows: AnalysisRow[]; daily: TrendPoint[]; monthly: TrendPoint[];
 };
-export type AnalysisResponse = { generatedAt: string; days: number; midscene: AnalysisSummary; appium: AnalysisSummary };
+export type AnalysisResponse = { generatedAt: string; days: number; appium: AnalysisSummary };
 
 // Stopped/running executions do not count as completed tests. Missing history is never a pass.
 export function summarizeTests(scripts: ScriptInfo[], runs: TestRun[], since = 0, now = Date.now()): AnalysisSummary {

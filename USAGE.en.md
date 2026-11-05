@@ -1,59 +1,10 @@
-# Appium Recorder Instructions
+# 测试编排使用说明
 
 [简体中文](./USAGE.md) | [English](./USAGE.en.md)
 
-This document explains the complete use of the Appium component tree recorder, including the purpose of each action button, recording methods, and examples.
+Manual orchestration records and edits flows. The new AI workspace supports chat generation, Flash / Pro, task queues, notes, plans and video playback. See the [AI guide](./ai-flow/README.md).
 
-This document is released with the npm package and can also be opened directly from the "Function Documentation" in the README. Please see [FAQ.md](./FAQ.en.md) for frequently asked questions.
-
-For the purpose and configuration of each process node in Appium, please view [Process Node Operation Instructions](./FLOW_NODES.en.md). For AI recognition scene selection, preset prompt words, continuous observation, branching, screenshot deduplication and timeout configuration, please see [AI Recognition Operation Instructions](./AI_RECOGNITION.en.md).
-
-## In-page help
-
-Click the question mark icon at the bottom of the sidebar to view it in the "Help and Version" window:
-
-- Current tool version and corresponding Midscene version.
-- Major technologies and versions such as Vue, Element Plus, Appium, Midscene, Vue Flow, OpenCV.js, Vite and TypeScript.
-- these operating instructions.
-- Frequently asked questions and update records for each version.
-
-The help pages read from the Markdown guides. English versions are available in `USAGE.en.md`, `FLOW_NODES.en.md`, `AI_RECOGNITION.en.md`, `FAQ.en.md` and `CHANGELOG.en.md`. In-app help translations are maintained in `locales/en/help.json`.
-
-## Midscene Operation Instructions
-
-### Configure the Midscene model
-
-Enter "Settings", select the model provider in the Midscene model area and fill in the required parameters. Midscene execution relies on multi-modal models that support image input. After filling in, you should click Test first to confirm that the model can respond normally.
-
-### Generate test script
-
-Go to "Midscene > Test Script Generation" and fill in the script name, scenario title, target app and test requirements. You can also upload a use case file. Check the generation steps after clicking "AI Generation" to ensure that the test data, operation goals and success conditions are accurate.
-
-### Custom step arrangement
-
-Switch to "Custom Step Arrangement" on the test script generation page, and you can add operation, waiting, query and condition steps one by one. Each instruction only describes a clear target, and observable page elements are used as wait conditions after the page jumps.
-
-### Edit and save script
-
-After generating the script you can view, edit or copy the code. After confirming the content, click "Save Script", and the saved script will appear on the "Automated Testing" page.
-
-### Execute Midscene script
-
-Go to "Midscene > Automated Testing", select the script and Android device and click "Start Execution". Keep the device screen on and unlocked during execution, and Midscene will understand the target and perform operations based on the current screen.
-
-### Stop execution
-
-While the script is running, click "Stop Execution" at the top to abort subsequent steps. After stopping, view the execution output to confirm the last completed step and the stopping position.
-
-### View execution output
-
-The automated test page will display step status, time consumption and error information in real time. If the execution fails, first check whether the model configuration, ADB connection, device screen, and target description in the instruction are clear.
-
-### Midscene writing suggestions
-
-One instruction only completes one goal; input, click and wait should be split as much as possible; waiting conditions should describe the stable elements that can be observed on the page; do not handle a large number of pop-up windows and business operations at the same time in the same step. When component IDs are stable and require a lot of repeated playback, you can use the Appium process instead.
-
-## Preparation before using Appium
+## 测试编排使用前准备
 
 ### 1. Connect your Android device
 
@@ -117,7 +68,7 @@ The App package name is required and can only be selected from the "Default App 
 
 ### Device preview
 
-- Device preview gives priority to using Midscene Playground's scrcpy real-time screen, which allows you to directly click and slide the mobile phone screen.
+- Device preview uses an independent ADB screenshot channel and supports direct taps and swipes.
 - After clicking a component in the preview, the component tree will locate and select the corresponding node, and the component border will be displayed by default.
 - When live streaming is unavailable, ADB screenshot polling is automatically used to prevent the two screen sources from overwriting each other.
 - When the screen stops updating, you can click the refresh button in the device preview toolbar to reacquire the screen.
@@ -882,7 +833,7 @@ Playback behavior:
 
 ### Playback report summary
 
-Configure in "Settings → Appium Configuration → Playback Report Summary". It is turned off by default and is independent of the screenshot report.
+在“参数配置 → 测试编排配置 → 回放报告总结”中配置，默认关闭，与截图报告独立。
 
 1. Fill in the Base URL, API Key, and Model Name in the "Prompt Word Optimization Model" above, and click "Test and Save". This text model is used both to optimize prompt words and to generate playback report summaries.
 2. Turn on "Replay Report Summary". Switch and report prompt words are automatically saved after modification.

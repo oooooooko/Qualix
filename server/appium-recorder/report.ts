@@ -287,7 +287,7 @@ function createReplayHtml(input: {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${htmlEscape(input.script.name)} - Appium 截图回放</title>
+  <title>${htmlEscape(input.script.name)} - 测试编排截图回放</title>
   <style>
     * { box-sizing: border-box; }
     :root { color: #1f2329; background: #f4f6f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; }
@@ -867,7 +867,7 @@ export async function createAppiumReplayReport(input: {
     output: persistedOutput,
   }) : '';
   const markdown = [
-    '# Appium 回放报告',
+    '# 测试编排回放报告',
     '',
     '| 项目 | 内容 |',
     '| --- | --- |',

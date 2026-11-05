@@ -10,11 +10,9 @@ export function canManageConfig(req: IncomingMessage) {
 
 export function publicConfig(config: AppConfig): AppConfig {
   const result = structuredClone(config);
-  for (const model of [result.midscene.model, result.scriptOptimizer.model, result.appium.model, result.appium.promptOptimizer?.model]) {
+  for (const model of [result.appium.model, result.appium.promptOptimizer?.model]) {
     if (model?.apiKey) model.apiKey = SAVED_API_KEY;
   }
-  // Runtime environment overrides are only consumed by the server.
-  result.midscene.env = {};
   return result;
 }
 

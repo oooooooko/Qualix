@@ -3,9 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import type { PreviewServer, ViteDevServer } from 'vite';
 import { createApiMiddleware } from './server/http-api';
 
-// The complete HTTP API (30+ /api/* endpoints plus the Android playground
-// proxy) lives in server/http-api.ts as a Connect-style middleware and is
-// shared verbatim with the DSH plugin (plugin/index.ts).
+// Share the application HTTP API between development and preview.
 function apiPlugin() {
   const handler = createApiMiddleware();
   const attach = (server: ViteDevServer | PreviewServer) => {
@@ -13,7 +11,7 @@ function apiPlugin() {
   };
 
   return {
-    name: 'local-script-agent-api',
+    name: 'qualix-api',
     configureServer(server: ViteDevServer) {
       attach(server);
     },

@@ -26,7 +26,7 @@ const activeSection = shallowRef<'basic' | 'models'>('basic');
   <div class="appium-config-stack">
     <header class="appium-config-toolbar">
       <div class="appium-config-categories">
-        <el-radio-group v-model="activeSection" :aria-label="t('Appium配置分类')">
+        <el-radio-group v-model="activeSection" :aria-label="t('测试编排配置分类')">
           <el-radio value="basic">{{ t("基础配置") }}</el-radio>
           <el-radio value="models">{{ t("模型配置") }}</el-radio>
         </el-radio-group>
@@ -41,8 +41,8 @@ const activeSection = shallowRef<'basic' | 'models'>('basic');
         <div><h2 id="appium-models-title">{{ t("模型服务") }}</h2><p>{{ t("不同任务使用独立模型，配置修改需测试通过后保存。") }}</p></div>
       </header>
       <div class="appium-model-grid">
-        <AppiumModelSettings v-model="configForm.appium.model" :title="t('AI 识别模型')" badge="视觉"
-          :description="t('用于识别设备截图和持续观察，需要选择支持图片输入的模型。')" name-placeholder="支持图片输入的模型"
+        <AppiumModelSettings v-model="configForm.appium.model" :title="t('AI 识别模型')" badge="识别 / 编排"
+          :description="t('用于 AI 编排、设备截图识别和持续观察。截图识别需要支持图片输入；仅根据节点树进行 AI 编排时可使用文本模型。')" name-placeholder="用于识别或编排的模型"
           model-key="appium" :testing-model-key="testingModelKey" :test-status="testStatus" @test="$emit('testModel')" />
         <AppiumModelSettings v-if="configForm.appium.promptOptimizer" v-model="configForm.appium.promptOptimizer.model"
           :title="t('提示词优化模型')" badge="文本" :description="t('用于优化 AI 识别和回放报告提示词，也用于生成回放测试报告总结，只需支持文本输入。')"

@@ -18,6 +18,13 @@ function addMs(timestamp: string, ms: number) {
 }
 
 // 设备锁是脚本执行的并发保护：同一台手机同一时间只允许一个 owner 操作。
+function nativeOwnerExited(ownerId: string) {
+  const match = /^midscene-native:(\d+):/.exec(ownerId);
+  if (!match) return false;
+  try { process.kill(Number(match[1]), 0); return false; }
+  catch (error) { return (error as NodeJS.ErrnoException).code === 'ESRCH'; }
+}
+
 export function acquireDeviceLock(input: {
   deviceId: string;
   ownerType: DeviceLockOwnerType;
@@ -31,7 +38,11 @@ export function acquireDeviceLock(input: {
 
   const now = nowIso();
   const expiresAt = addMs(now, input.ttlMs || DEFAULT_LOCK_TTL_MS);
-  const active = findActiveDeviceLockRecord(input.deviceId, now);
+  let active = findActiveDeviceLockRecord(input.deviceId, now);
+  if (active && nativeOwnerExited(active.ownerId)) {
+    releaseDeviceLockRecord(active.ownerId, now);
+    active = null;
+  }
 
   if (active && active.ownerId !== input.ownerId) {
     throw new DeviceLockConflictError(active);
@@ -68,5 +79,9 @@ export function releaseDeviceLock(ownerId: string) {
 }
 
 export function listActiveDeviceLocks() {
-  return listActiveDeviceLockRecords(nowIso());
+  return listActiveDeviceLockRecords(nowIso()).filter(lock => {
+    if (!nativeOwnerExited(lock.ownerId)) return true;
+    releaseDeviceLockRecord(lock.ownerId, nowIso());
+    return false;
+  });
 }

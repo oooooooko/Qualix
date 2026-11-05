@@ -4,7 +4,7 @@ import { dirname, resolve } from 'node:path';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const documents = [
-  ['README.md', 'README'], ['ARTEMIS.md', 'ARTEMIS'], ['USAGE.md', 'USAGE'],
+  ['README.md', 'README'], ['USAGE.md', 'USAGE'],
   ['流程节点操作说明.md', 'FLOW_NODES'], ['AI识别操作说明.md', 'AI_RECOGNITION'],
   ['FAQ.md', 'FAQ'], ['CHANGELOG.md', 'CHANGELOG'],
 ];

@@ -84,6 +84,7 @@ import {
 import type {
   AppiumNode,
   AppiumRecordedScript,
+  AppiumScriptDraft,
   AppiumRecordedStep,
   AppiumVisualChangeConfig,
   AppiumVisualChangeRegion,
@@ -108,6 +109,8 @@ const WORKBENCH_TAB_STORAGE_KEY = 'android-midscene-automation:appium-workbench-
 const workspaceRef = shallowRef<InstanceType<typeof RecorderWorkspace>>();
 const historyScript = shallowRef<{ id: string; name: string } | null>(null);
 const AUTO_TREE_REFRESH_INTERVAL_MS = 1800;
+const externalExecutionBusy = computed(() => props.externalBusy === true);
+const emit = defineEmits<{ busyChange: [busy: boolean]; scriptOpened: []; draftChange: [draft: AppiumScriptDraft] }>();
 
 const readonlyFlowActionGroups: FlowActionGroup[] = [];
 const readonlyFlowSelectedIndexes: number[] = [];
@@ -125,6 +128,13 @@ const props = defineProps<{
   flowLineStyle?: FlowLineStyle;
   flowLayoutDirection?: FlowLayoutDirection;
   active: boolean;
+  canvasOnly?: boolean;
+  canvasDraft?: AppiumScriptDraft | null;
+  canvasScriptId?: string;
+  canvasRevision?: number;
+  externalBusy?: boolean;
+  scriptsRevision?: number;
+  requestedScriptId?: string;
   appPresets: AppPreset[];
   deviceActions: readonly DeviceAction[];
   playgroundAvailable: boolean;
@@ -166,10 +176,12 @@ const tree = shallowRef<AppiumNode | null>(null);
 const selectedNode = shallowRef<AppiumNode | null>(null);
 const scripts = shallowRef<AppiumRecordedScript[]>([]);
 const selectedScriptId = shallowRef('');
+const scriptListSelectedId = shallowRef('');
+watch(selectedScriptId, id => { scriptListSelectedId.value = id; });
 const recordedStepsRef = useTemplateRef('recordedStepsRef');
 const newScriptDialogVisible = shallowRef(false);
 const newScriptRevision = shallowRef(0);
-const storedWorkbenchTab = window.localStorage.getItem(WORKBENCH_TAB_STORAGE_KEY);
+const storedWorkbenchTab = props.canvasOnly ? null : window.localStorage.getItem(WORKBENCH_TAB_STORAGE_KEY);
 const activeWorkbenchTab = shallowRef<'recording' | 'scripts' | 'variables'>(storedWorkbenchTab === 'scripts' ? 'scripts' : storedWorkbenchTab === 'variables' ? 'variables' : 'recording');
 const steps = shallowRef<AppiumRecordedStep[]>([]);
 const aiRecognitionTestStep = shallowRef<AppiumRecordedStep | null>(null);
@@ -312,7 +324,7 @@ function onVariablesSaved(id: string, variables: TestVariable[]) {
 }
 
 function warnBeforeUnload(event: BeforeUnloadEvent) {
-  if (!hasUnsavedChanges.value) return;
+  if (!hasUnsavedChanges.value && !externalExecutionBusy.value) return;
   event.preventDefault();
   event.returnValue = '';
 }
@@ -320,6 +332,8 @@ function warnBeforeUnload(event: BeforeUnloadEvent) {
 markDraftSaved();
 
 const selectedScript = computed(() => scripts.value.find((script) => script.id === selectedScriptId.value) || null);
+const scriptListSelection = computed(() => scripts.value.find(script => script.id === scriptListSelectedId.value) || null);
+const scriptListBusy = computed(() => newScriptDisabled.value || Boolean(renamingScriptId.value || duplicatingScriptId.value || downloadingScriptId.value || deletingScriptId.value));
 const linkableScripts = computed(() => scripts.value.filter((script) => script.id !== selectedScriptId.value));
 const linkedScriptTarget = computed(() => scripts.value.find((script) => script.id === linkedScriptTargetId.value) || null);
 const linkedScriptPreviewScript = computed(() => (
@@ -328,7 +342,8 @@ const linkedScriptPreviewScript = computed(() => (
 const compatibleLinkableScripts = computed(() => linkableScripts.value.filter(
   (script) => script.appPackage === form.appPackage,
 ));
-const hasSelectedAppPackage = computed(() => props.appPresets.some((app) => app.packageName === form.appPackage));
+const hasSelectedAppPackage = computed(() => props.appPresets.some((app) => app.packageName === form.appPackage)
+  || Boolean(form.appPackage && selectedScript.value?.appPackage === form.appPackage));
 const scriptActivityMismatch = computed(() => {
   const expectedActivity = selectedScript.value?.appActivity?.trim();
   if (!expectedActivity) return false;
@@ -339,8 +354,8 @@ const recordingBusy = computed(() => (
   || resolvingNavigation.value
   || Boolean(pendingNavigation.value)
 ));
-const recordingLocked = computed(() => recordingBusy.value || replaying.value || preparingReplay.value);
-const newScriptDisabled = computed(() => saving.value || replaying.value || preparingReplay.value || recordingBusy.value || launchingApp.value || importingScript.value);
+const recordingLocked = computed(() => recordingBusy.value || replaying.value || preparingReplay.value || externalExecutionBusy.value);
+const newScriptDisabled = computed(() => saving.value || recordingLocked.value || launchingApp.value || importingScript.value);
 const overlayBounds = computed(() => flattenNodes(tree.value).flatMap((node) => (
   node.bounds ? [{ id: node.id, ...node.bounds }] : []
 )));
@@ -576,7 +591,7 @@ function createStep(type: NodeStepType, node: AppiumNode): AppiumRecordedStep {
 async function copyReplayOutput() {
   if (!replayOutput.value) return;
   await navigator.clipboard.writeText(replayOutput.value);
-  ElMessage.success(t("回放输出已复制"));
+  ElMessage.success(t("执行日志已复制"));
 }
 
 function clearReplayOutput() {
@@ -893,7 +908,7 @@ function stopAutoTreeRefresh() {
 
 function scheduleAutoTreeRefresh(delay = AUTO_TREE_REFRESH_INTERVAL_MS) {
   stopAutoTreeRefresh();
-  if (!props.active || !selectedDeviceId.value || replaying.value) return;
+  if (!props.active || !selectedDeviceId.value || replaying.value || externalExecutionBusy.value) return;
   autoTreeRefreshTimer = window.setTimeout(() => {
     autoTreeRefreshTimer = null;
     void syncTreeWhenPageChanges();
@@ -913,6 +928,7 @@ async function syncTreeWhenPageChanges() {
     || loadingTree.value
     || recordingBusy.value
     || replaying.value
+    || externalExecutionBusy.value
     || launchingApp.value
   ) {
     scheduleAutoTreeRefresh();
@@ -940,6 +956,9 @@ async function loadScripts() {
   scripts.value = payload.scripts || [];
   if (selectedScriptId.value && !scripts.value.some((script) => script.id === selectedScriptId.value)) {
     selectedScriptId.value = '';
+  }
+  if (!scripts.value.some(script => script.id === scriptListSelectedId.value)) {
+    scriptListSelectedId.value = selectedScriptId.value || scripts.value[0]?.id || '';
   }
 }
 
@@ -992,7 +1011,8 @@ async function executeFlowStep(index: number) {
     return;
   }
   const packageName = step.value?.trim() || form.appPackage;
-  if (!packageName || !props.appPresets.some((app) => app.packageName === packageName)) {
+  if (!packageName || (!props.appPresets.some((app) => app.packageName === packageName)
+    && !(packageName === form.appPackage && hasSelectedAppPackage.value))) {
     ElMessage.warning(t("当前节点没有匹配的预设 App"));
     return;
   }
@@ -1969,7 +1989,7 @@ async function editInputStep(index: number) {
 function setActiveWorkbenchTab(tab: string | number) {
   const nextTab = tab === 'scripts' ? 'scripts' : tab === 'variables' ? 'variables' : 'recording';
   activeWorkbenchTab.value = nextTab;
-  window.localStorage.setItem(WORKBENCH_TAB_STORAGE_KEY, nextTab);
+  if (!props.canvasOnly) window.localStorage.setItem(WORKBENCH_TAB_STORAGE_KEY, nextTab);
 }
 
 function loadScript(script: AppiumRecordedScript) {
@@ -2261,7 +2281,7 @@ async function saveScript() {
     selectedScriptId.value = payload.script.id;
     if (wasNew) void saveVariables('/api/appium-recorder/variables?draft=1', []).catch(() => ElMessage.error(t("变量草稿清理失败")));
     markDraftSaved();
-    ElMessage.success(t("Appium 脚本已保存"));
+    ElMessage.success(t("测试编排脚本已保存"));
     return true;
   } catch (error) {
     ElMessage.error(t(error instanceof Error ? error.message : t("保存失败")));
@@ -2272,7 +2292,7 @@ async function saveScript() {
 }
 
 async function replayScript() {
-  if (preparingReplay.value || replaying.value) return;
+  if (preparingReplay.value || replaying.value || externalExecutionBusy.value) return;
   if (!selectedScript.value) {
     ElMessage.warning(t("请选择已保存脚本"));
     return;
@@ -2333,12 +2353,12 @@ async function replayScript() {
     } else if (result.success) {
       ElMessage.success(t("回放完成"));
     } else {
-      ElMessage.error(t("回放失败，详情见回放输出"));
+      ElMessage.error(t("回放失败，详情见执行日志"));
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : '回放失败';
     replayOutput.value += `${replayOutput.value ? '\n' : ''}${message}`;
-    ElMessage.error(t("回放失败，详情见回放输出"));
+    ElMessage.error(t("回放失败，详情见执行日志"));
   } finally {
     replaying.value = false;
     stoppingReplay.value = false;
@@ -2362,9 +2382,55 @@ async function stopReplay() {
   }
 }
 
+let externalCanvasSnapshot = '';
+watch(() => [props.canvasDraft, props.canvasScriptId] as const, ([draft, scriptId]) => {
+  if (!props.canvasOnly) return;
+  selectedScriptId.value = scriptId || '';
+  const snapshot = JSON.stringify({ name: draft?.name || '', appPackage: draft?.appPackage || '', appActivity: draft?.appActivity || '',
+    steps: draft?.steps || [], variables: draft?.variables || [] });
+  if (snapshot === currentDraftSnapshot.value) { externalCanvasSnapshot = snapshot; return; }
+  const data = JSON.parse(snapshot);
+  Object.assign(form, { name: data.name, appPackage: data.appPackage, appActivity: data.appActivity });
+  steps.value = data.steps;
+  scriptVariables.value = data.variables;
+  externalCanvasSnapshot = currentDraftSnapshot.value;
+  markDraftSaved();
+}, { immediate: true, flush: 'sync' });
+watch(currentDraftSnapshot, snapshot => {
+  if (!props.canvasOnly || snapshot === externalCanvasSnapshot) return;
+  externalCanvasSnapshot = snapshot;
+  emit('draftChange', { id: props.canvasDraft?.id || 'ai-editor-draft', name: form.name, appPackage: form.appPackage,
+    appActivity: form.appActivity, deviceId: selectedDeviceId.value, steps: steps.value, variables: scriptVariables.value });
+});
+defineExpose({ selectNodeFromPoint, applyVisualChangeRegion, swipePreview, cancelPointSelection: coordinatePicker.cancel,
+  previewState: computed(() => ({ overlayBounds: overlayBounds.value, selectedBounds: selectedBounds.value, selectedRegion: visualChangeSelectedRegion.value,
+    regionSelection: visualChangeRegionSelectionEnabled.value, pointSelection: pickingCoordinate.value,
+    regionDrawMode: visualChangePicking.value || imageCheckPicking.value, locked: recordingLocked.value })) });
+
+watch(() => recordingBusy.value || replaying.value || preparingReplay.value || saving.value || launchingApp.value || importingScript.value,
+  busy => emit('busyChange', busy), { flush: 'sync', immediate: true });
+watch(() => [props.active, props.scriptsRevision, props.requestedScriptId] as const, async ([active, , requestedId], previous) => {
+  if (!active) return;
+  try {
+    await loadScripts();
+    if (!props.active || requestedId !== props.requestedScriptId) return;
+    if (!requestedId || (previous?.[0] && previous?.[2] === requestedId)) return;
+    const script = scripts.value.find(item => item.id === requestedId);
+    if (!script) { emit('scriptOpened'); return; }
+    if (hasUnsavedChanges.value && (steps.value.length || form.name.trim())) {
+      const confirmed = await ElMessageBox.confirm(t('加载生成的脚本将替换当前未保存的流程，是否继续？'), t('加载脚本'), {
+        confirmButtonText: t('加载'), cancelButtonText: t('取消'), type: 'warning',
+      }).then(() => true).catch(() => false);
+      if (!confirmed) { emit('scriptOpened'); return; }
+      if (!props.active || requestedId !== props.requestedScriptId) return;
+    }
+    loadScript(script);
+    emit('scriptOpened');
+  } catch (error) { ElMessage.error(error instanceof Error ? error.message : t('读取脚本列表失败')); }
+}, { immediate: true });
+
 onMounted(() => {
   window.addEventListener('beforeunload', warnBeforeUnload);
-  void loadScripts();
 });
 
 onUnmounted(() => {
@@ -2384,10 +2450,10 @@ watch(() => form.appPackage, (packageName) => {
 });
 
 watch(
-  () => [props.active, props.playgroundDeviceId] as const,
-  ([active, deviceId]) => {
+  () => [props.active, props.playgroundDeviceId, externalExecutionBusy.value] as const,
+  ([active, deviceId, generating]) => {
     stopAutoTreeRefresh();
-    if (active && deviceId) {
+    if (active && deviceId && !generating) {
       void refreshTree().finally(() => scheduleAutoTreeRefresh());
     }
   },
@@ -2396,26 +2462,27 @@ watch(
 </script>
 
 <template>
-  <section class="appium-recorder-page">
+  <section class="appium-recorder-page" :class="{ 'appium-recorder-page--canvas-only': canvasOnly }">
     <Teleport to="#appium-header-actions">
-    <div v-if="active" class="appium-header-actions">
+    <div v-if="active && !canvasOnly" class="appium-header-actions">
       <el-select
         v-model="selectedScriptId"
         clearable
         :placeholder="t('选择脚本')"
         class="appium-header-actions__script"
+        :disabled="externalExecutionBusy"
         @change="loadSelectedScript"
       >
         <el-option v-for="script in scripts" :key="script.id" :label="script.name" :value="script.id" />
       </el-select>
       <el-button :icon="Plus" :disabled="newScriptDisabled || newScriptDialogVisible" @click="requestNewScript">{{ t("新建") }}</el-button>
-      <el-button :icon="Check" :loading="saving" @click="saveScript">{{ t("保存") }}</el-button>
+      <el-button :icon="Check" :loading="saving" :disabled="externalExecutionBusy" @click="saveScript">{{ t("保存") }}</el-button>
       <el-button-group class="replay-button-group">
         <el-button
           type="primary"
           :icon="VideoPlay"
           :loading="replaying || preparingReplay"
-          :disabled="!selectedScript"
+          :disabled="!selectedScript || externalExecutionBusy"
           @click="replayScript"
         > {{ t("回放") }} </el-button>
         <el-popover trigger="click" placement="bottom" :width="320">
@@ -2445,11 +2512,11 @@ watch(
 
     </Teleport>
 
-    <RecorderWorkspace ref="workspaceRef">
+    <RecorderWorkspace ref="workspaceRef" :canvas-only="canvasOnly">
       <template #preview>
       <DevicePreviewPanel
         compact
-        :interaction-disabled="recordingBusy || replaying"
+        :interaction-disabled="recordingLocked"
         :available="playgroundAvailable"
         :devices="androidDevices"
         :selected-device-id="selectedDeviceId"
@@ -2475,20 +2542,24 @@ watch(
       />
       </template>
       <template #tree>
-        <ComponentInspector :tree="tree" :node="selectedNode" :activity="currentActivity" :loading="loadingTree" :disabled="replaying" :recording="recordingTap" @refresh="refreshTree" @select="selectedNode = $event" />
+        <ComponentInspector :tree="tree" :node="selectedNode" :activity="currentActivity" :loading="loadingTree" :disabled="replaying || externalExecutionBusy" :recording="recordingTap" @refresh="refreshTree" @select="selectedNode = $event" />
       </template>
 
       <el-card shadow="never" class="appium-recorder-card appium-recorder-card--workbench">
+        <el-button v-if="canvasOnly && activeWorkbenchTab !== 'recording'" size="small" @click="setActiveWorkbenchTab('recording')">{{ t('返回流程画布') }}</el-button>
         <el-tabs
           :model-value="activeWorkbenchTab"
           class="appium-workbench-tabs"
           @tab-click="setActiveWorkbenchTab($event.paneName)"
         >
           <el-tab-pane :label="t('当前录制')" name="recording">
-            <div class="appium-workbench">
-              <section class="appium-workbench__section">
+            <div class="appium-workbench" :class="{ 'appium-workbench--canvas-only': canvasOnly }">
+              <section v-if="!canvasOnly" class="appium-workbench__section appium-script-settings">
                 <div class="appium-section-title">
-                  <h3>{{ t("节点与脚本") }}</h3>
+                  <div class="appium-section-title__label">
+                    <h3>{{ t("节点与脚本") }}</h3>
+
+                  </div>
                   <div class="appium-section-title__actions">
                     <LlmPromptActions
                       :draft="{ id: selectedScriptId || 'llm_draft', name: form.name.trim() || '当前录制流程', appPackage: form.appPackage, appActivity: form.appActivity, deviceId: '', steps, variables: scriptVariables }"
@@ -2496,32 +2567,52 @@ watch(
                   </div>
                 </div>
                 <div class="appium-side-form">
-                  <el-input v-model="form.name" :placeholder="t('脚本名称')" />
+                  <div class="script-context-field">
+                    <label for="orchestration-script-name">{{ t('脚本名称') }}</label>
+                    <el-input id="orchestration-script-name" v-model="form.name" size="small" :disabled="externalExecutionBusy" :placeholder="t('脚本名称')" :aria-label="t('脚本名称')" :title="form.name" />
+                  </div>
+                  <div class="script-context-field">
+                    <label for="orchestration-app">App</label>
                   <el-select
+                    id="orchestration-app"
                     v-model="form.appPackage"
+                    :disabled="externalExecutionBusy"
+                    size="small"
                     filterable
-                    :placeholder="t('选择预设 App 参数')"
+                    :placeholder="t('选择 App')"
+                    :aria-label="t('选择 App')"
+                    :title="form.appPackage"
                   >
+                    <el-option
+                      v-if="form.appPackage && !appPresets.some(app => app.packageName === form.appPackage)"
+                      :label="form.appPackage"
+                      :value="form.appPackage"
+                    />
                     <el-option
                       v-for="app in appPresets"
                       :key="app.id"
-                      :label="`${app.name} · ${app.packageName}`"
+                      :label="app.name"
                       :value="app.packageName"
-                    />
+                    ><span>{{ app.name }}</span><small class="app-option-package">{{ app.packageName }}</small></el-option>
                   </el-select>
+                  </div>
                 </div>
+
               </section>
 
               <section class="appium-workbench__section appium-workbench__flow">
                 <RecordedSteps
                   ref="recordedStepsRef"
                   :key="newScriptRevision"
+                  :canvas-id="canvasOnly ? 'ai-orchestration-flow' : 'appium-flow'"
+                  :auto-fit="canvasOnly"
+                  :layout-revision="canvasRevision"
                   :ai-recognition-model-configured="aiRecognitionModelConfigured"
                   :steps="steps"
                   :clipboard-count="flowClipboardCount"
                   :disabled="recordingLocked"
                   :remove-disabled="recordingLocked"
-                  :merge-disabled="recordingBusy || replaying || saving"
+                  :merge-disabled="recordingBusy || replaying || saving || externalExecutionBusy"
                   :launching-step-id="executingAppStepId"
                   @remove="removeStep"
                   @copy="copyFlowNodes"
@@ -2533,18 +2624,62 @@ watch(
                   @preview-linked-script="previewLinkedScriptStep"
                   @execute-step="executeFlowStep"
                   @update-step="updateStep"
-                  @replace-steps="!recordingBusy && !replaying && !saving && (steps = $event)"
+                  @replace-steps="!recordingBusy && !replaying && !saving && !externalExecutionBusy && (steps = $event)"
                 />
               </section>
 
             </div>
           </el-tab-pane>
 
-          <el-tab-pane :label="t('脚本列表')" name="scripts">
+          <el-tab-pane v-if="!canvasOnly" :label="t('脚本列表')" name="scripts">
             <div class="appium-script-list">
-              <div class="appium-script-list__toolbar">
+              <div class="appium-script-list__toolbar" role="toolbar" :aria-label="t('脚本操作')">
                 <el-tooltip :content="t('导入脚本（支持多选）')" placement="top" :show-after="200"><span class="appium-script-icon">
-                  <el-button size="small" :icon="Upload" :aria-label="t('导入脚本')" :loading="importingScript" @click="chooseScriptImportFile" />
+                  <el-button size="small" :icon="Upload" :aria-label="t('导入脚本')" :loading="importingScript" :disabled="scriptListBusy" @click="chooseScriptImportFile" />
+                </span></el-tooltip>
+                <el-tooltip :content="t('历史结果对比')" placement="top" :show-after="200"><span class="appium-script-icon">
+                  <el-button size="small" :icon="Clock" :aria-label="t('历史结果对比')" :disabled="!scriptListSelection" @click="scriptListSelection && (historyScript = { id: scriptListSelection.id, name: scriptListSelection.name })" />
+                </span></el-tooltip>
+                <el-tooltip :content="t('加载')" placement="top" :show-after="200"><span class="appium-script-icon">
+                  <el-button size="small" :icon="FolderOpened" :disabled="!scriptListSelection || scriptListBusy" :aria-label="t('加载')" @click="scriptListSelection && loadScript(scriptListSelection)" />
+                </span></el-tooltip>
+                <el-tooltip :content="t('修改脚本名称')" placement="top" :show-after="200"><span class="appium-script-icon">
+                  <el-button
+                    size="small"
+                    :icon="Edit"
+                    :loading="renamingScriptId === scriptListSelection?.id"
+                    :disabled="!scriptListSelection || scriptListBusy" :aria-label="t('修改脚本名称')"
+                    @click="scriptListSelection && renameScript(scriptListSelection)"
+                  />
+                </span></el-tooltip>
+                <el-tooltip :content="t('复制脚本')" placement="top" :show-after="200"><span class="appium-script-icon">
+                  <el-button
+                    size="small"
+                    :icon="CopyDocument"
+                    :loading="duplicatingScriptId === scriptListSelection?.id"
+                    :disabled="!scriptListSelection || scriptListBusy" :aria-label="t('复制脚本')"
+                    @click="scriptListSelection && duplicateScript(scriptListSelection)"
+                  />
+                </span></el-tooltip>
+                <el-tooltip :content="t('下载脚本')" placement="top" :show-after="200"><span class="appium-script-icon">
+                  <el-button
+                    size="small"
+                    :icon="Download"
+                    :loading="downloadingScriptId === scriptListSelection?.id"
+                    :disabled="!scriptListSelection || scriptListBusy"
+                    :aria-label="t('下载脚本')"
+                    @click="scriptListSelection && downloadScript(scriptListSelection)"
+                  />
+                </span></el-tooltip>
+                <el-tooltip :content="t('删除脚本')" placement="top" :show-after="200"><span class="appium-script-icon">
+                  <el-button
+                    size="small"
+                    type="danger"
+                    :icon="Delete"
+                    :loading="deletingScriptId === scriptListSelection?.id"
+                    :disabled="!scriptListSelection || scriptListBusy" :aria-label="t('删除脚本')"
+                    @click="scriptListSelection && removeScript(scriptListSelection)"
+                  />
                 </span></el-tooltip>
                 <input
                   ref="scriptImportInput"
@@ -2557,64 +2692,19 @@ watch(
               </div>
               <el-empty v-if="!scripts.length" :description="t('暂无录制脚本')" />
               <template v-else>
-                <article
+                <label
                   v-for="script in scripts"
                   :key="script.id"
                   class="appium-script-list__item"
-                  :class="{ 'appium-script-list__item--active': script.id === selectedScriptId }"
+                  :class="{ 'appium-script-list__item--active': script.id === scriptListSelectedId }"
                 >
-                  <div class="appium-script-list__main">
+                  <input v-model="scriptListSelectedId" class="appium-script-list__radio" type="radio" name="appium-script-selection" :value="script.id" :aria-label="script.name">
+                  <span class="appium-script-list__main">
                     <strong>{{ script.name }}</strong>
                     <span>{{ script.appPackage }}</span>
                     <small>{{ script.steps.length }} {{ t("步 ·") }} {{ formatScriptTime(script.updatedAt) }}</small>
-                  </div>
-                  <div class="appium-script-list__actions">
-                    <el-tooltip :content="t('历史结果对比')" placement="top" :show-after="200"><span class="appium-script-icon">
-                      <el-button size="small" :icon="Clock" :aria-label="t('历史结果对比')" @click.stop="historyScript = { id: script.id, name: script.name }" />
-                    </span></el-tooltip>
-                    <el-tooltip :content="t('加载')" placement="top" :show-after="200"><span class="appium-script-icon">
-                      <el-button size="small" :icon="FolderOpened" :aria-label="t('加载')" @click.stop="loadScript(script)" />
-                    </span></el-tooltip>
-                    <el-tooltip :content="t('修改脚本名称')" placement="top" :show-after="200"><span class="appium-script-icon">
-                    <el-button
-                      size="small"
-                      :icon="Edit"
-                      :loading="renamingScriptId === script.id"
-                      :aria-label="t('修改脚本名称')"
-                      @click.stop="renameScript(script)"
-                    />
-                    </span></el-tooltip>
-                    <el-tooltip :content="t('复制脚本')" placement="top" :show-after="200"><span class="appium-script-icon">
-                    <el-button
-                      size="small"
-                      :icon="CopyDocument"
-                      :loading="duplicatingScriptId === script.id"
-                      :aria-label="t('复制脚本')"
-                      @click.stop="duplicateScript(script)"
-                    />
-                    </span></el-tooltip>
-                    <el-tooltip :content="t('下载脚本')" placement="top" :show-after="200"><span class="appium-script-icon">
-                    <el-button
-                      size="small"
-                      :icon="Download"
-                      :loading="downloadingScriptId === script.id"
-                      :disabled="Boolean(downloadingScriptId) && downloadingScriptId !== script.id"
-                      :aria-label="t('下载脚本')"
-                      @click.stop="downloadScript(script)"
-                    />
-                    </span></el-tooltip>
-                    <el-tooltip :content="t('删除脚本')" placement="top" :show-after="200"><span class="appium-script-icon">
-                    <el-button
-                      size="small"
-                      type="danger"
-                      :icon="Delete"
-                      :loading="deletingScriptId === script.id"
-                      :aria-label="t('删除脚本')"
-                      @click.stop="removeScript(script)"
-                    />
-                    </span></el-tooltip>
-                  </div>
-                </article>
+                  </span>
+                </label>
               </template>
             </div>
           </el-tab-pane>
@@ -2756,7 +2846,7 @@ watch(
             · {{ linkedScriptPreviewScript.steps.length }} {{ t("步") }} </span>
         </div>
         <FlowCanvas
-          id="appium-linked-script-preview"
+          :id="canvasOnly ? 'ai-linked-script-preview' : 'appium-linked-script-preview'"
           :ai-recognition-model-configured="aiRecognitionModelConfigured"
           class="appium-linked-script-preview-canvas"
           readonly
@@ -2805,7 +2895,7 @@ watch(
 
     <el-dialog
       v-model="replayOutputDialogVisible"
-      :title="t('回放输出')"
+      :title="t('执行日志')"
       width="820px"
       top="8vh"
       class="appium-replay-dialog"
@@ -2820,7 +2910,7 @@ watch(
       </template>
     </el-dialog>
 
-    <el-tooltip v-if="active" :content="t('查看回放输出')" placement="left">
+    <el-tooltip v-if="active && !canvasOnly" :content="t('查看执行日志')" placement="left">
       <el-badge
         :is-dot="Boolean(replayOutput) && !replayOutputDialogVisible"
         class="appium-replay-fab"
@@ -2829,8 +2919,8 @@ watch(
           type="primary"
           circle
           :icon="Document"
-          :class="{ 'appium-replay-fab__button--running': replaying }"
-          :aria-label="t('查看回放输出')"
+          :class="{ 'appium-replay-fab__button--running': replaying || externalExecutionBusy }"
+          :aria-label="t('查看执行日志')"
           @click="replayOutputDialogVisible = true"
         />
       </el-badge>
@@ -2839,6 +2929,12 @@ watch(
 </template>
 
 <style scoped>
+.appium-recorder-page--canvas-only { flex: 1; min-height: 0; gap: 0; }
+.appium-recorder-page--canvas-only .appium-recorder-card--workbench { border: 0; border-radius: 0; }
+.appium-recorder-page--canvas-only :deep(.appium-workbench-tabs > .el-tabs__header) { display: none; }
+
+.appium-recorder-page--canvas-only .appium-workbench__flow :deep(.appium-flow-toolbar) { padding: 0 10px; }
+.appium-recorder-page--canvas-only .appium-workbench__flow :deep(.appium-flow-canvas--vue) { border: 0; border-radius: 0; }
 .appium-report-progress { display: flex; align-items: center; gap: 12px; line-height: 1.6; }
 .random-value-return { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; color: var(--el-text-color-secondary); font-size: 13px; }
 .appium-script-icon { display: inline-flex; }
@@ -2847,6 +2943,17 @@ watch(
 :deep(.appium-workbench-tabs > .el-tabs__content) { overflow: hidden; }
 :deep(.appium-workbench-tabs .el-tab-pane) { height: 100%; overflow: auto; }
 .appium-workbench { height: 100%; box-sizing: border-box; grid-template-rows: auto minmax(0, 1fr); gap: 12px; overflow: hidden; padding: 8px 16px 16px; }
+.appium-script-settings { overflow: visible; }
+.appium-section-title__label { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; min-width: 0; }
+.appium-section-title__label h3 { margin: 0; white-space: nowrap; }
+.appium-side-form { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; max-width: 680px; margin-bottom: 0; }
+.script-context-field { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.script-context-field label { flex-shrink: 0; font-size: 12px; font-weight: 500; color: var(--el-text-color-secondary); white-space: nowrap; }
+.script-context-field :deep(.el-input), .script-context-field :deep(.el-select) { flex: 1; min-width: 0; }
+.script-context-field :deep(.el-input__wrapper), .script-context-field :deep(.el-select__wrapper) { min-height: 28px; border-radius: 5px; background: var(--ui-surface); box-shadow: inset 0 0 0 1px var(--ui-border-strong); }
+.script-context-field :deep(.el-input__wrapper:hover), .script-context-field :deep(.el-select__wrapper:hover) { box-shadow: inset 0 0 0 1px var(--el-color-primary-light-5); }
+.script-context-field :deep(.el-input__wrapper.is-focus), .script-context-field :deep(.el-select__wrapper.is-focused) { box-shadow: inset 0 0 0 1px var(--ui-primary); }
+.app-option-package { margin-left: 10px; color: var(--el-text-color-secondary); font-size: 12px; }
 .appium-workbench__flow { display: flex; flex-direction: column; min-height: 0; }
 .appium-workbench__flow h3 { margin-bottom: 6px; }
 .appium-workbench__flow :deep(.appium-recorded-steps-panel) { display: flex; flex-direction: column; flex: 1; min-height: 0; }
@@ -2858,4 +2965,5 @@ watch(
 .replay-report-template { display: grid; gap: 6px; }
 .replay-report-template > span { color: var(--el-text-color-regular); font-size: 13px; }
 .replay-report-template small { color: var(--el-text-color-secondary); line-height: 1.5; }
+.appium-workbench.appium-workbench--canvas-only { grid-template-rows: minmax(0, 1fr); padding: 10px 0 0; gap: 0; }
 </style>

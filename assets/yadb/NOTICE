@@ -1,0 +1,5 @@
+YADB by ysbing and contributors, LGPL-3.0.
+Unmodified standalone Android helper.
+Source revision: 48f9fcae700e0849b122349a5689d71ca4579adf
+https://github.com/ysbing/YADB/tree/48f9fcae700e0849b122349a5689d71ca4579adf
+Corresponding source is included in source.tar.gz. Replace yadb with your own compatible build if desired.

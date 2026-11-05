@@ -16,7 +16,7 @@ const nodeDescriptions: Record<AppiumRecordedStep['type'], string> = {
   screenshot: '保存设备当前截图，不隐含任何断言。',
 };
 
-function validateFlow(script: AppiumScriptDraft) {
+export function validateFlow(script: AppiumScriptDraft) {
   if (!script || typeof script.id !== 'string' || !script.id.trim()
     || typeof script.name !== 'string' || typeof script.appPackage !== 'string'
     || !Array.isArray(script.steps)) throw new Error('请提供有效的当前流程');

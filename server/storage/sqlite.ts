@@ -28,8 +28,8 @@ export function sqlJson(value: unknown) {
   return sqlString(JSON.stringify(value ?? null));
 }
 
-function ensureDbDir() {
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+function ensureDbDir(databasePath = dbPath) {
+  fs.mkdirSync(path.dirname(databasePath), { recursive: true });
 }
 
 function getSqliteBin() {
@@ -52,13 +52,13 @@ function getDatabaseSync() {
   return databaseSyncCtor as null | { new (filename: string): { exec(sql: string): void; prepare(sql: string): { all(): unknown[] }; close(): void } };
 }
 
-function runWithNodeSqlite<T>(callback: (db: InstanceType<NonNullable<ReturnType<typeof getDatabaseSync>>>) => T) {
+function runWithNodeSqlite<T>(callback: (db: InstanceType<NonNullable<ReturnType<typeof getDatabaseSync>>>) => T, databasePath = dbPath) {
   const DatabaseSync = getDatabaseSync();
   if (!DatabaseSync) {
     return null;
   }
 
-  const db = new DatabaseSync(dbPath);
+  const db = new DatabaseSync(databasePath);
   try {
     return callback(db as InstanceType<NonNullable<ReturnType<typeof getDatabaseSync>>>);
   } finally {
@@ -77,16 +77,16 @@ function explainSqliteCliError(error: unknown) {
 }
 
 // 优先使用 Node 24 内置 sqlite；旧 Node 再回退到 sqlite3 CLI。
-export function runSql(sql: string) {
-  ensureDbDir();
+export function runSql(sql: string, databasePath = dbPath) {
+  ensureDbDir(databasePath);
   const result = runWithNodeSqlite((db) => {
     db.exec(sql);
     return true;
-  });
+  }, databasePath);
   if (result) return;
 
   try {
-    execFileSync(getSqliteBin(), [dbPath], {
+    execFileSync(getSqliteBin(), [databasePath], {
       input: sql,
       maxBuffer: 40 * 1024 * 1024,
     });
@@ -95,13 +95,13 @@ export function runSql(sql: string) {
   }
 }
 
-export function querySql<T>(sql: string) {
-  ensureDbDir();
-  const result = runWithNodeSqlite((db) => db.prepare(sql).all() as T[]);
+export function querySql<T>(sql: string, databasePath = dbPath) {
+  ensureDbDir(databasePath);
+  const result = runWithNodeSqlite((db) => db.prepare(sql).all() as T[], databasePath);
   if (result) return result;
 
   try {
-    const output = execFileSync(getSqliteBin(), ['-json', dbPath, sql], {
+    const output = execFileSync(getSqliteBin(), ['-json', databasePath, sql], {
       encoding: 'utf8',
       maxBuffer: 40 * 1024 * 1024,
     });

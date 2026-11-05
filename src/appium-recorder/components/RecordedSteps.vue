@@ -16,6 +16,9 @@ import type { FlowActionGroup, FlowBranch, InsertAction } from '../flow-graph';
 const props = defineProps<{
   aiRecognitionModelConfigured?: boolean;
   steps: AppiumRecordedStep[];
+  canvasId?: string;
+  autoFit?: boolean;
+  layoutRevision?: number;
   disabled?: boolean;
   removeDisabled?: boolean;
   mergeDisabled?: boolean;
@@ -46,6 +49,7 @@ const deleting = shallowRef(false);
 const selectedCopyIndexes = shallowRef<number[]>([]);
 const flowDialogVisible = shallowRef(false);
 const mainResetViewToken = shallowRef(0);
+watch(() => [props.steps.map(step => step.id).join('|'), props.layoutRevision], () => { if (props.autoFit) mainResetViewToken.value++; });
 const dialogResetViewToken = shallowRef(0);
 const searchQuery = shallowRef('');
 const searchTargetId = shallowRef('');
@@ -337,7 +341,7 @@ function updateStep(index: number, step: AppiumRecordedStep) {
     </div>
 
     <FlowCanvas
-      id="appium-flow-main"
+      :id="`${canvasId || 'appium-flow'}-main`"
       :search-target-id="searchTargetId"
       :search-focus-token="searchFocusToken"
       :search-active="!flowDialogVisible"
@@ -421,7 +425,7 @@ function updateStep(index: number, step: AppiumRecordedStep) {
         </span></el-tooltip>
       </div>
       <FlowCanvas
-        id="appium-flow-dialog"
+        :id="`${canvasId || 'appium-flow'}-dialog`"
         :search-target-id="searchTargetId"
         :search-focus-token="searchFocusToken"
         :search-active="flowDialogVisible"

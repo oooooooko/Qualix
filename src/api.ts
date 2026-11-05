@@ -1,21 +1,6 @@
-import type { ScriptStep } from './script-generator';
-import type { MidsceneModelProvider } from './config/midscene-model-presets';
-import type {
-  AndroidDevice,
-  AppiumVersionInfo,
-  AppPreset,
-  ConfigForm,
-  DeviceLock,
-  DeviceSession,
-  OperationEvent,
-  OperationRecord,
-  RunScriptStreamEvent,
-  SavedScript,
-  TestCaseImportResult,
-} from './types';
+import type { ModelConfigKey } from './config/credentials';
+import type { AndroidDevice, AppiumVersionInfo, AppPreset, ConfigForm, DeviceLock, DeviceSession, OperationRecord, OperationEvent } from './types';
 
-// 应用挂载基路径：独立运行（dev/preview）时为 ''，作为 DSH 插件挂载在
-// /midscene 下时由 vite 的 base 推导为 '/midscene'。所有后端调用都拼上它。
 export const APP_BASE = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
 
 // 统一解析接口响应，并把后端 message 转成前端可直接展示的 Error。
@@ -48,77 +33,14 @@ export async function getAppiumVersion() {
   return readJson<AppiumVersionInfo>(response);
 }
 
-export async function getArtemisVersion() {
-  const response = await fetch(`${APP_BASE}/api/artemis/version`, { signal: AbortSignal.timeout(8000) });
-  return readJson<{ version: string; message: string }>(response);
-}
-
-// 读取已保存的脚本列表，自动化测试页面左侧脚本列表使用。
-export async function getScripts() {
-  const response = await fetch(`${APP_BASE}/api/scripts`);
-  return readJson<{ scripts?: SavedScript[] }>(response);
-}
-
-// 检查脚本名称对应的本地脚本文件是否已经存在，用于保存前同名校验。
-export function checkScript(input: { scriptName: string }) {
-  return postJson<{ exists?: boolean; filePath?: string }>(`${APP_BASE}/api/check-script`, input);
-}
-
-// 校验生成页编辑后的 TypeScript 代码，只返回校验结果，不写入脚本文件或数据库。
-export function validateScriptCode(input: { code: string }) {
-  return postJson<{ valid: true }>(`${APP_BASE}/api/validate-script-code`, input);
-}
-
-// 上传单个测试用例文件；后端负责解析、有效性校验并返回规范化 Prompt。
-export async function importTestCaseFile(file: File) {
-  const response = await fetch(`${APP_BASE}/api/import-test-case?fileName=${encodeURIComponent(file.name)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/octet-stream' },
-    body: file,
-  });
-  return readJson<TestCaseImportResult>(response);
-}
-
-// 保存生成后的脚本代码、场景标题、原始 Prompt 和结构化步骤到 SQLite 与 scripts-output。
-export function saveScript(input: {
-  scriptName: string;
-  code: string;
-  promptTitle: string;
-  sourcePrompt: string;
-  steps: ScriptStep[];
-}) {
-  return postJson<{ success?: boolean; filePath?: string; script?: SavedScript }>(`${APP_BASE}/api/save-script`, input);
-}
-
-// 删除脚本记录，并删除 scripts-output 下对应的脚本文件。
-export function deleteScript(input: { id: string }) {
-  return postJson<{ success?: boolean; deletedFile?: boolean; script?: SavedScript }>(`${APP_BASE}/api/delete-script`, input);
-}
-
-// 保存脚本查看弹窗里编辑后的代码；后端会先做 TypeScript 格式校验。
-export function updateScriptCode(input: { id: string; code: string }) {
-  return postJson<{ success?: boolean; script?: SavedScript }>(`${APP_BASE}/api/update-script-code`, input);
-}
-
-// 调用脚本优化模型，把原始 Prompt 转成项目内的结构化步骤。
-export function generatePlan(input: { prompt: string; signal?: AbortSignal }) {
-  return postJson<{
-    promptTitle?: string;
-    steps?: Array<Omit<ScriptStep, 'id'>>;
-    raw?: string;
-    durationMs?: number;
-    usage?: {
-      promptTokens?: number;
-      completionTokens?: number;
-      totalTokens?: number;
-    };
-  }>(`${APP_BASE}/api/generate`, { prompt: input.prompt }, { signal: input.signal });
-}
-
 // 读取模型配置和脚本优化模型配置。
 export async function getConfig() {
   const response = await fetch(`${APP_BASE}/api/config`);
   return readJson<ConfigForm>(response);
+}
+
+export function revealModelApiKey(input: { modelKey: ModelConfigKey; baseUrl: string; provider?: string }, signal: AbortSignal) {
+  return postJson<{ apiKey: string }>(`${APP_BASE}/api/config/model-key`, input, { signal });
 }
 
 // 运行配置独立保存，不携带尚未测试的模型草稿。
@@ -133,9 +55,9 @@ export function saveAppiumConfig(appium: Omit<ConfigForm['appium'], 'model' | 'p
 // 测试指定模型配置是否可用，通常用于保存前验证 baseUrl/apiKey/model。
 export function testModel(input: {
   save?: boolean;
-  modelKey: 'midscene' | 'scriptOptimizer' | 'appium' | 'promptOptimizer';
+  modelKey: 'appium' | 'promptOptimizer';
   model: {
-    provider?: MidsceneModelProvider;
+    provider?: string;
     baseUrl: string;
     apiKey: string;
     name: string;
@@ -206,29 +128,6 @@ export async function getAndroidDisplayInfo(deviceId: string) {
   return readJson<{ width?: number; height?: number }>(response);
 }
 
-// 查询 Android Playground 状态；后端会同步更新设备会话中的预览连接信息。
-export async function getPlaygroundStatus() {
-  const response = await fetch(`${APP_BASE}/api/playground-status`);
-  return readJson<{
-    available?: boolean;
-    url?: string;
-    deviceId?: string;
-    previewKind?: string;
-    sessionConnected?: boolean;
-    previewError?: string;
-    setupState?: string;
-  }>(response);
-}
-
-// 重启本地 Android Playground 实时预览，用于恢复花屏或卡住的 scrcpy 流。
-export function restartPlaygroundPreview(input: { deviceId: string }) {
-  return postJson<{ success?: boolean; started?: boolean; available?: boolean; url?: string; skippedReason?: string }>(
-    `${APP_BASE}/api/playground-restart`,
-    input,
-  );
-}
-
-// 切换当前自动化测试设备，并创建或复用对应设备会话。
 export function setAndroidDevice(input: { deviceId: string }) {
   return postJson<{ currentDeviceId?: string }>(`${APP_BASE}/api/android-device`, input);
 }
@@ -256,64 +155,6 @@ export function sendAndroidKeyevent(input: { deviceId: string; keyCode: number }
 }
 
 // 停止当前脚本执行进程；后端会中止运行并释放设备锁。
-export function stopScript() {
-  return postJson<{ success?: boolean; stopped?: boolean }>(`${APP_BASE}/api/stop-script`);
-}
-
-// run-script 返回 NDJSON 流，每一行都是一个执行事件，边读边回调给执行面板更新 UI。
-export async function runScript(
-  input: {
-    code: string;
-    scriptName: string;
-    deviceId: string;
-    steps: ScriptStep[];
-    signal?: AbortSignal;
-  },
-  onEvent: (event: RunScriptStreamEvent) => void,
-) {
-  const response = await fetch(`${APP_BASE}/api/run-script`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    signal: input.signal,
-    body: JSON.stringify({
-      code: input.code,
-      scriptName: input.scriptName,
-      deviceId: input.deviceId,
-      steps: input.steps,
-    }),
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || '执行失败');
-  }
-
-  if (!response.body) {
-    throw new Error('执行接口没有返回输出流');
-  }
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-
-  // 分块数据可能把一行 JSON 拆开，buffer 保留未读完的半行。
-  while (true) {
-    const { done, value } = await reader.read();
-    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
-    const lines = buffer.split(/\r?\n/);
-    buffer = lines.pop() || '';
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      onEvent(JSON.parse(line) as RunScriptStreamEvent);
-    }
-    if (done) break;
-  }
-
-  if (buffer.trim()) {
-    onEvent(JSON.parse(buffer) as RunScriptStreamEvent);
-  }
-}
-
 export async function getTestAnalytics(days = 0) {
   const response = await fetch(`${APP_BASE}/api/analytics?days=${days}`, { signal: AbortSignal.timeout(15000) });
   return readJson<import('./analytics/summary').AnalysisResponse>(response);

@@ -27,7 +27,7 @@ watch(days, () => { void refresh(); });
 <template>
   <div class="analysis-page" :aria-busy="loading">
     <div class="analysis-page__heading">
-      <div><h1>{{ t("测试分析") }}</h1><p>{{ t("基于已保存脚本与测试执行记录，查看两种引擎的运行情况。") }}</p></div>
+      <div><h1>{{ t("测试分析") }}</h1><p>{{ t("基于已保存脚本与测试执行记录，查看测试编排的运行情况。") }}</p></div>
       <div class="analysis-page__actions">
         <el-select v-model="days" :aria-label="t('统计时间范围')" style="width: 150px">
           <el-option :label="t('全部时间')" :value="0" /><el-option :label="t('最近 7 天')" :value="7" /><el-option :label="t('最近 30 天')" :value="30" /><el-option :label="t('最近 90 天')" :value="90" />
@@ -43,9 +43,8 @@ watch(days, () => { void refresh(); });
         <span>{{ t("更新于") }} {{ new Date(data.generatedAt).toLocaleString(locale, { hour12: false }) }}{{ loading ? t("· 更新中…") : '' }}</span>
       </div>
       <AnalysisCharts :data="data" />
-      <ReportAnalysis title="Midscene" :summary="data.midscene" />
-      <ReportAnalysis title="Appium" :summary="data.appium" />
-      <p class="analysis-page__footnote">{{ t("统计来自数据库中的执行记录，不依赖 HTML 报告开关。Midscene 按历史脚本名称关联，Appium 按脚本 ID 关联；已删除或无法匹配的记录标记为“历史脚本”。未保存执行记录的测试不计入统计。") }}</p>
+      <ReportAnalysis :title="t('测试编排')" :summary="data.appium" />
+      <p class="analysis-page__footnote">{{ t("统计来自数据库中的执行记录，不依赖 HTML 报告开关。测试编排按脚本 ID 关联；已删除或无法匹配的记录标记为“历史脚本”。未保存执行记录的测试不计入统计。") }}</p>
     </template>
   </div>
 </template>

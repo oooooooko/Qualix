@@ -20,9 +20,11 @@ export function validateStopwatch(config?: StopwatchConfig) {
 }
 
 // Copying a start creates a new timer; references copied with it follow the new ID.
-export function remapStopwatchIds<T extends { stopwatch?: StopwatchConfig }>(steps: T[], ids?: Map<string, string>): T[] {
+export function remapStopwatchIds<T extends { stopwatch?: StopwatchConfig; aiObservation?: { timerId?: string } }>(steps: T[], ids?: Map<string, string>): T[] {
   const replacements = ids ?? new Map(steps.filter(step => step.stopwatch?.action === 'start' && step.stopwatch.timerId)
     .map(step => [step.stopwatch!.timerId, crypto.randomUUID()]));
-  return steps.map(step => step.stopwatch && replacements.has(step.stopwatch.timerId)
-    ? { ...step, stopwatch: { ...step.stopwatch, timerId: replacements.get(step.stopwatch.timerId)! } } : step);
+  return steps.map(step => ({ ...step,
+    ...(step.stopwatch && replacements.has(step.stopwatch.timerId) ? { stopwatch: { ...step.stopwatch, timerId: replacements.get(step.stopwatch.timerId)! } } : {}),
+    ...(step.aiObservation?.timerId && replacements.has(step.aiObservation.timerId) ? { aiObservation: { ...step.aiObservation, timerId: replacements.get(step.aiObservation.timerId)! } } : {}),
+  }));
 }

@@ -1,16 +1,16 @@
-# Appium AI identification and parameter setting instructions
+# 测试编排 AI 识别与参数设置使用说明
 
 [简体中文](./AI识别操作说明.md) | [English](./AI_RECOGNITION.en.md)
 
-This article explains the **Appium parameter settings** of this project and the "AI recognition" node in the process, including model services, preset scenes, single frame recognition, continuous observation, screenshot deduplication, playback screenshots, report summary and process appearance. Appium's AI recognition models are independent of the models in the Midscene Configuration.
+本文说明本项目的 **测试编排参数设置**和流程中的“AI 识别”节点，包括模型服务、预设场景、单帧识别、持续观察、截图去重、回放截图、报告总结和流程外观。测试编排的 AI 识别模型与“Midscene 配置”中的模型相互独立。
 
-This document corresponds to the page "Help and Version → Operation Instructions → AI Recognition". For other Appium nodes, please see [Process Node Operation Instructions](./FLOW_NODES.en.md).
+本文档对应页面“帮助与版本 → 操作说明 → AI 识别”。其他 测试编排节点请查看 [流程节点操作说明](./FLOW_NODES.en.md)。
 
 The scene parameters in this article are the starting point for debugging. Please verify with actual equipment, pages and models before adjusting.
 
 ## Appium Settings overview
 
-Entrance: **Settings → Appium Configuration**. The page is divided into the following modules according to purpose:
+入口：**参数配置 → 测试编排配置**。页面按用途分为以下模块：
 
 | Module | Configuration items | Saving method |
 | --- | --- | --- |
@@ -22,7 +22,7 @@ Entrance: **Settings → Appium Configuration**. The page is divided into the fo
 | Playback and report | Summary of playback report | Automatically save switches, test scenes and prompt words after modification |
 | Process editor | Process background color, connection line color | Automatically save after modification |
 
-The autosave status of the Appium Settings is displayed at the top of the page. Model connection parameters will overwrite the saved configuration only after the test is successful, and other switch, color and prompt word configurations will be automatically saved as modified.
+页面顶部会显示 测试编排配置的自动保存状态。模型连接参数只有测试成功后才会覆盖已保存配置，其他开关、颜色和提示词配置按修改自动保存。
 
 ## 1. First select the configuration according to the target
 
@@ -42,14 +42,14 @@ The key to selection is: **If you only want to watch now, use a single frame; if
 
 ## 2. Configure the AI recognition model
 
-Entrance: **Settings → Appium Configuration → Model Service → AI Recognition Model**.
+入口：**参数配置 → 测试编排配置 → 模型服务 → AI 识别模型**。
 
 1. Fill in the `Base URL` of the model service.
 2. Fill in `API Key`.
 3. Fill in the actual callable `Model Name`.
 4. Click **Test and Save**.
 
-The current model will be saved only if the test passes, and the previous model configuration will be retained if it fails. Simply modifying the input box will not automatically save the model. Other Appium Settingss such as screenshot deduplication and preset prompt words are still automatically saved as modified.
+测试通过才保存当前模型，失败时保留之前的模型配置。只修改输入框不会自动保存模型。截图去重和预设提示词等其他 测试编排配置仍按修改自动保存。
 
 The model needs to support image input; continuous observation also needs to support multiple images in the same request. The current implementation uses a request format compatible with OpenAI Chat Completions.
 
@@ -59,7 +59,7 @@ AI recognition reads the actual screenshot of the device and does not rely on th
 
 ## 3. Manage preset test scenarios
 
-Entrance: **Settings → Appium Configuration → AI Recognition Settings → AI Recognition Preset Prompt Word**.
+入口：**参数配置 → 测试编排配置 → AI 识别设置 → AI 识别预设提示词**。
 
 Each preset contains two parts:
 
@@ -307,7 +307,7 @@ Video frame content can inherently vary widely, and neither type of deduplicatio
 
 ## 9. How to adjust screenshot removal
 
-Entrance: **Settings → Appium Configuration → AI Recognition Settings → Continuously observe screenshots to remove duplicates**.
+入口：**参数配置 → 测试编排配置 → AI 识别设置 → 持续观察截图去重**。
 
 Deduplication is a global configuration, used for subsequent continuous observation playback and recognition testing, and does not affect single frame recognition. Both algorithms compare images locally without calling the model; the first frame is always retained and then compared with the previous retained screenshot.
 
@@ -401,7 +401,7 @@ If the goal is to extract advertising content, you should use unified analysis i
 
 ## 13. Configure prompt word optimization model
 
-Entrance: **Settings → Appium Settings → Model service → Prompt word optimization model**.
+入口：**参数配置 → 测试编排配置 → 模型服务 → 提示词优化模型**。
 
 The prompt word optimization model only needs to support text input and is uniformly used for:
 
@@ -413,7 +413,7 @@ Fill in `Base URL`, `API Key` and `Model Name` and click "Test and Save". If the
 
 ## 14. Configure playback screenshots and HTML reports
 
-Entrance: **Settings → Appium Configuration → Playback and Report → Playback Screenshot**.
+入口：**参数配置 → 测试编排配置 → 回放与报告 → 回放截图**。
 
 This switch is off by default. When enabled, the playback will collect device screenshots before and after the actual execution node and generate a playable single-file HTML report; the condition results, failed nodes and manual termination will also retain the corresponding images. After closing, only Markdown reports, logs and running history will be retained. Nodes that really need images, such as image condition and manual screenshots, will still take screenshots on demand.
 
@@ -421,7 +421,7 @@ Screenshot collection will increase the playback time, and the actual operation 
 
 ## 15. Configuration playback report summary
 
-Entrance: **Settings → Appium Configuration → Playback and Report → Playback Report Summary**.
+入口：**参数配置 → 测试编排配置 → 回放与报告 → 回放报告总结**。
 
 After being turned on, the tool uses the "prompt word optimization model" to read the desensitized playback logs and node configurations, and generates a Markdown test report summary. You can select test scenarios, modify report prompt words, add custom test scenarios, or use "optimization prompt words" to supplement the content after entering brief requirements.
 
@@ -437,7 +437,7 @@ The summary time is not included in the total equipment test time. The content s
 
 ## 16. Configure the appearance of the process editor
 
-Entrance: **Settings → Appium Configuration → Process Editor → Process Appearance**.
+入口：**参数配置 → 测试编排配置 → 流程编辑器 → 流程外观**。
 
 The process background color and connection line color can be set separately. Each supports preselected colors, color picker, hex color input and restore to default. The color value supports `#RGB` or `#RRGGBB`. When the input is invalid, the page will display a verification prompt.
 

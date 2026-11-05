@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { t } from '../../i18n';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
-import { RefreshLeft, Fold, Operation } from '@element-plus/icons-vue';
+import { Fold, Operation } from '@element-plus/icons-vue';
 
+const props = defineProps<{ canvasOnly?: boolean }>();
 const STORAGE_KEY = 'android-midscene-automation:recorder-layout';
-const defaults = { previewWidth: null as number | null, treeWidth: null as number | null, previewHidden: false, treeHidden: false, mode: 'recording' };
+const defaults = { previewWidth: null as number | null, treeWidth: null as number | null, previewHidden: false, treeHidden: false };
 const settings = reactive({ ...defaults });
 try {
   const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
@@ -19,7 +20,6 @@ try {
     }
     settings.previewHidden = saved.previewHidden === true;
     settings.treeHidden = saved.treeHidden === true;
-    settings.mode = saved.mode === 'flow' ? 'flow' : 'recording';
   }
 } catch { /* Layout persistence is optional when browser storage is unavailable. */ }
 watch(settings, () => {
@@ -30,7 +30,7 @@ const container = ref<HTMLElement>();
 const width = ref(1400);
 const drawer = ref<'preview' | 'tree' | null>(null);
 const narrow = computed(() => width.value < 700);
-const treeCollapsed = computed(() => settings.treeHidden || settings.mode === 'flow' || width.value < 1100);
+const treeCollapsed = computed(() => settings.treeHidden || width.value < 1100);
 const previewCollapsed = computed(() => settings.previewHidden || narrow.value);
 watch(() => width.value < 1100 ? (narrow.value ? 'small' : 'medium') : 'wide', () => { drawer.value = null; });
 // Match the original 2.8fr / 3fr / 4.2fr columns, including the preview's 320px minimum.
@@ -41,20 +41,15 @@ const treeWidth = computed(() => Math.max(220, Math.min(settings.treeWidth ?? de
 const columns = computed(() => `${previewCollapsed.value ? 36 : previewWidth.value}px 8px ${treeCollapsed.value ? 36 : treeWidth.value}px 8px minmax(0, 1fr)`);
 
 function showTree() {
+  if (props.canvasOnly) return;
   if (width.value < 1100) drawer.value = 'tree';
-  else { settings.mode = 'recording'; settings.treeHidden = false; }
+  else settings.treeHidden = false;
 }
 function showPreview() {
+  if (props.canvasOnly) return;
   if (narrow.value) drawer.value = 'preview';
   else settings.previewHidden = false;
 }
-function setMode(mode: string | number | boolean | undefined) {
-  settings.mode = mode === 'flow' ? 'flow' : 'recording';
-  drawer.value = null;
-  if (settings.mode === 'recording') { settings.treeHidden = false; settings.previewHidden = false; }
-}
-function resetLayout() { Object.assign(settings, defaults); drawer.value = null; }
-
 let drag: { key: 'previewWidth' | 'treeWidth'; startX: number; startWidth: number; pointerId: number } | null = null;
 function beginResize(event: PointerEvent, key: 'previewWidth' | 'treeWidth') {
   if (event.button !== 0) return;
@@ -83,16 +78,8 @@ defineExpose({ showTree, showPreview });
 </script>
 
 <template>
-  <div ref="container" class="recorder-workspace">
-    <div class="recorder-workspace__toolbar">
-      <el-radio-group :model-value="settings.mode" size="small" :aria-label="t('工作区布局')" @update:model-value="setMode">
-        <el-radio-button value="recording">{{ t("录制布局") }}</el-radio-button>
-        <el-radio-button value="flow">{{ t("流程布局") }}</el-radio-button>
-      </el-radio-group>
-      <div class="recorder-workspace__tools">
-        <el-tooltip :content="t('恢复默认布局')" placement="top"><el-button :icon="RefreshLeft" size="small" :aria-label="t('恢复默认布局')" @click="resetLayout" /></el-tooltip>
-      </div>
-    </div>
+  <div v-if="canvasOnly" class="recorder-workspace recorder-workspace--canvas-only"><slot /></div>
+  <div v-else ref="container" class="recorder-workspace">
     <div class="recorder-workspace__panels" :style="{ gridTemplateColumns: columns }">
       <div v-show="!previewCollapsed || drawer === 'preview'" class="recorder-workspace__panel" :class="{ 'recorder-workspace__panel--drawer': drawer === 'preview' }">
         <slot name="preview" />
@@ -114,9 +101,8 @@ defineExpose({ showTree, showPreview });
 
 <style scoped>
 .recorder-workspace { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; gap: 8px; }
-.recorder-workspace__toolbar { display: flex; align-items: center; flex: none; gap: 8px; }
-.recorder-workspace__tools { display: flex; gap: 6px; }
-.recorder-workspace__tools .el-button { width: 24px; height: 24px; min-height: 24px; padding: 0; font-size: 12px; border-radius: 50%; }
+.recorder-workspace--canvas-only { gap: 0; }
+.recorder-workspace--canvas-only :deep(> .el-card) { flex: 1; min-height: 0; }
 .recorder-workspace__panels { display: grid; position: relative; flex: 1; min-height: 0; }
 .recorder-workspace__panel, .recorder-workspace__main { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .recorder-workspace__panel :deep(> .el-card), .recorder-workspace__main :deep(> .el-card) { flex: 1; min-width: 0; min-height: 0; }
@@ -125,9 +111,12 @@ defineExpose({ showTree, showPreview });
 .recorder-workspace__collapse { position: absolute; right: 9px; top: 13px; }
 .recorder-workspace__rail { display: flex; flex-direction: column; align-items: center; gap: 12px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-control); background: var(--ui-surface); color: #475569; padding: 14px 4px; cursor: pointer; }
 .recorder-workspace__rail span { writing-mode: vertical-rl; font-size: 13px; }
-.recorder-workspace__separator { cursor: col-resize; touch-action: none; user-select: none; }
-.recorder-workspace__separator:hover, .recorder-workspace__separator:focus-visible { background: #b3d8ff; outline: none; }
+.recorder-workspace__separator { position: relative; cursor: col-resize; touch-action: none; user-select: none; background: transparent; outline: none; }
+.recorder-workspace__separator::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 3px; height: 42px; border-radius: 2px; background: var(--el-border-color-light); }
+.recorder-workspace__separator:hover::before, .recorder-workspace__separator:focus-visible::before { background: var(--el-color-primary-light-5); }
+.recorder-workspace__separator:active::before { background: var(--el-color-primary-light-3); }
 .recorder-workspace__separator.is-disabled { pointer-events: none; }
+.recorder-workspace__separator.is-disabled::before { display: none; }
 .recorder-workspace__panel--drawer { position: absolute; inset: 0 auto 0 0; width: min(340px, 100%); z-index: 22; background: var(--ui-surface); box-shadow: var(--ui-shadow-popover); }
 .recorder-workspace__backdrop { position: absolute; inset: 0; border: 0; background: #0003; z-index: 21; }
 </style>

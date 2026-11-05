@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../locales');
-const scopes = ['ui', 'artemis', 'help', 'docs', 'llm'];
+const scopes = ['ui', 'help', 'docs', 'llm'];
 const errors = [];
 const tokens = value => [...new Set(value.match(/\{\d+\}/g) ?? [])].sort().join(',');
 let count = 0;

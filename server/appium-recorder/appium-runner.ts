@@ -176,25 +176,26 @@ function adbKey(deviceId: string, keyCode: number) {
 export function launchAppOnDevice(deviceId: string, packageName: string, signal = replayContext.getStore()?.signal) {
   signal?.throwIfAborted();
   if (!packageName) return Promise.reject(new Error('启动 APP 缺少包名'));
-  return new Promise<void>((resolve, reject) => {
-    execFile(getAdbCommand(), [
-      '-s',
-      deviceId,
-      'shell',
-      'monkey',
-      '-p',
-      packageName,
-      '-c',
-      'android.intent.category.LAUNCHER',
-      '1',
-    ], { maxBuffer: 4 * 1024 * 1024, timeout: 30000, signal }, (error, stdout, stderr) => {
-      const output = `${stdout || ''}\n${stderr || ''}`.trim();
-      if (error || /no activities found|monkey aborted/i.test(output)) {
-        reject(new Error(output || error?.message || `ADB 启动 ${packageName} 失败`));
-        return;
-      }
-      resolve();
+  if (!/^[A-Za-z][\w]*(?:\.[\w]+)+$/.test(packageName)) return Promise.reject(new Error('App 包名格式无效'));
+  const run = (args: string[]) => new Promise<string>((resolve, reject) => {
+    signal?.throwIfAborted();
+    execFile(getAdbCommand(), ['-s', deviceId, 'shell', ...args], { maxBuffer: 4 * 1024 * 1024, timeout: 30000, signal }, (error, stdout, stderr) => {
+      const output = `${stdout || ''}\n${stderr || ''}`.split(/\r?\n/)
+        .filter(line => !/^\s*(?:args:\s*\[|arg:\s|data=)/.test(line)).join('\n').trim();
+      if (signal?.aborted) { reject(signal.reason); return; }
+      // Android returns exit 1 with no output when this user's package is absent.
+      const missingPackage = args[0] === 'pm' && args[1] === 'path' && error?.code === 1 && !output;
+      if (error && !missingPackage) {
+        const detail = output || (error.killed ? '启动命令超时或被终止' : typeof error.code === 'number' ? `命令执行失败（退出码 ${error.code}）` : error.message);
+        reject(new Error(`无法启动 ${packageName}：${detail}`));
+      } else resolve(output);
     });
+  });
+  return run(['pm', 'path', '--user', 'current', packageName]).then(async installed => {
+    if (!/^package:/m.test(installed)) throw new Error(`当前设备未安装 ${packageName}，或当前 Android 用户无法使用该 App，请检查所选设备和 App 包名`);
+    signal?.throwIfAborted();
+    const output = await run(['monkey', '-p', packageName, '-c', 'android.intent.category.LAUNCHER', '1']);
+    if (/no activities found|no activity found|monkey aborted/i.test(output)) throw new Error(`无法启动 ${packageName}：${output}`);
   });
 }
 
@@ -944,7 +945,7 @@ async function runStep(
   }
   if (step.type === 'aiRecognition') {
     const recognition = await recognizeDeviceScreen({
-      deviceId, prompt: step.value, aiBranchEnabled: step.aiBranchEnabled, aiObservation: step.aiObservation,
+      deviceId, observationStartedAt: step.aiObservation?.timerId ? replayContext.getStore()?.stopwatches.startedAt(step.aiObservation.timerId) : undefined, prompt: step.value, aiBranchEnabled: step.aiBranchEnabled, aiObservation: step.aiObservation,
       onProgress: meta.onAiProgress,
       onObservationFrame: frame => captureReplayFrame(sessionId, step, meta.nodeNumber, meta.scriptName || '', 'observation', `观察第 ${frame.index} 帧 · ${frame.elapsedMs}ms`, frame.imageBase64),
       timeoutMs: step.timeoutMs, aiTimeoutEnabled: step.aiTimeoutEnabled === true,
@@ -1500,7 +1501,7 @@ async function replayFlowSteps(
         }
         const beforeFrame = replayContext.getStore()?.frames.at(-1);
         const recognition = step.type === 'aiRecognition' ? await recognizeDeviceScreen({
-          deviceId, prompt: resolveVariableStep(step).value, timeoutMs: step.timeoutMs,
+          deviceId, observationStartedAt: step.aiObservation?.timerId ? replayContext.getStore()?.stopwatches.startedAt(step.aiObservation.timerId) : undefined, prompt: resolveVariableStep(step).value, timeoutMs: step.timeoutMs,
           aiTimeoutEnabled: step.aiTimeoutEnabled === true, aiObservation: step.aiObservation,
           onProgress: message => lines.push(`[节点 ${index + 1}] AI 持续观察：${message}`),
           onObservationFrame: frame => captureReplayFrame(sessionId, frameStep, index + 1, options.scriptName || '', 'observation', `观察第 ${frame.index} 帧 · ${frame.elapsedMs}ms`, frame.imageBase64),

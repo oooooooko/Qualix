@@ -32,9 +32,11 @@ import { createAppiumScriptExport } from './script-export';
 import { createAppiumLlmPrompt } from './llm-prompt';
 import { resolveReportSummary } from '../../src/appium-recorder/report-summary';
 import { testModelConnection } from '../model-tester';
+import { isFlowGenerationRunning } from '../../ai-flow/server/tasks';
 
 const treeDumpTasks = new Map<string, Promise<string>>();
 const replayingDevices = new Set<string>();
+export const isAppiumDeviceReplaying = (deviceId: string) => replayingDevices.has(deviceId);
 const replayAbortControllers = new Map<string, AbortController>();
 
 function sendJson(res: ServerResponse, payload: unknown, statusCode = 200) {
@@ -121,6 +123,7 @@ export async function handleAppiumRecorderRequest(
       if (!allowLocalDevice && deviceId && !isRemoteDeviceId(deviceId)) {
         throw new Error('局域网访问者只能使用远程代理设备');
       }
+      if (isFlowGenerationRunning(deviceId)) throw new Error('该设备正在 AI 生成流程，请先停止生成或等待完成');
     };
 
     if (pathname === '/api/appium-recorder/tree' && req.method === 'GET') {
@@ -385,7 +388,7 @@ export async function handleAppiumRecorderRequest(
     const exportMatch = pathname.match(/^\/api\/appium-recorder\/scripts\/([^/]+)\/export$/);
     if (exportMatch && req.method === 'GET') {
       const script = getAppiumRecordedScript(decodeURIComponent(exportMatch[1]));
-      if (!script) throw new Error('Appium 录制脚本不存在');
+      if (!script) throw new Error('测试编排脚本不存在');
       const exported = await createAppiumScriptExport(script, getAppiumRecordedScript);
       const fileName = encodeURIComponent(exported.fileName)
         .replace(/['()*]/g, (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`);
@@ -448,7 +451,7 @@ export async function handleAppiumRecorderRequest(
     if (replayMatch && req.method === 'POST') {
       const parsed = await readBody<{ deviceId?: string; parameters?: TestVariable[]; recordVideo?: boolean; reportSummaryEnabled?: boolean; reportSummaryPrompt?: string }>(req);
       const script = getAppiumRecordedScript(decodeURIComponent(replayMatch[1]));
-      if (!script) throw new Error('Appium 录制脚本不存在');
+      if (!script) throw new Error('测试编排脚本不存在');
       const deviceId = parsed.deviceId || selectedDeviceId;
       assertDeviceAllowed(deviceId);
       const streamOutput = req.headers.accept?.includes('application/x-ndjson') === true;
@@ -518,7 +521,7 @@ export async function handleAppiumRecorderRequest(
       return true;
     }
 
-    sendJson(res, { message: 'Appium Recorder 接口不存在' }, 404);
+    sendJson(res, { message: '测试编排接口不存在' }, 404);
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Appium Recorder 请求失败';

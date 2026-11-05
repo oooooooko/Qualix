@@ -361,7 +361,9 @@ select {
 
 .appium-script-list__toolbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 6px;
   align-items: center;
 }
 
@@ -371,7 +373,8 @@ select {
 
 .appium-script-list__item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 16px minmax(0, 1fr);
+  cursor: pointer;
   gap: 8px;
   align-items: center;
   padding: 10px;
@@ -403,10 +406,14 @@ select {
   font-size: 12px;
 }
 
-.appium-script-list__actions {
-  display: flex;
-  gap: 6px;
-  align-items: center;
+.appium-script-list__radio {
+  margin: 0;
+  accent-color: var(--ui-primary);
+}
+
+.appium-script-list__item:focus-within {
+  outline: 2px solid var(--ui-primary);
+  outline-offset: 2px;
 }
 
 .appium-action-dropdown {
@@ -3008,7 +3015,7 @@ select {
   font-size: 12px;
 }
 
-/* Artemis visual language shared by every host page and Element Plus control. */
+/* Shared visual language for pages and Element Plus controls. */
 :root {
   --ui-primary: #1a73e8;
   --ui-primary-hover: #1557b0;
@@ -3860,7 +3867,6 @@ body {
 .layout-page-tab.is-active { color: var(--ui-primary); background: #e8f0fe; }
 
 .page-body.page-body--config { padding: 0; overflow: hidden; scrollbar-gutter: auto; }
-.page-body.page-body--artemis { padding: 0; overflow: hidden; scrollbar-gutter: auto; }
 
 button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2px; }
 
@@ -3903,7 +3909,7 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
   .appium-header-actions__script { width: 170px; }
 }
 
-/* Soft surfaces and pill controls match the embedded Artemis application. */
+/* Soft surfaces and pill controls. */
 .layout {
   background: radial-gradient(ellipse at 55% 0, rgb(232 240 254 / 45%), transparent 55%), var(--ui-bg);
 }
@@ -3939,7 +3945,7 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
   .layout-menu .el-menu-item, .layout-page-tab, .el-button { transition: none; }
 }
 
-/* Internal page tabs use the same segmented navigation as Artemis. */
+/* Segmented navigation for internal page tabs. */
 .el-tabs:not(.el-tabs--card):not(.el-tabs--border-card) > .el-tabs__header .el-tabs__nav {
   padding: 4px;
   border: 1px solid var(--ui-border);

@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
-import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
+import { appPath } from '../paths';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { AdbServerClient, type Adb } from '@yume-chan/adb';
@@ -29,11 +29,10 @@ export type RecordingProfile = { label: string; maxSize: number; videoBitRate: n
 export async function openRecordingSource(deviceId: string, signal: AbortSignal, profile: RecordingProfile = {
   label: '标准', maxSize: 1280, videoBitRate: 2000000,
 }) {
-  const require = createRequire(import.meta.url);
-  const bin = join(dirname(require.resolve('@midscene/android-playground/package.json')), 'bin');
+  const bin = appPath('assets', 'scrcpy');
   const version = (await readFile(join(bin, 'scrcpy-server.version'), 'utf8')).trim();
   if (version !== 'v3.3.3') throw new Error(`内置 scrcpy 服务端版本不兼容：${version}`);
-  const remotePath = `/data/local/tmp/midscene-recording-${randomUUID()}.jar`;
+  const remotePath = `/data/local/tmp/qualix-recording-${randomUUID()}.jar`;
   let adb: Adb | undefined;
   let client: Awaited<ReturnType<typeof AdbScrcpyClient.start>> | undefined;
   let closing = false;

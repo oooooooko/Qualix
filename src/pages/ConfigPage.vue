@@ -14,11 +14,11 @@ defineProps<{
   isSavingAppPreset: boolean;
   appiumSaveStatus?: string;
   appiumSaveFailed?: boolean;
-  modelTestStatus: { midscene: string; scriptOptimizer: string; appium?: string; promptOptimizer?: string };
+  modelTestStatus: { appium?: string; promptOptimizer?: string };
 }>();
 
 defineEmits<{
-  testModel: [key: 'midscene' | 'scriptOptimizer' | 'appium' | 'promptOptimizer'];
+  testModel: [key: 'appium' | 'promptOptimizer'];
   saveModelConfig: [];
   retryAppiumSave: [];
   saveAppPreset: [];
@@ -29,7 +29,7 @@ defineEmits<{
 
 const tabs = [
   { name: 'basic', label: '基础配置' },
-  { name: 'appium', label: 'Appium配置' },
+  { name: 'appium', label: '测试编排配置' },
 ] as const;
 const activeTab = shallowRef<(typeof tabs)[number]['name']>('basic');
 

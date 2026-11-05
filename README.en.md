@@ -1,185 +1,92 @@
-# <img src="./assets/qualix-logo.png" width="64" height="64" alt="" /> Qualix
-
-[![npm version](https://img.shields.io/npm/v/qualix?color=2563eb&logo=npm)](https://www.npmjs.com/package/qualix) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](./LICENSE) [![Language: TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=white)](./src) [![Python: 3.12+](https://img.shields.io/badge/python-3.12%2B-3776ab?logo=python&logoColor=white)](./artemis-main/pyproject.toml) [![Appium: 3.5.0](https://img.shields.io/badge/Appium-3.5.0-662d91?logo=appium&logoColor=white)](https://www.npmjs.com/package/appium/v/3.5.0)
+# Qualix
 
 🌐 **English** | [中文](./README.md)
 
-A mobile app testing platform that combines Appium component-tree recording and replay, Artemis natural-language task execution, and Midscene AI testing. Android is supported today; iOS and HarmonyOS support is planned.
+An Android app automation platform with manual orchestration, AI orchestration, script replay and test analytics.
 
-## Project Rename
+## Quick start
 
-Since **2.0.0**, **Android Midscene Automation** has been officially renamed to **Qualix**, and the new npm package is named `qualix`. It is recommended to use the new version of the startup command:
+Install Node.js 20.19+ or 22.12+ and Android SDK Platform Tools. Connect an Android device with USB debugging enabled and authorized.
 
-```sh
-npx --yes qualix@latest
-```
-The name change will not affect existing scripts and configurations, and the original data directory, environment variables, and browser storage keys will continue to be used without manual migration.
-
-
-## Interface preview
-
-![](./screen/1.jpg)
-![](./screen/2.jpg)
-![](./screen/3.jpg)
-
-
-## Supported testing methods
-
-| Testing method | Page entry | Working method | Model requirements | Applicable scenarios |
-| --- | --- | --- | --- | --- |
-| Appium | `Appium` | Read the Android component tree, record and playback by selector, component ID and flow chart | **No need to configure any model** | Traditional automated testing that requires stability, repeatability, and no model consumption |
-| Artemis | `Artemis` | Use natural language to describe goals, AI autonomously plans and operates equipment, records steps, results and task notes | **Must configure model**, independent configuration | Exploratory testing, multi-step business tasks, screen inspection and data collection |
-| Midscene | `Midscene > Script Generator / Automated Tests` | Use natural language to generate and execute test scripts, and understand device screens through multi-modal models | **Model must be configured** | Page elements are difficult to position stably, and you want to use natural language to quickly write tests |
-
-Before using Midscene, please enter "Settings" to complete the `Midscene Model` configuration; when AI generation script is required, `Script Optimization Model` must also be configured. Midscene scripts cannot be generated or executed properly when the model configuration is not available.
-
-The Appium solution does not rely on large models at all, and there is no need to fill in model parameters such as Base URL, API Key, and Model Name. Before use, you only need to connect your Android device, prepare Android SDK/ADB, and start the Appium service.
-
-## Requirements
-
-- Node.js: Running the main project needs to meet the requirements of Vite 7 (20.19+ or 22.12+); when using the Artemis front-end, prepare Node.js according to its Angular dependency requirements. The current integration uses 22.22.3+ (22 LTS).
-- npm。
-- Android SDK/ADB, required for mobile terminal automated testing.
-- Appium 3.x and UiAutomator2 Driver, only required for Appium recording and playback mode.
-- uv and Python 3.12+, required for Artemis only.
-
-Install Appium related dependencies:
-
-```sh
-npm install -g appium@3.5.0
-appium driver install uiautomator2
-```
-
-You need to run `appium` to start the service before using the Appium method; you do not need to install or start Appium when you only use Artemis or Midscene.
-
-## Launch
-
-Qualix's npm package name and command name are both `qualix`, and can be started with the following commands:
-
-```sh
+```bash
 npx --yes qualix@latest
 ```
 
-After startup visit:
+Develop from source:
 
-```text
-http://127.0.0.1:5173/
-```
-
-Each tester runs this command on his or her computer to identify and operate the mobile phone connected to the machine.
-
-If the `5173` port is occupied, you can specify the port:
-
-```sh
-npx qualix --port 5174
-```
-
-
-## Interface Language
-
-Choose Simplified Chinese or English under **Settings → General → Interface Settings → Language**. The browser remembers the preference and applies it to the main UI, built-in components and embedded Artemis.
-
-Language files are centralized in `locales/`. See [Localization Maintenance](./locales/README.en.md) for editing translations and adding locales. English versions are provided for the README, guides, FAQ and Copy for LLM instructions. User input, script content and model responses remain unchanged.
-
-## Documentation
-
-- [Artemis Instructions for Use](./ARTEMIS.en.md)
-- [Appium Recorder Instructions](./USAGE.en.md)
-- [Process Node Operation Instructions](./FLOW_NODES.en.md)
-- [AI Recognition Operation Instructions](./AI_RECOGNITION.en.md)
-- [FAQ](#faq)
-- [Project update record](#changelog)
-
-## Source code development
-
-```sh
+```bash
 npm install
 npm run dev
 ```
 
-Neither Midscene Android testing nor Appium testing requires Playwright Chromium. A separate installation is only required when running the Web E2E examples in the source code:
+Manual orchestration and saved-script replay require Appium and its Android driver:
 
-```sh
-npx playwright install chromium
-```
-
-Playwright browser cannot download npm registry. When downloading is slow, you can temporarily specify a mirror:
-
-```sh
-PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright/ npx playwright install chromium
-```
-
-## Start locally
-
-```sh
-npm run dev
-```
-
-Access the native address output by Vite after startup. By default, the project only listens to `127.0.0.1`:
-
-```text
-http://127.0.0.1:5173/
-```
-
-`npm run dev` starts both the Qualix page and the standalone Artemis service.
-
-## Model configuration
-
-The "Settings" in this section is only used for Midscene and AI script generation. Appium recording and playback does not read these model configurations. Artemis uses its own JSONC and `.env`, see [Artemis Instructions](./ARTEMIS.en.md) for details. When using Midscene for the first time, enter the "Settings" of the page:
-
-- `Runtime Settings`: Optionally specify the Android SDK root directory and Appium playback report directory; when left blank, use the system SDK and the default `output` directory.
-- `Midscene Model`: Used when executing test scripts, supports "Custom Provider" and "Use Codex".
-- `AI Script Generation Model`: Used when generating scripts based on test requirements.
-
-When starting with `npx qualix`, the configuration is saved to the fixed system user data directory:
-
-```text
-Windows: %LOCALAPPDATA%\android-midscene-automation\.midscene-app\script-cache.sqlite
-macOS: ~/Library/Application Support/android-midscene-automation/.midscene-app/script-cache.sqlite
-Linux: ~/.local/share/android-midscene-automation/.midscene-app/script-cache.sqlite
-```
-
-After being renamed to Qualix, the `android-midscene-automation` data directory, original environment variables and browser storage keys will continue to be used, and existing scripts, configurations and interface status will be retained.
-
-A custom data directory can also be specified via `ANDROID_MIDSCENE_DATA_ROOT`. When using `npm run dev` for local development, the project root directory is still written to by default.
-
-The old version `config.yaml` or `config.json` will be migrated to the database after reading. The current runtime will give priority to reading the model configuration in the database.
-
-## Android Automation
-
-Confirm that the device is connected before executing the mobile script:
-
-```sh
-adb devices -l
-```
-
-The page will display the devices currently connected to the computer. Midscene executes generated scripts through AI; Appium uses component trees and recorded processes without calling large models.
-
-If you want to use an Appium component tree recording solution that does not rely on large models, you can view [Appium Recorder Instructions](./USAGE.en.md).
-
-If testers need to identify the phone on their own computer, it is recommended that everyone run it locally on their own computer:
-
-```sh
-npx qualix
-```
-
-Then access your own machine:
-
-```text
-http://localhost:5173/
-```
-
-The page recognizes and operates the mobile phone currently connected to the computer.
-
-If you want to play back Appium scripts, you also need to start Appium on this machine:
-
-```sh
+```bash
+npm install -g appium
+appium driver install uiautomator2
 appium
 ```
 
+## Features
+
+| Navigation | Feature |
+| --- | --- |
+| Test Orchestration | Record and edit component-tree flows, save scripts and replay with Appium |
+| AI Orchestration Beta | Appium Flow Canvas / Autonomous Tasks, with Flash / Pro, independent histories, task queues, notes, plans and recording playback |
+| Laboratory → Midscene | The original official v1.17.5 Android Playground for device connection, model settings and action results |
+| Overview → Analytics | Pass rates, duration and trends from orchestration scripts and replay records |
+| Settings | Device environment, model services, canvas appearance and reports |
+
+Ordinary recording and replay need no model. AI orchestration and recognition require a model supporting image input. Both modes share the configured orchestration model and validate it before execution.
+
+## New AI workspace
+
+AI orchestration has a unified task home and workspace. Choose Flow Orchestration or Autonomous Tasks in New before sending. The workspace has one conversation area; opening history restores the matching type automatically. Flow tasks automatically show the canvas; autonomous tasks show live action history, plan progress and execution results. Both modes can open a draggable preview window using Device Preview beside History. Queues and notes have direct entries without a More menu. Flow tasks default to sending screenshots, with a checkbox at the top-right of the New input area to turn them off. Autonomous tasks always send screenshots. Image input is verified when sending screenshots. Only autonomous tasks record and play video; flow tasks do not record video. Flow Orchestration generates editable, saved and replayable Appium scripts. Autonomous Tasks acts directly on screenshots and coordinates, saving tasks and results without producing Appium nodes. Switching preserves each view. Conversations, tasks, notes, plans and recording references remain separate. Device and model settings are shared, with exclusive access to each device during execution.
+
+Midscene in Laboratory runs the original official v1.17.5 Android Playground without changing its page. Select a device in the official connection panel and configure the model in its top-right settings. Playground manages its own configuration and history separately from both AI orchestration modes.
+
+Select the target app in the chat panel on the right and describe the test. Script names are generated automatically. Device preview is on the left; the existing flow editor in the middle supports search, zoom, editing, saving and running. Completed scripts also appear in the manual script library.
+
+Flash observes and acts quickly for a single goal. Pro breaks goals into a test plan and uses the current page, completed checks and recorded evidence to choose actions, including returning across pages to continue testing.
+
+Use System Settings & Readiness to configure the model and runtime paths, then check the device, target app, model connection and image support. Start Automation Task adds work to the queue; tasks on the same device run sequentially.
+
+Tasks run in the local backend. Navigating away or closing the browser does not stop them; reopen them from the queue. Use Stop to terminate a task. Restarting the backend marks unfinished tasks stopped without replaying operations automatically.
+
+Notes & Plans shows test goals, evidence and visited pages, and supports saved notes. Autonomous tasks can record and play segmented video. Recording failures retain the task and history. Flow tasks do not record video.
+
+## Data and compatibility
+
+Existing user data paths and the `ANDROID_MIDSCENE_DATA_ROOT` environment variable remain supported, preserving scripts, settings and history. Legacy names remain only for storage and launch compatibility.
+
+- `.midscene-app/script-cache.sqlite`: settings, apps and manual scripts.
+- `.midscene-app/ai-conversations.sqlite`: conversation history, model-returned reasoning and flow drafts.
+- `.midscene-app/ai-workspace.sqlite`: task queue, execution events, test plans, notes and recording references.
+
+Up to 20 tasks may be pending. Existing time and action budgets still apply. Stopped or failed tasks retain executed steps for editing. CAPTCHAs, missing credentials or unrecoverable login failures should be reported as blockers rather than successful tests.
+
+`.midscene-app/ai-autonomy.sqlite` independently stores autonomous tasks, histories, plans, notes and model call records; screenshots are saved under `ai-autonomy-images`. Official Midscene runs in a separate process with runtime files under `.midscene-app/native-midscene`.
+
+## Documentation and checks
+
+- [Usage](./USAGE.en.md)
+- [AI orchestration](./ai-flow/README.md)
+- [Flow nodes](./FLOW_NODES.en.md)
+- [AI recognition](./AI_RECOGNITION.en.md)
+- [FAQ](./FAQ.en.md)
+- [Changelog](./CHANGELOG.en.md)
+
+```bash
+npm run build
+npm run test:ai-flow
+npm run test:ai-flow:ui
+```
+
+Install Chromium with `npm run pw:install` before browser tests. Tests use isolated storage and simulated devices and models.
+
 ## License
 
-Qualix's own code is licensed under the [MIT License](./LICENSE). Bundled Artemis and other third-party code retain their respective licenses; see the license files in their directories.
+Project code is licensed under [MIT](./LICENSE). Licenses and sources for the standalone recording and Unicode input helpers are included in `assets/scrcpy` and `assets/yadb`.
 
 <!-- generated-docs:start -->
 
@@ -293,12 +200,16 @@ If it still fails:
 
 # Changelog
 
+## [2.0.5]
+- [Laboratory] Upgrade Midscene to v1.17.5 and load the original official Android Playground directly, removing the custom script generation, script list and settings pages.
+- [AI Orchestration] Redesign the task home and workspace with a choice of Flow Orchestration or Autonomous Tasks and Flash / Pro modes.
+- [AI Orchestration] Add an independent TypeScript flow generator that creates basic actions and linear flows from the actual device interface.
+
 ## [2.0.4]
-- [多语言]新增简体中文与英文界面，在“参数配置 → 基础配置 → 界面设置”。
 - [Appium] Generate Copy for LLM flow instructions, node references and connection rules in the interface language, while preserving original script names, user notes, variables and locators.
 
 ## [2.0.3]
-- [Release] npm package excludes all test files and test fixtures, including built-in Artemis tests; synchronizes build scope adjustment to retain modules required for running.
+- [Release] npm package excludes all test files and test fixtures; synchronizes build scope adjustment to retain modules required for running.
 
 ## [2.0.2]
 - [Appium] Check node references, branch ownership and connection scripts before copying the process, and clearly prompt when the target is missing or the script is connected in a loop.
@@ -342,7 +253,6 @@ If it still fails:
 - [Appium] Component tree search supports switching matching items up and down, and component details display positioning methods and component attributes according to priority.
 - [AI Recognition] Add open output instructions and specific modification suggestions for branch prompt word verification.
 - [Configuration/UI] Fix the API Key display button and unify the prompt pop-up window, option control and related configuration area styles.
-- [Artemis] Stop outputting successful status and readiness detection access logs, and retain service operation and exception logs.
 
 ## [1.1.5]
 - UI optimization
@@ -363,10 +273,6 @@ If it still fails:
 - [Documentation] Updated README.md.
 
 ## [1.1.0]
-- [Artemis] Fixed the issue where custom models returning `<think>` thinking tags caused JSON parsing failure of nodes such as Hopper: Pydantic structured output of non-Google models is connected to the unified cleaning, extraction and verification process, JSON Schema is explicitly provided, and format errors require model correction within a limited time.
-- [Artemis] Fixed an issue where Flash step summarization and history compression still create Gemini clients directly: non-Google models uniformly use the summarizer node in the configuration and its alternate model; model initialization errors no longer silently switch to Gemini.
-- [Artemis] Fixed the issue where when Artemis uses non-Google default models such as MiniMax and GLM, the auxiliary check node is still forced to call Gemini and the task startup fails due to lack of keys; support these nodes to inherit the default model or use explicit configuration.
-- [Artemis] Integrate Google Artemis.
 - [Midscene] The Midscene integration has been discontinued for ongoing maintenance and existing functionality remains.
 
 ## [0.2.4]

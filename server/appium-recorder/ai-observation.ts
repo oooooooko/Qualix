@@ -1,5 +1,5 @@
 import { setTimeout as delay } from 'node:timers/promises';
-import { constrainBase64ImageToMaxSize, convertBase64ImageToJpeg } from '@midscene/shared/img';
+import sharp from 'sharp';
 import { MAX_AI_OBSERVATION_FRAMES, type AiObservationConfig, type AiObservationFrame } from '../../src/appium-recorder/ai-recognition';
 import { resolveAiDeduplication, type AiDeduplicationConfig } from '../../src/appium-recorder/ai-deduplication';
 import { createObservationDeduplicator } from './ai-deduplication';
@@ -14,6 +14,7 @@ export async function collectAiObservation(
   onFrame?: (frame: ObservationCapture) => Promise<void> | void,
   deduplication: AiDeduplicationConfig = resolveAiDeduplication(),
   streaming?: { stopSignal: AbortSignal; onRetainedFrame: (frame: AiObservationFrame) => void },
+  timeOriginMs?: number,
 ) {
   signal.throwIfAborted();
   const shouldKeep = await createObservationDeduplicator(deduplication);
@@ -30,12 +31,12 @@ export async function collectAiObservation(
       const captureStarted = performance.now();
       imageBase64 = await capture(activeSignal);
       activeSignal.throwIfAborted();
-      const elapsedMs = Math.round(performance.now() - startedAt);
+      const elapsedMs = timeOriginMs === undefined ? Math.round(performance.now() - startedAt) : Math.max(0, Date.now() - timeOriginMs);
       sampleCount++;
       let retainedFrame: AiObservationFrame | undefined;
       if (await shouldKeep(imageBase64)) {
-        const bounded = await constrainBase64ImageToMaxSize(`data:image/png;base64,${imageBase64}`, { maxSize: 1600 });
-        const imageDataUrl = await convertBase64ImageToJpeg(bounded, 85);
+        const jpeg = await sharp(Buffer.from(imageBase64, 'base64')).resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 85 }).toBuffer();
+        const imageDataUrl = `data:image/jpeg;base64,${jpeg.toString('base64')}`;
         bytes += imageDataUrl.length;
         if (bytes > 24 * 1024 * 1024) throw new Error('观察画面超过 24 MB，请缩短观察时长或增大采样间隔');
         retainedFrame = { elapsedMs, imageDataUrl };
@@ -62,6 +63,7 @@ export async function collectAiObservation(
 
 // 采样和识别并行；一次只发一个请求，期间积累的关键帧在下一次一起判断，避免丢掉短暂画面。
 export async function observeUntilAiMatch(input: {
+  timeOriginMs?: number;
   config: AiObservationConfig;
   capture: (signal: AbortSignal) => Promise<string>;
   signal: AbortSignal;
@@ -104,7 +106,7 @@ export async function observeUntilAiMatch(input: {
     const collected = await collectAiObservation(input.config, input.capture, signal, input.onFrame, input.deduplication, {
       stopSignal: stopCapture.signal,
       onRetainedFrame: frame => { pending.push(frame); wake?.(); },
-    });
+    }, input.timeOriginMs);
     captureDone = true;
     wake?.();
     if (!match) input.onProgress?.('已到最长观察时间，等待剩余关键帧识别完成');

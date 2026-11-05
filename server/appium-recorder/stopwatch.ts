@@ -4,6 +4,11 @@ import { STOPWATCH_ACTIONS, validateStopwatch, type StopwatchConfig } from '../.
 export class ReplayStopwatches {
   private readonly active = new Map<string, { name: string; started: number; last: number; run: number }>();
   private readonly counts = new Map<string, number>();
+  startedAt(timerId: string) {
+    const timer = this.active.get(timerId);
+    if (!timer) throw new Error(`计时器「${timerId}」尚未开始或已经结束`);
+    return timer.started;
+  }
   record(input: StopwatchConfig, point = STOPWATCH_ACTIONS[input.action], now = Date.now()) {
     const config = validateStopwatch(input);
     const timerId = config.timerId.trim();

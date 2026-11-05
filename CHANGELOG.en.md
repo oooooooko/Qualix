@@ -2,12 +2,16 @@
 
 [简体中文](./CHANGELOG.md) | [English](./CHANGELOG.en.md)
 
+## [2.0.5]
+- [Laboratory] Upgrade Midscene to v1.17.5 and load the original official Android Playground directly, removing the custom script generation, script list and settings pages.
+- [AI Orchestration] Redesign the task home and workspace with a choice of Flow Orchestration or Autonomous Tasks and Flash / Pro modes.
+- [AI Orchestration] Add an independent TypeScript flow generator that creates basic actions and linear flows from the actual device interface.
+
 ## [2.0.4]
-- [多语言]新增简体中文与英文界面，在“参数配置 → 基础配置 → 界面设置”。
 - [Appium] Generate Copy for LLM flow instructions, node references and connection rules in the interface language, while preserving original script names, user notes, variables and locators.
 
 ## [2.0.3]
-- [Release] npm package excludes all test files and test fixtures, including built-in Artemis tests; synchronizes build scope adjustment to retain modules required for running.
+- [Release] npm package excludes all test files and test fixtures; synchronizes build scope adjustment to retain modules required for running.
 
 ## [2.0.2]
 - [Appium] Check node references, branch ownership and connection scripts before copying the process, and clearly prompt when the target is missing or the script is connected in a loop.
@@ -51,7 +55,6 @@
 - [Appium] Component tree search supports switching matching items up and down, and component details display positioning methods and component attributes according to priority.
 - [AI Recognition] Add open output instructions and specific modification suggestions for branch prompt word verification.
 - [Configuration/UI] Fix the API Key display button and unify the prompt pop-up window, option control and related configuration area styles.
-- [Artemis] Stop outputting successful status and readiness detection access logs, and retain service operation and exception logs.
 
 ## [1.1.5]
 - UI optimization
@@ -72,10 +75,6 @@
 - [Documentation] Updated README.md.
 
 ## [1.1.0]
-- [Artemis] Fixed the issue where custom models returning `<think>` thinking tags caused JSON parsing failure of nodes such as Hopper: Pydantic structured output of non-Google models is connected to the unified cleaning, extraction and verification process, JSON Schema is explicitly provided, and format errors require model correction within a limited time.
-- [Artemis] Fixed an issue where Flash step summarization and history compression still create Gemini clients directly: non-Google models uniformly use the summarizer node in the configuration and its alternate model; model initialization errors no longer silently switch to Gemini.
-- [Artemis] Fixed the issue where when Artemis uses non-Google default models such as MiniMax and GLM, the auxiliary check node is still forced to call Gemini and the task startup fails due to lack of keys; support these nodes to inherit the default model or use explicit configuration.
-- [Artemis] Integrate Google Artemis.
 - [Midscene] The Midscene integration has been discontinued for ongoing maintenance and existing functionality remains.
 
 ## [0.2.4]

@@ -1,23 +1,14 @@
 import type { ReportSummaryConfig } from './appium-recorder/report-summary';
 import type { AiPromptPreset } from './appium-recorder/ai-prompt-presets';
-import type { ScriptStep } from './script-generator';
-import type { MidsceneModelProvider } from './config/midscene-model-presets';
 import type { AiRecognitionModel } from './appium-recorder/ai-recognition';
 import type { AiDeduplicationConfig } from './appium-recorder/ai-deduplication';
 
-export type MenuKey = 'analysis' | 'generator' | 'automation' | 'midscene-config' | 'config' | 'appium' | 'artemis' | 'about';
-export type GeneratorMode = 'ai' | 'manual';
+export type MenuKey = 'analysis' | 'midscene' | 'config' | 'appium' | 'ai-orchestration' | 'about';
 
 export type AppiumVersionInfo = {
   version: string | null;
   source: 'local' | 'server';
   message: string;
-};
-
-export type GeneratorForm = {
-  promptTitle: string;
-  testName: string;
-  appPresetId: string;
 };
 
 export type ConfigForm = {
@@ -26,35 +17,7 @@ export type ConfigForm = {
     androidSdkPath: string;
     reportOutputPath: string;
   };
-  midscene: {
-    model: {
-      provider: MidsceneModelProvider;
-      baseUrl: string;
-      apiKey: string;
-      name: string;
-      family: string;
-    };
-    env: Record<string, string>;
-  };
-  scriptOptimizer: {
-    model: {
-      baseUrl: string;
-      apiKey: string;
-      name: string;
-    };
-  };
-};
 
-export type SavedScript = {
-  id: string;
-  name: string;
-  promptTitle: string;
-  sourcePrompt: string;
-  code: string;
-  filePath: string;
-  steps: ScriptStep[];
-  createdAt: string;
-  updatedAt: string;
 };
 
 export type AppPreset = {
@@ -64,32 +27,6 @@ export type AppPreset = {
   createdAt: string;
   updatedAt: string;
 };
-
-export type TestCaseImportResult = {
-  fileName: string;
-  format: 'txt' | 'excel' | 'word';
-  caseCount: number;
-  prompt: string;
-};
-
-export type ExecutionStep = {
-  id: string;
-  sourceIndex: number;
-  title: string;
-  method: string;
-  prompt: string;
-  status: 'pending' | 'running' | 'success' | 'error';
-  detail: string;
-  startedAt?: number;
-};
-
-// 后端执行脚本时按 NDJSON 推送这些事件，前端执行面板逐条消费。
-export type RunScriptStreamEvent =
-  | { type: 'operation'; operation: unknown }
-  | { type: 'output'; chunk: string }
-  | { type: 'step'; status: 'start' | 'success' | 'error'; index: number; id?: string; title?: string; detail?: string }
-  | { type: 'done'; success: boolean; output: string; filePath: string }
-  | { type: 'error'; message: string };
 
 export type AndroidDevice = {
   id: string;

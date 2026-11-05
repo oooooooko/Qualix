@@ -228,8 +228,8 @@ function scheduleResetView(attempt = 0) {
     updateNodeInternals(graph.value.nodes.map((node) => node.id));
     const fitted = await fitView({
       padding: 0.18,
-      minZoom: layoutDirection.value === 'horizontal' ? (props.readonly ? 0.1 : 0.7) : 0.35,
-      maxZoom: 1.8,
+      minZoom: props.readonly ? 0.1 : layoutDirection.value === 'horizontal' ? 0.7 : 0.35,
+      maxZoom: props.readonly ? 1 : 1.8,
       duration: attempt ? 0 : 240,
     });
     if (!fitted && attempt < 8) scheduleResetView(attempt + 1);
@@ -348,7 +348,7 @@ function handleInsert(payload: {
       class="appium-vue-flow"
       :nodes="graph.nodes"
       :edges="graph.edges"
-      :min-zoom="layoutDirection === 'horizontal' ? 0.1 : 0.35"
+      :min-zoom="props.readonly || layoutDirection === 'horizontal' ? 0.1 : 0.35"
       :max-zoom="1.8"
       :nodes-draggable="false"
       :nodes-connectable="false"

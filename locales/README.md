@@ -4,19 +4,18 @@
 
 ## 统一入口
 
-在“参数配置 → 基础配置 → 界面设置 → 界面语言”选择语言。选择保存在当前浏览器的 `qualix:ui-language` 中；主界面、Element Plus 和嵌入的 Artemis 同步使用该选择。Artemis 不再提供独立语言按钮。
+在“参数配置 → 基础配置 → 界面设置 → 界面语言”选择语言。选择保存在当前浏览器的 `qualix:ui-language` 中；主界面、Element Plus 和 Qualix AI 同步使用该选择。
 
 ## 目录
 
 每种语言一个目录，例如 `zh-CN/` 和 `en/`：
 
 - `ui.json`：主项目界面、按钮、弹窗、校验提示和节点说明。键使用中文源文案，动态值用 `{0}`、`{1}` 等占位符。
-- `artemis.json`：Artemis 界面。键保留其英文源文案，技术标识与模型输出不在这里替换。
 - `help.json`：应用内帮助文档的段落、标题和表格文案。
 - `docs.json`：发布版 Markdown 文档的翻译，保留代码、命令、链接和格式。
 - `llm.json`：复制给 LLM 的说明、节点参考和输出规则，流程 JSON、脚本名、用户备注和变量值保持原样。
 
-`index.ts` 注册语言名称与各类语言文件。主项目运行时在 `src/i18n/index.ts`，Artemis 使用其 `LanguageService`。语言同步消息会同时校验父窗口和来源域名。
+`index.ts` 注册语言名称与各类语言文件。主项目和 Qualix AI 共用 `src/i18n/index.ts`。
 
 ## 新增语言
 
@@ -24,7 +23,7 @@
 2. 在 `index.ts` 中注册语言及对应文件；显示名称使用该语言的自称。
 3. 在 `src/main.ts` 为 Element Plus 添加对应语言包；若不提供，组件库暂用英文。
 4. 执行 `node bin/check-i18n.mjs` 检查语言文件，再执行 `node bin/sync-readme-docs.mjs` 生成文档。
-5. 执行 `npm run build`、多语言回归测试和 Artemis 构建，检查长文本及窄屏布局。
+5. 执行 `npm run build`和多语言回归测试，检查长文本及窄屏布局。
 
 不要翻译脚本类型、JSON 属性、节点 ID、变量名、定位表达式、包名、命令参数及代码示例。界面文案使用 `t()`，动态值通过参数传入，例如 `t('已导入 {0} 条测试用例', { 0: count })`。不要对用户输入、设备树文本、脚本名称、运行日志或模型回答调用 `t()`。
 

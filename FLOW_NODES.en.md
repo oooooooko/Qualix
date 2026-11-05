@@ -2,7 +2,7 @@
 
 [简体中文](./流程节点操作说明.md) | [English](./FLOW_NODES.en.md)
 
-This document corresponds to the page "Help and Version → Operation Instructions → Appium", which explains the node usage, configuration method and execution results in the current process menu. For model configuration, continuous observation, screenshot deduplication and scene examples of AI recognition, please see [AI Recognition Operation Instructions](./AI_RECOGNITION.en.md).
+本文档对应页面“帮助与版本 → 操作说明 → 测试编排”，说明当前流程菜单中的节点用途、配置方法和执行结果。AI 识别的模型配置、持续观察、截图去重和场景示例请查看 [AI识别操作说明](./AI_RECOGNITION.en.md)。
 
 ## 1. General operations
 
@@ -34,7 +34,7 @@ Sensitive variables are desensitized in logs and reports, and sensitive values a
 
 ### Logs and reports
 
-The playback text log records time, node number, execution results and errors. Settings → "Screenshot and HTML report" in Appium Settings is turned off by default. Only enable it to collect screenshots of reports and generate HTML. Taking screenshots will increase the time consumption. Screenshots required for operations such as AI, image condition, and screen changes do not rely on this switch.
+回放文本日志记录时间、节点编号、执行结果及错误。参数配置 → 测试编排配置中的“截图与 HTML 报告”默认关闭，开启后才采集报告截图并生成 HTML，截图会增加耗时。AI、图像判断、画面变化等操作需要的截图不依赖此开关。
 
 ## 2. Component operation
 
@@ -228,7 +228,7 @@ Templates are not scaled automatically. The detection region must remain large e
 
 **Operation:**
 
-1. Under Settings → Appium Settings → AI Recognition Model, save the Base URL, API Key and Model Name of a model that supports image input.
+1. 在“参数配置 → 测试编排配置 → AI 识别模型”填写并保存 Base URL、API Key、Model Name，使用支持图片输入的模型。
 2. Add AI Recognition and enter a question. New nodes use sequential mode by default; for example, ask what the current screen contains. The answer is logged before the next node runs.
 3. To make a decision, enable branching in the node settings. The question is immediately validated by the model without uploading a device screenshot.
 4. After the verification is passed, a true/false branch is generated; for non-condition questions, "Unable to enter the branch" will be prompted and unchecked. Recommended question: "Is the device list currently displayed?"

@@ -1,185 +1,92 @@
-# <img src="./assets/qualix-logo.png" width="64" height="64" alt="" /> Qualix
-
-[![npm version](https://img.shields.io/npm/v/qualix?color=2563eb&logo=npm)](https://www.npmjs.com/package/qualix) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](./LICENSE) [![Language: TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=white)](./src) [![Python: 3.12+](https://img.shields.io/badge/python-3.12%2B-3776ab?logo=python&logoColor=white)](./artemis-main/pyproject.toml) [![Appium: 3.5.0](https://img.shields.io/badge/Appium-3.5.0-662d91?logo=appium&logoColor=white)](https://www.npmjs.com/package/appium/v/3.5.0)
+# Qualix
 
 🌐 [English](./README.en.md) | **中文**
 
-一个面向移动应用的自动化测试平台，集成 Appium 组件树录制回放、Artemis 自然语言任务执行和 Midscene AI 测试。当前支持 Android，后续计划扩展 iOS 和鸿蒙。
+面向 Android 的移动应用自动化测试平台，支持手动编排、AI 编排、脚本回放与测试分析。
 
-## 项目更名说明
+## 快速启动
 
-自 **2.0.0** 起，**Android Midscene Automation** 正式更名为 **Qualix**，npm 新包名为 `qualix`。推荐使用新版启动命令：
+准备 Node.js 20.19+ 或 22.12+、Android SDK Platform Tools，连接已开启 USB 调试并授权的 Android 设备。
 
-```sh
-npx --yes qualix@latest
-```
-更名不影响已有脚本和配置，继续沿用原有数据目录、环境变量及浏览器存储键，无需手动迁移。
-
-
-## 界面预览
-
-![](./screen/1.jpg)
-![](./screen/2.jpg)
-![](./screen/3.jpg)
-
-
-## 支持的测试方式
-
-| 测试方式 | 页面入口 | 工作方式 | 模型要求 | 适用场景 |
-| --- | --- | --- | --- | --- |
-| Appium | `Appium` | 读取 Android 组件树，按 selector、组件 ID 和流程图录制、回放 | **不需要配置任何模型** | 需要稳定、可重复、无模型消耗的传统自动化测试 |
-| Artemis | `Artemis` | 使用自然语言描述目标，AI 自主规划并操作设备，记录步骤、结果和任务笔记 | **必须配置模型**，独立配置 | 探索性测试、多步骤业务任务、画面检查与数据收集 |
-| Midscene | `Midscene > 测试脚本生成 / 自动化测试` | 使用自然语言生成和执行测试脚本，通过多模态模型理解设备画面 | **必须配置模型** | 页面元素难以稳定定位、希望使用自然语言快速编写测试 |
-
-使用 Midscene 前，请先进入“参数配置”完成 `Midscene 模型` 配置；需要 AI 生成脚本时，还要配置 `脚本优化模型`。模型配置不可用时，Midscene 脚本无法正常生成或执行。
-
-Appium 方案完全不依赖大模型，不需要填写 Base URL、API Key、Model Name 等模型参数。使用前只需连接 Android 设备、准备 Android SDK / ADB，并启动 Appium 服务。
-
-## 环境要求
-
-- Node.js：运行主项目需要符合 Vite 7 的要求（20.19+ 或 22.12+）；同时使用 Artemis 前端时按其 Angular 依赖要求准备 Node.js，当前集成使用 22.22.3+（22 LTS）。
-- npm。
-- Android SDK / ADB，移动端自动化测试需要。
-- Appium 3.x 和 UiAutomator2 Driver，仅 Appium 录制回放方式需要。
-- uv 和 Python 3.12+，仅 Artemis 需要。
-
-安装 Appium 相关依赖：
-
-```sh
-npm install -g appium@3.5.0
-appium driver install uiautomator2
-```
-
-使用 Appium 方式前需要运行 `appium` 启动服务；只使用 Artemis 或 Midscene 时不需要安装或启动 Appium。
-
-## 启动
-
-Qualix 的 npm 包名和命令名均为 `qualix`，可通过以下命令启动：
-
-```sh
+```bash
 npx --yes qualix@latest
 ```
 
-启动后访问：
+源码开发：
 
-```text
-http://127.0.0.1:5173/
-```
-
-每位测试人员在自己的电脑运行这条命令，即可识别并操作本机连接的手机。
-
-如果 `5173` 端口被占用，可以指定端口：
-
-```sh
-npx qualix --port 5174
-```
-
-
-## 界面语言
-
-在“参数配置 → 基础配置 → 界面设置 → 界面语言”切换简体中文和 English。选择会被浏览器记住，并统一应用于主界面、内置组件和嵌入式 Artemis。
-
-语言文件集中在 `locales/`，维护和新增语言的方法见[多语言维护说明](./locales/README.md)。README、操作说明、FAQ 和“复制给 LLM”的说明模板提供英文版本；用户输入、脚本内容和模型回答保持原文。
-
-## 功能文档
-
-- [Artemis 使用说明](./ARTEMIS.md)
-- [Appium 录制器使用说明](./USAGE.md)
-- [流程节点操作说明](./流程节点操作说明.md)
-- [AI 识别操作说明](./AI识别操作说明.md)
-- [常见问题](#常见问题)
-- [项目更新记录](#项目更新记录)
-
-## 源码开发
-
-```sh
+```bash
 npm install
 npm run dev
 ```
 
-Midscene Android 测试和 Appium 测试都不需要 Playwright Chromium。只有运行源码中的 Web E2E 示例时才需要单独安装：
+手动编排和已保存脚本的回放需要运行 Appium 服务并安装 Android 驱动：
 
-```sh
-npx playwright install chromium
-```
-
-Playwright 浏览器下载不走 npm registry。下载较慢时，可临时指定镜像：
-
-```sh
-PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright/ npx playwright install chromium
-```
-
-## 本地启动
-
-```sh
-npm run dev
-```
-
-启动后访问 Vite 输出的本机地址。项目默认只监听 `127.0.0.1`：
-
-```text
-http://127.0.0.1:5173/
-```
-
-`npm run dev` 会同时启动 Qualix 页面和独立的 Artemis 服务。
-
-## 模型配置
-
-本节的“参数配置”仅用于 Midscene 和 AI 脚本生成，Appium 录制与回放不读取这些模型配置。Artemis 使用自己的 JSONC 与 `.env`，详见 [Artemis 使用说明](./ARTEMIS.md)。首次使用 Midscene 时进入页面的“参数配置”：
-
-- `运行配置`：可选指定 Android SDK 根目录和 Appium 回放报告目录；留空时使用系统 SDK 与默认 `output` 目录。
-- `Midscene模型`：执行测试脚本时使用，支持“自定义提供方”和“使用 Codex”。
-- `AI生成脚本模型`：根据测试需求生成脚本时使用。
-
-使用 `npx qualix` 启动时，配置会保存到固定的系统用户数据目录：
-
-```text
-Windows: %LOCALAPPDATA%\android-midscene-automation\.midscene-app\script-cache.sqlite
-macOS: ~/Library/Application Support/android-midscene-automation/.midscene-app/script-cache.sqlite
-Linux: ~/.local/share/android-midscene-automation/.midscene-app/script-cache.sqlite
-```
-
-更名为 Qualix 后，继续沿用 `android-midscene-automation` 数据目录、原有环境变量和浏览器存储键，保留已有脚本、配置和界面状态。
-
-也可以通过 `ANDROID_MIDSCENE_DATA_ROOT` 指定自定义数据目录。使用 `npm run dev` 本地开发时，默认仍写入项目根目录。
-
-旧版 `config.yaml` 或 `config.json` 会在读取后迁移到数据库。当前运行时会优先读取数据库中的模型配置。
-
-## Android 自动化
-
-执行移动端脚本前确认设备已连接：
-
-```sh
-adb devices -l
-```
-
-页面会显示当前电脑连接的设备。Midscene 通过 AI 执行生成的脚本；Appium 使用组件树和已录制的流程，不调用大模型。
-
-如果要走不依赖大模型的 Appium 组件树录制方案，可查看 [Appium 录制器使用说明](./USAGE.md)。
-
-如果测试人员需要识别自己电脑上的手机，推荐每个人在自己的电脑本地运行：
-
-```sh
-npx qualix
-```
-
-然后访问自己本机的：
-
-```text
-http://localhost:5173/
-```
-
-页面识别并操作的是当前电脑连接的手机。
-
-如果要回放 Appium 脚本，本机还需要启动 Appium：
-
-```sh
+```bash
+npm install -g appium
+appium driver install uiautomator2
 appium
 ```
 
+## 功能
+
+| 入口 | 功能 |
+| --- | --- |
+| 测试编排 | 录制、编辑组件树流程，保存脚本并使用 Appium 回放 |
+| AI 编排 Beta | Appium 流程画布 / 自主任务，支持 Flash / Pro、独立历史、任务队列、笔记与计划和录像播放 |
+| 实验室 → Midscene | 官方 v1.17.5 Android Playground 原版页面，设备连接、模型配置和操作结果使用官方界面 |
+| 概览 → 分析页 | 根据脚本与回放记录统计测试编排的通过率、耗时和趋势 |
+| 参数配置 | 配置设备环境、模型服务、画布外观和报告 |
+
+普通录制与回放不需要模型。AI 编排和 AI 识别需要配置支持图片输入的模型；两种编排模式共用测试编排配置中的模型，并在任务开始前验证可用性。
+
+## 新版 AI 编排
+
+AI 编排通过统一的任务首页和工作区使用，在新建区域选择流程编排或自主任务后发送需求。工作区只保留一个对话区，打开历史对话会自动恢复对应类型；流程任务自动展示画布，自主任务自动展示实时操作记录、计划进度与执行结果，两种模式均可通过历史对话旁的设备预览按钮打开可移动的悬浮窗口；队列和笔记使用直接入口，不再提供更多菜单。流程编排默认发送截图，可在新建输入区右上角关闭；自主任务固定发送截图。发送截图时会验证图片输入能力。录像仅用于自主任务，流程编排不录屏。两种方式相互独立：Appium 流程画布会生成可编辑、可保存和回放的脚本；自主任务根据截图和坐标直接执行，保存任务与结果，不生成 Appium 流程节点。切换方式保留各自界面状态，历史对话、任务、笔记、计划和录像索引互相独立。两种方式共用设备和模型配置，同一设备的实际操作互斥。
+
+实验室中的 Midscene 直接运行官方 v1.17.5 Android Playground，未修改官方页面。进入后使用官方连接面板选择设备，在右上角设置中配置模型。官方页面的配置和历史由 Playground 自行管理，与两种 AI 编排方式分开。
+
+在右侧对话区选择目标 App 并描述测试要求，脚本名称自动生成。设备预览位于左侧，中间共用现有流程编辑器，支持搜索、缩放、编辑、保存和直接运行。生成完成的脚本也会出现在手动编排的脚本列表。
+
+Flash 快速观察并执行，适合单一目标；Pro 将目标拆为测试计划，结合当前页面、已完成检查和实际证据判断下一步操作，支持跨页面返回和继续测试。
+
+通过“系统设置与运行准备”配置模型和运行路径，检查设备、目标 App、模型连接及图片输入。通过“启动自动化任务编排”创建排队任务，同一设备按顺序执行。
+
+任务在本机后端运行，切换页面或关闭浏览器不会自动停止任务，可从任务队列重新打开。需要停止时点击终止；重启后端会将未完成任务标记为停止，不会自动重发操作。
+
+“笔记与计划”展示各测试目标、检查证据与访问页面，支持保存任务笔记。自主任务启用录屏后，任务结束可播放分段录像并拖动进度；录屏失败会显示原因，保留任务和历史记录。流程编排不录屏。
+
+## 数据与兼容
+
+继续使用现有用户数据目录及 `ANDROID_MIDSCENE_DATA_ROOT` 环境变量，保留已有脚本、配置和历史。旧名称仅用于数据与启动兼容。
+
+- `.midscene-app/script-cache.sqlite`：配置、App 和手动编排脚本。
+- `.midscene-app/ai-conversations.sqlite`：历史对话、模型返回的思考内容及流程草稿。
+- `.midscene-app/ai-workspace.sqlite`：任务队列、执行事件、测试计划、笔记和录像索引。
+
+任务最多排队 20 个，每次执行保留现有时间与操作预算；停止或失败会保留已执行步骤供编辑。验证码、缺少凭据或不可恢复登录失败应由模型报告阻塞原因，不会凭空判定测试通过。
+
+`.midscene-app/ai-autonomy.sqlite` 独立保存 自主任务、历史、计划、笔记和模型调用记录；截图保存在 `ai-autonomy-images`。官方 Midscene 使用独立进程，运行文件位于 `.midscene-app/native-midscene`。
+
+## 文档与验证
+
+- [使用说明](./USAGE.md)
+- [AI 编排说明](./ai-flow/README.md)
+- [节点操作说明](./流程节点操作说明.md)
+- [AI 识别说明](./AI识别操作说明.md)
+- [常见问题](./FAQ.md)
+- [更新记录](./CHANGELOG.md)
+
+```bash
+npm run build
+npm run test:ai-flow
+npm run test:ai-flow:ui
+```
+
+浏览器测试需先运行 `npm run pw:install` 安装 Chromium。测试使用隔离数据目录、设备与模型模拟器。
+
 ## 许可证
 
-Qualix 自有代码采用 [MIT 许可证](./LICENSE)。内置 Artemis 及其他第三方代码沿用各自许可证，详见相应目录中的许可证文件。
+项目自有代码采用 [MIT](./LICENSE)。独立录屏和 Unicode 输入工具的许可证与来源见 `assets/scrcpy`、`assets/yadb`。
 
 <!-- generated-docs:start -->
 
@@ -293,12 +200,16 @@ Linux: ~/.local/share/android-midscene-automation
 
 # 项目更新记录
 
+## [2.0.5]
+- [实验室]Midscene 升级至 v1.17.5，入口直接加载官方 Android Playground 原版页面，移除自定义脚本生成、脚本列表与参数配置页面。
+- [AI 编排]重做任务首页与工作区，支持选择流程编排或自主任务及 Flash / Pro 模式。
+- [AI 编排]新增独立 TypeScript 流程生成模块，根据真实设备界面生成基础操作和线性流程。
+
 ## [2.0.4]
-- [多语言]新增简体中文与英文界面，在“参数配置 → 基础配置 → 界面设置”。
 - [Appium]“复制给 LLM”根据界面语言生成中英文流程说明、节点参考和连接规则，保留脚本名称、用户备注、变量及定位内容原文。
 
 ## [2.0.3]
-- [发布]npm 包排除全部测试文件和测试夹具，包括内置 Artemis 测试；同步调整构建范围，保留运行所需模块。
+- [发布]npm 包排除全部测试文件和测试夹具；同步调整构建范围，保留运行所需模块。
 
 ## [2.0.2]
 - [Appium]复制流程前检查节点引用、分支归属和连接脚本，目标缺失或脚本循环连接时明确提示。
@@ -342,7 +253,6 @@ Linux: ~/.local/share/android-midscene-automation
 - [Appium]组件树搜索支持上下切换匹配项，组件详情按优先级展示定位方式和组件属性。
 - [AI识别]分支提示词校验增加开放式输出说明和具体修改建议。
 - [配置/UI]修复 API Key 显示按钮，统一提示弹窗、选项控件及相关配置区域样式。
-- [Artemis]停止输出成功的状态与就绪探测访问日志，保留服务运行和异常日志。
 
 ## [1.1.5]
 - UI优化
@@ -363,10 +273,6 @@ Linux: ~/.local/share/android-midscene-automation
 - [文档]更新 README.md。
 
 ## [1.1.0]
-- [Artemis]修复自定义模型返回 `<think>` 思考标签导致 Hopper 等节点 JSON 解析失败的问题：非 Google 模型的 Pydantic 结构化输出接入统一清理、提取和校验流程，显式提供 JSON Schema，格式错误时限次要求模型纠正。
-- [Artemis]修复 Flash 步骤摘要和历史压缩仍直接创建 Gemini 客户端的问题：非 Google 模型统一使用配置中的 summarizer 节点及其备用模型；模型初始化错误不再静默切换到 Gemini。
-- [Artemis]修复 Artemis 使用 MiniMax、GLM 等非 Google 默认模型时，辅助检查节点仍强制调用 Gemini 并因缺少密钥导致任务启动失败的问题；支持这些节点继承默认模型或使用显式配置。
-- [Artemis]集成 Google Artemis。
 - [Midscene]Midscene 集成已停止日常维护，现有功能仍保留。
 
 ## [0.2.4]

@@ -2,7 +2,7 @@ import type { AiDeduplicationConfig } from './ai-deduplication';
 
 export type AiRecognitionModel = { baseUrl: string; apiKey: string; name: string };
 export type AiInvalidResultBranch = 'yes' | 'no';
-export type AiObservationConfig = { durationMs: number; intervalMs: number; mode?: 'batch' | 'untilMatch' };
+export type AiObservationConfig = { durationMs: number; intervalMs: number; mode?: 'batch' | 'untilMatch'; timerId?: string };
 export type AiObservationFrame = { elapsedMs: number; imageDataUrl: string };
 export type AiRecognitionResult = {
   result: boolean | null; reason: string; durationMs: number;
@@ -14,12 +14,13 @@ export const MAX_AI_OBSERVATION_FRAMES = 30;
 export function validateAiObservation(value: unknown): AiObservationConfig | undefined {
   if (value === undefined || value === null) return undefined;
   if (typeof value !== 'object' || Array.isArray(value)) throw new Error('持续观察配置无效');
-  const { durationMs, intervalMs, mode } = value as AiObservationConfig;
+  const { durationMs, intervalMs, mode, timerId } = value as AiObservationConfig;
+  if (timerId !== undefined && (typeof timerId !== 'string' || !timerId.trim() || timerId.length > 160)) throw new Error('观察计时器关联无效');
   if (mode !== undefined && mode !== 'batch' && mode !== 'untilMatch') throw new Error('持续观察模式无效');
   if (!Number.isInteger(durationMs) || durationMs < 1000 || durationMs > 60000) throw new Error('观察时长需为 1000～60000 ms');
   if (!Number.isInteger(intervalMs) || intervalMs < 500 || intervalMs > 10000) throw new Error('采样间隔需为 500～10000 ms');
   if (Math.ceil(durationMs / intervalMs) + 1 > MAX_AI_OBSERVATION_FRAMES) throw new Error('单次观察最多采集 30 帧，请增大采样间隔或缩短观察时长');
-  return { durationMs, intervalMs, ...(mode ? { mode } : {}) };
+  return { durationMs, intervalMs, ...(mode ? { mode } : {}), ...(timerId ? { timerId } : {}) };
 }
 
 export function validateAiInvalidResultBranch(value: unknown): AiInvalidResultBranch | undefined {
@@ -33,7 +34,7 @@ export function isAiBranchEnabled(step: { aiBranchEnabled?: boolean }) {
   return step.aiBranchEnabled !== false;
 }
 
-export const AI_MODEL_CONFIG_HINT = '请在参数配置 > Appium配置中填写 AI 识别模型的 Base URL、API Key 和 Model Name，配置会自动保存';
+export const AI_MODEL_CONFIG_HINT = '请在参数配置 → 测试编排配置中填写 AI 识别模型的 Base URL、API Key 和 Model Name，测试通过后保存';
 
 export function isAiRecognitionModelConfigured(model?: Partial<AiRecognitionModel> | null) {
   return Boolean(model && [model.baseUrl, model.apiKey, model.name].every(

@@ -4,19 +4,18 @@
 
 ## Unified setting
 
-Choose **Settings → General → Interface Settings → Language**. The current browser stores the preference under `qualix:ui-language`. The main UI, Element Plus and embedded Artemis use this setting; Artemis has no separate language switch.
+Choose **Settings → General → Interface Settings → Language**. The current browser stores the preference under `qualix:ui-language`. The main UI, Element Plus and Qualix AI use this setting.
 
 ## Layout
 
 Each locale has its own directory, such as `zh-CN/` or `en/`:
 
 - `ui.json`: main UI, buttons, dialogs, validation messages and node descriptions. Keys are Chinese source messages; dynamic values use `{0}`, `{1}`, and so on.
-- `artemis.json`: Artemis UI messages, keyed by their English source text.
 - `help.json`: in-app help paragraphs, headings and tables.
 - `docs.json`: Markdown documentation translations with commands, code, links and formatting preserved.
 - `llm.json`: Copy for LLM instructions, node reference and output rules. Exported flow JSON, script names, user notes and variable values remain unchanged.
 
-`index.ts` registers locale names and catalogues. The Vue runtime lives in `src/i18n/index.ts`; Artemis uses its `LanguageService`. Embedded language messages validate both the parent window and its origin.
+`index.ts` registers locale names and catalogues. The main UI and Qualix AI share the Vue runtime in `src/i18n/index.ts`.
 
 ## Add a locale
 

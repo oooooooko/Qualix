@@ -184,7 +184,7 @@ onBeforeUnmount(() => {
         @click="handleStepClick"
       >
         <span class="appium-flow-step-card__content">
-          <el-tooltip v-if="data.missingAiModel" :content="t('请在参数配置 > Appium配置中配置 AI 识别模型')" placement="top">
+          <el-tooltip v-if="data.missingAiModel" :content="t('请在参数配置 > 测试编排配置中配置 AI 识别模型')" placement="top">
             <el-icon class="appium-ai-model-warning" color="var(--el-color-danger)" role="img" :aria-label="t('AI 识别模型未配置')" tabindex="0">
               <WarningFilled />
             </el-icon>
