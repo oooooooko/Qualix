@@ -1,4 +1,6 @@
-# Qualix
+# <img src="./assets/qualix-logo.png" width="64" height="64" alt="Qualix logo" /> Qualix
+
+[![npm version](https://img.shields.io/npm/v/qualix?color=2563eb&logo=npm)](https://www.npmjs.com/package/qualix) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](./LICENSE) [![Language: TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=white)](./src) [![Appium](https://img.shields.io/badge/Appium-662d91?logo=appium&logoColor=white)](https://www.npmjs.com/package/appium)
 
 🌐 [English](./README.en.md) | **中文**
 
