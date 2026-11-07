@@ -1,20 +1,13 @@
 # Update record
 
 [简体中文](./CHANGELOG.md) | [English](./CHANGELOG.en.md)
-
-## [2.0.6]
-- Update translation。
+## [2.0.7]
+- Improve the interface
 
 ## [2.0.5]
 - [Laboratory] Upgrade Midscene to v1.17.5 and load the original official Android Playground directly, removing the custom script generation, script list and settings pages.
 - [AI Orchestration] Redesign the task home and workspace with a choice of Flow Orchestration or Autonomous Tasks and Flash / Pro modes.
 - [AI Orchestration] Add an independent TypeScript flow generator that creates basic actions and linear flows from the actual device interface.
-
-## [2.0.4]
-- [Appium] Generate Copy for LLM flow instructions, node references and connection rules in the interface language, while preserving original script names, user notes, variables and locators.
-
-## [2.0.3]
-- [Release] npm package excludes all test files and test fixtures; synchronizes build scope adjustment to retain modules required for running.
 
 ## [2.0.2]
 - [Appium] Check node references, branch ownership and connection scripts before copying the process, and clearly prompt when the target is missing or the script is connected in a loop.

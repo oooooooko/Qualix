@@ -1,20 +1,38 @@
 <script setup lang="ts">
+import { computed, shallowRef, useTemplateRef, watch } from 'vue';
 import { t } from '../i18n';
 import qualixLogo from '../../assets/qualix-logo.png';
-import { DataAnalysis, Grid, MagicStick, Monitor, InfoFilled, Setting } from '@element-plus/icons-vue';
-import type { MenuKey } from '../types';
+import { DArrowLeft, DArrowRight, DataAnalysis, Grid, MagicStick, Monitor, InfoFilled, Setting } from '@element-plus/icons-vue';
+import type { MenuKey, SidebarMode } from '../types';
 
-defineProps<{ activeMenu: MenuKey; collapsed: boolean }>();
+defineProps<{ activeMenu: MenuKey }>();
 defineEmits<{ select: [key: string] }>();
+
+const mode = defineModel<SidebarMode>('mode', { required: true });
+const hovering = shallowRef(false);
+const collapsed = computed(() => mode.value === 'collapsed' || (mode.value === 'hover' && !hovering.value));
+const collapseButton = useTemplateRef<HTMLButtonElement>('collapseButton');
+const pinButton = useTemplateRef<HTMLButtonElement>('pinButton');
+
+watch(collapsed, value => {
+  if (value && document.activeElement === pinButton.value) collapseButton.value?.focus();
+});
 </script>
 
 <template>
-  <aside class="layout-sidebar" :aria-label="t('主导航')">
+  <aside
+    id="app-sidebar"
+    class="layout-sidebar"
+    :class="{ 'layout-sidebar--collapsed': collapsed }"
+    :aria-label="t('主导航')"
+    @pointerenter="hovering = $event.pointerType === 'mouse'"
+    @pointerleave="hovering = false"
+  >
     <div class="layout-sidebar__top">
       <img class="layout-sidebar__logo" :src="qualixLogo" :alt="collapsed ? 'Qualix' : ''" width="36" height="36" />
       <span v-if="!collapsed" class="layout-sidebar__brand" :title="t('Qualix 移动自动化平台')">Qualix</span>
     </div>
-    <el-menu :default-active="activeMenu" :default-openeds="['overview', 'laboratory']" :collapse="collapsed"
+    <el-menu id="app-sidebar-menu" :default-active="activeMenu" :default-openeds="['overview', 'laboratory']" :collapse="collapsed"
       :collapse-transition="false" class="layout-menu" @select="$emit('select', $event)">
       <el-menu-item index="appium" :aria-label="t('测试编排')"><el-icon><Monitor /></el-icon><template #title>{{ t('测试编排') }}</template></el-menu-item>
       <el-menu-item index="ai-orchestration" :aria-label="t('AI 编排')"><el-icon><MagicStick /></el-icon><template #title>{{ t('AI 编排') }}<span class="layout-menu__new">Beta</span></template></el-menu-item>
@@ -28,10 +46,65 @@ defineEmits<{ select: [key: string] }>();
       <el-menu-item index="config" :aria-label="t('参数配置')"><el-icon><Setting /></el-icon><template #title>{{ t("参数配置") }}</template></el-menu-item>
       <el-menu-item index="about" :aria-label="t('关于')"><el-icon><InfoFilled /></el-icon><template #title>{{ t("关于") }}</template></el-menu-item>
     </el-menu>
+    <div class="layout-sidebar__controls">
+      <button
+        ref="collapseButton"
+        type="button"
+        :aria-label="t(collapsed ? '展开导航' : '收起导航')"
+        :title="t(collapsed ? '展开导航' : '收起导航')"
+        :aria-expanded="!collapsed"
+        aria-controls="app-sidebar-menu"
+        @click="mode = collapsed ? 'expanded' : 'collapsed'"
+      >
+        <component :is="collapsed ? DArrowRight : DArrowLeft" aria-hidden="true" />
+      </button>
+      <button
+        v-if="!collapsed"
+        ref="pinButton"
+        type="button"
+        :aria-label="t('固定侧栏')"
+        :title="t(mode === 'expanded' ? '取消固定侧栏' : '固定侧栏')"
+        :aria-pressed="mode === 'expanded'"
+        @click="mode = mode === 'expanded' ? 'hover' : 'expanded'"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path v-if="mode === 'expanded'" d="M16 9V4l1-1V2H7v1l1 1v5a4 4 0 0 1-4 4v2h16v-2a4 4 0 0 1-4-4ZM12 15v7" />
+          <path v-else d="m2 2 20 20M12 15v7M9 2h8v1l-1 1v5a4 4 0 0 0 4 4v2M8 9a4 4 0 0 1-4 4v2h11" />
+        </svg>
+      </button>
+    </div>
   </aside>
 </template>
 
 <style scoped>
+.layout-sidebar__controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+}
+
+.layout-sidebar__controls button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: var(--ui-bg-soft);
+  color: var(--ui-text-secondary);
+  cursor: pointer;
+}
+
+.layout-sidebar__controls button:hover {
+  background: var(--el-color-primary-light-9);
+  color: var(--ui-text);
+}
+
+.layout-sidebar__controls svg { width: 16px; height: 16px; }
+
 .layout-menu__new {
   margin-left: 6px;
   color: var(--el-color-danger);

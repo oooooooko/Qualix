@@ -219,7 +219,7 @@ function handleEnter(event: KeyboardEvent) {
   height: 100%;
   min-height: 0;
   min-width: 0;
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
   border: 0;
   border-left: 1px solid #e2e8f0;
   border-radius: 0;
@@ -235,14 +235,14 @@ function handleEnter(event: KeyboardEvent) {
 .ai-chat__heading strong {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
 }
 .ai-chat__heading span {
   font-size: 10px;
-  color: #8090a3;
+  color: light-dark(#8090a3, var(--ui-text-muted));
   padding: 3px 7px;
   border-radius: 8px;
-  background: #f2f5f9;
+  background: light-dark(#f2f5f9, var(--ui-bg-soft));
 }
 .ai-chat__messages {
   flex: 1;
@@ -254,12 +254,12 @@ function handleEnter(event: KeyboardEvent) {
   max-width: 470px;
   margin: 10vh auto;
   text-align: center;
-  color: #94a3b8;
+  color: light-dark(#94a3b8, var(--ui-text-muted));
   font-size: 13px;
   line-height: 1.8;
 }
 .ai-chat__empty h3 {
-  color: #334155;
+  color: light-dark(#334155, var(--ui-text-secondary));
   font-size: 20px;
   margin: 0 0 12px;
   font-weight: 600;
@@ -270,7 +270,7 @@ function handleEnter(event: KeyboardEvent) {
 .ai-chat__message > span {
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  color: light-dark(#94a3b8, var(--ui-text-muted));
 }
 .ai-chat__message p {
   white-space: pre-wrap;
@@ -278,13 +278,13 @@ function handleEnter(event: KeyboardEvent) {
   margin: 6px 0 0;
   font-size: 13px;
   line-height: 1.9;
-  color: #334155;
+  color: light-dark(#334155, var(--ui-text-secondary));
 }
 .ai-chat__message--user {
   margin-left: clamp(24px, 8%, 90px);
 }
 .ai-chat__message--user p {
-  background: #f0f6ff;
+  background: light-dark(#f0f6ff, var(--el-color-primary-light-9));
   padding: 12px 16px;
   border-radius: 16px 16px 4px 16px;
 }
@@ -295,15 +295,15 @@ function handleEnter(event: KeyboardEvent) {
   position: relative;
   margin: 10px 14px 16px;
   padding: 12px 14px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid light-dark(#e2e8f0, var(--ui-border));
   border-radius: 18px;
-  background: #f8fafd;
+  background: light-dark(#f8fafd, var(--ui-bg-soft));
   box-shadow: 0 4px 16px #1e293b05;
   overflow: hidden;
 }
 .ai-chat__composer:focus-within {
-  border-color: #9bbdec;
-  background: #fff;
+  border-color: light-dark(#9bbdec, var(--el-color-primary-light-7));
+  background: light-dark(#fff, var(--ui-surface));
   box-shadow: 0 0 0 3px #3b82f60a;
 }
 .ai-chat__composer :deep(.el-textarea__inner),
@@ -317,7 +317,7 @@ function handleEnter(event: KeyboardEvent) {
   font-size: 13px;
   line-height: 22px;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: light-dark(#cbd5e1, var(--ui-border-strong)) transparent;
 }
 .ai-chat__send-row {
   display: flex;
@@ -326,7 +326,7 @@ function handleEnter(event: KeyboardEvent) {
   gap: 12px;
 }
 .ai-chat__send-row > span {
-  color: #a1adbd;
+  color: light-dark(#a1adbd, var(--ui-text-muted));
   font-size: 10px;
   line-height: 1.5;
 }
@@ -348,9 +348,9 @@ function handleEnter(event: KeyboardEvent) {
   border-radius: 50%;
   font-size: 17px;
   box-shadow: none;
-  --el-button-disabled-bg-color: #edf1f6;
+  --el-button-disabled-bg-color: light-dark(#edf1f6, var(--el-disabled-bg-color));
   --el-button-disabled-border-color: transparent;
-  --el-button-disabled-text-color: #abb6c5;
+  --el-button-disabled-text-color: light-dark(#abb6c5, var(--el-disabled-text-color));
 }
 .ai-chat__stop-icon {
   width: 10px;
@@ -363,7 +363,7 @@ function handleEnter(event: KeyboardEvent) {
   display: flex;
   gap: 8px;
   align-items: baseline;
-  color: #347bea;
+  color: light-dark(#347bea, var(--ui-primary));
   font-size: 12px;
   line-height: 1.8;
 }

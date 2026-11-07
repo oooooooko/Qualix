@@ -1,5 +1,6 @@
 {
   "更新记录": "Update record",
+  "优化界面": "Improve the interface",
   "[Appium]复制流程前检查节点引用、分支归属和连接脚本，目标缺失或脚本循环连接时明确提示。": "[Appium] Check node references, branch ownership and connection scripts before copying the process, and clearly prompt when the target is missing or the script is connected in a loop.",
   "[Appium]计时节点的回放日志显示开始计时、记录时间点或结束计时操作，以及计时器名称和 ID，保留原有时间及耗时数据。": "[Appium] The playback log of the timing node displays the start timing, recording time point or end timing operation, as well as the timer name and ID, retaining the original time and time-consuming data.",
   "[Appium]搜索节点支持输入纯数字按显示序号精确定位，主画布与流程总览同步生效，保留名称、操作、定位内容和日志的文字搜索。": "[Appium] The search node supports inputting pure numbers to accurately locate according to the display sequence number. The main canvas and process overview take effect simultaneously, and text searches for names, operations, positioning content and logs are retained.",
@@ -1308,7 +1309,7 @@
   "入口：参数配置 → 测试编排配置 → 模型服务 → 提示词优化模型。": "Entrance: Parameter configuration → Test Orchestration configuration → Model service → Prompt word optimization model.",
   "入口：参数配置 → 测试编排配置 → 回放与报告 → 回放截图。": "Entrance: Parameter Configuration → Test Orchestration Configuration → Playback and Report → Playback Screenshot.",
   "入口：参数配置 → 测试编排配置 → 回放与报告 → 回放报告总结。": "Entrance: Parameter Configuration → Test Orchestration Configuration → Playback and Report → Playback Report Summary.",
-  "入口：参数配置 → 测试编排配置 → 流程编辑器 → 流程外观。": "Entrance: Parameter Configuration → Test Orchestration Configuration → Process Editor → Process Appearance.",
+  "打开顶栏右侧的偏好设置，在流程编辑器中调整外观。": "Open Preferences on the right side of the header and adjust the appearance under Flow Editor.",
   "手动编排用于录制与编辑流程；新版 AI 编排支持对话生成、Flash / Pro、任务队列、笔记与计划和录像播放，详见 AI 编排说明。": "Manual orchestration records and edits flows. The new AI workspace supports chat generation, Flash / Pro, task queues, notes, plans and video playback. See the AI guide.",
   "设备预览使用独立的 ADB 截图通道，可以直接点击和滑动手机画面。": "Device preview uses an independent ADB screenshot channel and supports direct taps and swipes.",
   "[实验室]Midscene 升级至 v1.17.5，入口直接加载官方 Android Playground 原版页面，移除自定义脚本生成、脚本列表与参数配置页面。": "[Laboratory] Upgrade Midscene to v1.17.5 and load the original official Android Playground directly, removing the custom script generation, script list and settings pages.",

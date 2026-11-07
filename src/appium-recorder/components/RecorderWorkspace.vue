@@ -109,7 +109,7 @@ defineExpose({ showTree, showPreview });
 .recorder-workspace__panel :deep(.el-card__header) { padding: 12px 46px 12px 12px; min-height: 56px; }
 .recorder-workspace__panel :deep(.el-card__body) { padding: 10px; }
 .recorder-workspace__collapse { position: absolute; right: 9px; top: 13px; }
-.recorder-workspace__rail { display: flex; flex-direction: column; align-items: center; gap: 12px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-control); background: var(--ui-surface); color: #475569; padding: 14px 4px; cursor: pointer; }
+.recorder-workspace__rail { display: flex; flex-direction: column; align-items: center; gap: 12px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-control); background: var(--ui-surface); color: light-dark(#475569, var(--ui-text-secondary)); padding: 14px 4px; cursor: pointer; }
 .recorder-workspace__rail span { writing-mode: vertical-rl; font-size: 13px; }
 .recorder-workspace__separator { position: relative; cursor: col-resize; touch-action: none; user-select: none; background: transparent; outline: none; }
 .recorder-workspace__separator::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 3px; height: 42px; border-radius: 2px; background: var(--el-border-color-light); }

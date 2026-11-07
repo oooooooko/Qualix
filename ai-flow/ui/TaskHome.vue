@@ -298,7 +298,7 @@ function launch() {
   font-size: clamp(28px, 3vw, 44px);
   font-weight: 650;
   letter-spacing: -1px;
-  color: #111827;
+  color: light-dark(#111827, var(--ui-text));
   margin: 0;
 }
 .home-sections {
@@ -306,9 +306,9 @@ function launch() {
   max-width: 620px;
   margin: 0 auto 30px;
   padding: 4px;
-  border: 1px solid #e5e9f0;
+  border: 1px solid light-dark(#e5e9f0, var(--ui-border));
   border-radius: 40px;
-  background: #ffffffbc;
+  background: light-dark(#ffffffbc, var(--ui-surface));
   box-shadow: 0 4px 16px #0f172a08;
 }
 .home-sections button {
@@ -321,19 +321,19 @@ function launch() {
   border: 0;
   border-radius: 30px;
   background: transparent;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font: inherit;
   font-size: 14px;
   cursor: pointer;
 }
 .home-sections button[aria-selected="true"] {
-  background: #fff;
-  color: #172033;
+  background: light-dark(#fff, var(--ui-surface));
+  color: light-dark(#172033, var(--ui-text));
   box-shadow: 0 3px 10px #0f172a0c;
   font-weight: 600;
 }
 .home-sections button[aria-selected="true"] .el-icon {
-  color: #3479df;
+  color: light-dark(#3479df, var(--ui-primary));
 }
 .task-home__content,
 .home-settings {
@@ -341,20 +341,20 @@ function launch() {
   margin: auto;
 }
 .home-settings {
-  border: 1px solid #e6eaf1;
+  border: 1px solid light-dark(#e6eaf1, var(--ui-border));
   padding: 24px 30px;
   border-radius: 26px;
-  background: #ffffffed;
+  background: light-dark(#ffffffed, var(--ui-surface));
 }
 .home-readiness {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 14px 20px;
-  border: 1px solid #f4df95;
+  border: 1px solid light-dark(#f4df95, var(--el-color-warning-light-7));
   border-radius: 15px;
-  background: #fffbeb;
-  color: #985827;
+  background: light-dark(#fffbeb, var(--el-color-warning-light-9));
+  color: light-dark(#985827, var(--ui-warning));
   font-size: 13px;
   margin-bottom: 16px;
 }
@@ -369,9 +369,9 @@ function launch() {
 }
 .home-composer {
   padding: 24px;
-  border: 1px solid #fff;
+  border: 1px solid light-dark(#fff, var(--ui-border));
   border-radius: 28px;
-  background: #fffffff0;
+  background: light-dark(#fffffff0, var(--ui-surface));
   box-shadow: 0 12px 40px #22314d06;
 }
 .home-composer__target {
@@ -389,12 +389,12 @@ function launch() {
 }
 .home-composer :deep(.el-select__wrapper) {
   border-radius: 12px;
-  background: #f8fafc;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
   box-shadow: none;
 }
 .home-composer :deep(.el-textarea__inner) {
   padding: 10px 0;
-  color: #1e293b;
+  color: light-dark(#1e293b, var(--ui-text-secondary));
   background: transparent;
   box-shadow: none;
   font-size: 16px;
@@ -418,8 +418,8 @@ function launch() {
   display: flex;
   gap: 3px;
   padding: 4px;
-  border: 1px solid #e3e8f0;
-  background: #f3f6fa;
+  border: 1px solid light-dark(#e3e8f0, var(--ui-border));
+  background: light-dark(#f3f6fa, var(--ui-bg-soft));
   border-radius: 28px;
 }
 .home-mode-switch button {
@@ -429,18 +429,18 @@ function launch() {
   padding: 8px 14px;
   border: 0;
   border-radius: 22px;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   background: none;
   font-size: 12px;
   cursor: pointer;
 }
 .home-mode-switch button[aria-pressed="true"] {
-  background: #fff;
-  color: #172033;
+  background: light-dark(#fff, var(--ui-surface));
+  color: light-dark(#172033, var(--ui-text));
   box-shadow: 0 2px 6px #0f172a12;
 }
 .home-mode-switch .el-icon {
-  color: #367de3;
+  color: light-dark(#367de3, var(--ui-primary));
 }
 .home-recommendations {
   margin-top: 28px;
@@ -452,7 +452,7 @@ function launch() {
   font-size: 14px;
   font-weight: 600;
   margin: 0 0 16px;
-  color: #334155;
+  color: light-dark(#334155, var(--ui-text-secondary));
 }
 .home-recommendations h2 .el-icon {
   color: #8b83ed;
@@ -465,30 +465,30 @@ function launch() {
 .home-recommendations__grid > button {
   text-align: left;
   padding: 20px;
-  border: 1px solid #e3e8f0;
+  border: 1px solid light-dark(#e3e8f0, var(--ui-border));
   border-radius: 22px;
-  background: #ffffffb8;
-  color: #172033;
+  background: light-dark(#ffffffb8, var(--ui-surface));
+  color: light-dark(#172033, var(--ui-text));
   cursor: pointer;
   transition:
     border-color 0.15s,
     box-shadow 0.15s;
 }
 .home-recommendations__grid > button:hover {
-  border-color: #a6c6f3;
+  border-color: light-dark(#a6c6f3, var(--el-color-primary-light-7));
   box-shadow: 0 6px 20px #3479df0a;
 }
 .home-recommendations__grid > button > div {
   display: flex;
   gap: 8px;
   align-items: center;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 12px;
 }
 .home-recommendations__grid small {
   margin-left: auto;
-  color: #6175cf;
-  background: #edf0ff;
+  color: light-dark(#6175cf, var(--ui-primary));
+  background: light-dark(#edf0ff, var(--el-color-primary-light-9));
   border-radius: 9px;
   padding: 3px 8px;
 }
@@ -497,7 +497,7 @@ function launch() {
   margin: 18px 0 8px;
 }
 .home-recommendations p {
-  color: #94a3b8;
+  color: light-dark(#94a3b8, var(--ui-text-muted));
   font-size: 12px;
   line-height: 1.7;
   min-height: 40px;
@@ -509,7 +509,7 @@ function launch() {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  color: #598cd5;
+  color: light-dark(#598cd5, var(--ui-primary));
   font-size: 12px;
 }
 @media (max-width: 1000px) {

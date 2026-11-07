@@ -437,7 +437,7 @@ The summary time is not included in the total equipment test time. The content s
 
 ## 16. Configure the appearance of the process editor
 
-入口：**参数配置 → 测试编排配置 → 流程编辑器 → 流程外观**。
+Open **Preferences** on the right side of the header and adjust the appearance under **Flow Editor**.
 
 The process background color and connection line color can be set separately. Each supports preselected colors, color picker, hex color input and restore to default. The color value supports `#RGB` or `#RRGGBB`. When the input is invalid, the page will display a verification prompt.
 

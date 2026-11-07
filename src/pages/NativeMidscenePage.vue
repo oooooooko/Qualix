@@ -113,7 +113,7 @@ onScopeDispose(() => {
   overflow: hidden;
   border: 1px solid var(--ui-border);
   border-radius: 14px;
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
 }
 .native-midscene-frame {
   width: 100%;

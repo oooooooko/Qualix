@@ -161,7 +161,7 @@ async function upload(event: Event) {
 .image-check-template { display: grid; gap: 6px; margin-bottom: 16px; min-width: 0; }
 .image-check-size { color: var(--ui-text-secondary); font-size: 12px; }
 .image-check-region-warning { margin-bottom: 16px; }
-.image-check-template .el-image, .image-check-empty { height: 96px; width: 100%; background: #eff5f3; border: 1px solid #d5dfdb; border-radius: 4px; }
+.image-check-template .el-image, .image-check-empty { height: 96px; width: 100%; background: light-dark(#eff5f3, var(--ui-bg-soft)); border: 1px solid light-dark(#d5dfdb, var(--ui-border)); border-radius: 4px; }
 .image-check-empty { display: grid; place-items: center; color: var(--ui-text-secondary); }
 @media (max-width: 480px) {
   .image-check-grid { grid-template-columns: minmax(0, 1fr); }

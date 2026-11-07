@@ -414,7 +414,7 @@ defineExpose({
 }
 .task-tool-item {
   padding: 16px;
-  border: 1px solid #e3e8f0;
+  border: 1px solid light-dark(#e3e8f0, var(--ui-border));
   border-radius: 16px;
   margin-bottom: 12px;
 }
@@ -430,7 +430,7 @@ defineExpose({
 .task-tool-item p {
   font-size: 12px;
   line-height: 1.8;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   white-space: pre-wrap;
 }
 .task-tool-item footer {
@@ -442,7 +442,7 @@ defineExpose({
   margin-left: 0;
 }
 .task-tool-item small {
-  color: #94a3b8;
+  color: light-dark(#94a3b8, var(--ui-text-muted));
 }
 .task-plan {
   padding-left: 20px;
@@ -455,7 +455,7 @@ defineExpose({
   margin-left: 8px;
 }
 .task-plan p {
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   line-height: 1.7;
 }
 .notes-save {

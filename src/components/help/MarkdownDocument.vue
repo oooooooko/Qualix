@@ -32,16 +32,16 @@ const exampleText = (text: string) => text.split('\n').map(line => t(line)).join
 </template>
 
 <style scoped>
-.markdown-document { color: #475569; font-size: 14px; line-height: 1.75; }
-.markdown-document__h1 { margin: 0 0 18px; color: #1f2937; font-size: 24px; }
-.markdown-document__h2 { margin: 24px 0 10px; color: #1f2937; font-size: 19px; }
-.markdown-document__h3 { margin: 18px 0 8px; color: #334155; font-size: 16px; }
+.markdown-document { color: light-dark(#475569, var(--ui-text-secondary)); font-size: 14px; line-height: 1.75; }
+.markdown-document__h1 { margin: 0 0 18px; color: light-dark(#1f2937, var(--ui-text)); font-size: 24px; }
+.markdown-document__h2 { margin: 24px 0 10px; color: light-dark(#1f2937, var(--ui-text)); font-size: 19px; }
+.markdown-document__h3 { margin: 18px 0 8px; color: light-dark(#334155, var(--ui-text-secondary)); font-size: 16px; }
 .markdown-document__paragraph { margin: 8px 0; }
 .markdown-document__list { display: grid; gap: 5px; margin: 8px 0; padding-left: 24px; }
-.markdown-document__code { margin: 12px 0; padding: 14px; overflow: auto; border-radius: 8px; background: #f3f6fa; color: #334155; white-space: pre-wrap; }
+.markdown-document__code { margin: 12px 0; padding: 14px; overflow: auto; border-radius: 8px; background: light-dark(#f3f6fa, var(--ui-bg-soft)); color: light-dark(#334155, var(--ui-text-secondary)); white-space: pre-wrap; }
 .markdown-document__table-wrap { margin: 12px 0; overflow-x: auto; }
 .markdown-document__table { width: 100%; border-collapse: collapse; }
 .markdown-document__table th,
-.markdown-document__table td { padding: 9px 12px; border: 1px solid #e2e8f0; text-align: left; vertical-align: top; }
-.markdown-document__table th { background: #f8fafc; color: #334155; }
+.markdown-document__table td { padding: 9px 12px; border: 1px solid light-dark(#e2e8f0, var(--ui-border)); text-align: left; vertical-align: top; }
+.markdown-document__table th { background: light-dark(#f8fafc, var(--ui-bg-soft)); color: light-dark(#334155, var(--ui-text-secondary)); }
 </style>

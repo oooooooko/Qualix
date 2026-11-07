@@ -3,13 +3,16 @@ import ElementPlus, { ElConfigProvider } from 'element-plus';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
 import en from 'element-plus/es/locale/lang/en';
 import 'element-plus/dist/index.css';
+import 'element-plus/theme-chalk/dark/css-vars.css';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import App from './App.vue';
 import { locale, t } from './i18n';
+import { darkMode } from './theme';
 import './style.css';
 
 const elementLocale = computed(() => locale.value === 'zh-CN' ? zhCn : en);
+watch(darkMode, value => document.documentElement.classList.toggle('dark', value), { immediate: true });
 watch(locale, value => {
   document.documentElement.lang = value;
   document.title = t('Qualix 移动自动化平台');

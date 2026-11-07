@@ -171,8 +171,8 @@ watch(
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #f4fafb;
-  color: #334155;
+  background: light-dark(#f4fafb, var(--ui-bg-soft));
+  color: light-dark(#334155, var(--ui-text-secondary));
 }
 .activity-heading {
   display: flex;
@@ -192,11 +192,11 @@ watch(
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #8090a3;
+  color: light-dark(#8090a3, var(--ui-text-muted));
   font-size: 11px;
   padding: 5px 10px;
   border-radius: 20px;
-  background: #eaf0f3;
+  background: light-dark(#eaf0f3, var(--ui-bg-soft));
 }
 .activity-status i {
   width: 6px;
@@ -205,20 +205,20 @@ watch(
   background: currentColor;
 }
 .activity-status.running {
-  background: #eaf2ff;
-  color: #347bea;
+  background: light-dark(#eaf2ff, var(--el-color-primary-light-9));
+  color: light-dark(#347bea, var(--ui-primary));
 }
 .activity-status.completed {
-  background: #e7f6ef;
-  color: #369b6a;
+  background: light-dark(#e7f6ef, var(--el-color-success-light-9));
+  color: light-dark(#369b6a, var(--ui-success));
 }
 .activity-status.failed {
-  background: #fff0ef;
-  color: #d3655a;
+  background: light-dark(#fff0ef, var(--el-color-danger-light-9));
+  color: light-dark(#d3655a, var(--ui-danger));
 }
 .activity-status.stopped {
-  background: #fff5e5;
-  color: #b7853a;
+  background: light-dark(#fff5e5, var(--el-color-warning-light-9));
+  color: light-dark(#b7853a, var(--ui-warning));
 }
 .activity-feed {
   flex: 1;
@@ -226,16 +226,16 @@ watch(
   overflow-y: auto;
   padding: 22px 26px 30px;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: light-dark(#cbd5e1, var(--ui-border-strong)) transparent;
 }
 .activity-error {
   margin-bottom: 16px;
 }
 .activity-plan {
   padding: 16px 18px;
-  border: 1px solid #e0eaee;
+  border: 1px solid light-dark(#e0eaee, var(--ui-border));
   border-radius: 16px;
-  background: #ffffffad;
+  background: light-dark(#ffffffad, var(--ui-surface));
   margin-bottom: 22px;
 }
 .activity-plan > div:first-child {
@@ -250,7 +250,7 @@ watch(
   font-weight: 500;
 }
 .activity-plan span {
-  color: #94a3b8;
+  color: light-dark(#94a3b8, var(--ui-text-muted));
   font-size: 11px;
 }
 .activity-plan p {
@@ -258,13 +258,13 @@ watch(
   font-size: 12px;
   line-height: 1.8;
   overflow-wrap: anywhere;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
 }
 .activity-progress {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  color: #6d859e;
+  color: light-dark(#6d859e, var(--ui-text-muted));
   font-size: 12px;
   line-height: 1.8;
   margin: 0 0 20px;
@@ -304,10 +304,10 @@ watch(
   box-shadow: 0 0 0 4px #edf4fb;
 }
 .activity-timeline article {
-  border: 1px solid #e2eaf0;
+  border: 1px solid light-dark(#e2eaf0, var(--ui-border));
   border-radius: 16px;
   padding: 14px 16px;
-  background: #ffffffd6;
+  background: light-dark(#ffffffd6, var(--ui-surface));
 }
 .activity-timeline article header {
   display: flex;
@@ -318,11 +318,11 @@ watch(
 .activity-timeline strong {
   font-size: 11px;
   font-weight: 500;
-  color: #6991c4;
+  color: light-dark(#6991c4, var(--ui-primary));
 }
 .activity-timeline time {
   font-size: 10px;
-  color: #a1adbd;
+  color: light-dark(#a1adbd, var(--ui-text-muted));
 }
 .activity-timeline p {
   white-space: pre-wrap;
@@ -340,9 +340,9 @@ watch(
 }
 .activity-result {
   padding: 16px 18px;
-  border: 1px solid #dfe8ed;
+  border: 1px solid light-dark(#dfe8ed, var(--ui-border));
   border-radius: 16px;
-  background: #ffffffb5;
+  background: light-dark(#ffffffb5, var(--ui-surface));
 }
 .activity-result h3 {
   margin: 0 0 10px;
@@ -357,22 +357,22 @@ watch(
   overflow-wrap: anywhere;
 }
 .activity-result.completed {
-  border-color: #d3e9df;
-  background: #f2faf6;
+  border-color: light-dark(#d3e9df, var(--el-color-success-light-7));
+  background: light-dark(#f2faf6, var(--el-color-success-light-9));
 }
 .activity-result.completed h3 {
-  color: #439b76;
+  color: light-dark(#439b76, var(--ui-success));
 }
 .activity-result.failed {
-  border-color: #efdbd9;
-  background: #fff6f4;
+  border-color: light-dark(#efdbd9, var(--el-color-danger-light-7));
+  background: light-dark(#fff6f4, var(--el-color-danger-light-9));
 }
 .activity-result.failed h3 {
-  color: #c8695e;
+  color: light-dark(#c8695e, var(--ui-danger));
 }
 .activity-empty-hint {
   margin: 0;
-  color: #94a3b8;
+  color: light-dark(#94a3b8, var(--ui-text-muted));
   font-size: 12px;
   line-height: 1.8;
   max-width: 330px;

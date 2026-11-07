@@ -2,7 +2,6 @@
 import { t } from '../../i18n';
 import { Delete, Edit } from '@element-plus/icons-vue';
 import type { AppPreset, ConfigForm } from '../../types';
-import LanguageSwitcher from '../LanguageSwitcher.vue';
 
 defineProps<{
   configForm: ConfigForm;
@@ -23,16 +22,6 @@ defineEmits<{
 
 <template>
   <div class="config-grid">
-    <el-card shadow="never" class="config-module-card" role="region" aria-labelledby="interface-settings-title">
-      <template #header>
-        <div class="panel-header"><span id="interface-settings-title">{{ t("界面设置") }}</span></div>
-      </template>
-      <div class="interface-language">
-        <span>{{ t("界面语言") }}</span>
-        <LanguageSwitcher />
-      </div>
-    </el-card>
-
     <el-card shadow="never" class="config-module-card">
       <template #header>
         <div class="panel-header">
@@ -117,8 +106,6 @@ defineEmits<{
 </template>
 
 <style scoped>
-.interface-language { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
-.interface-language > span { color: var(--ui-text-secondary); font-size: 13px; }
 .runtime-config-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 .runtime-config-form :deep(.el-form-item) { margin-bottom: 0; }
 @media (max-width: 1000px) { .runtime-config-form { grid-template-columns: minmax(0, 1fr); } }

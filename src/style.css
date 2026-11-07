@@ -1,5 +1,4 @@
 :root {
-  background: #f8f9fa;
   font-family:
     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
   line-height: 1.5;
@@ -40,6 +39,7 @@ select {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 }
 
 .layout-sidebar__top {
@@ -55,6 +55,7 @@ select {
 .layout-menu {
   flex: 1;
   min-height: 0;
+  overflow: hidden auto;
   border-right: 0;
   background: transparent;
 }
@@ -83,9 +84,9 @@ select {
 .action-dialog__error {
   min-height: 72px;
   padding: 14px 16px;
-  border: 1px solid #ffd6d6;
+  border: 1px solid light-dark(#ffd6d6, var(--el-color-danger-light-7));
   border-radius: var(--ui-radius-control);
-  background: #fff5f5;
+  background: light-dark(#fff5f5, var(--el-color-danger-light-9));
   color: var(--ui-danger);
   font-size: 13px;
   line-height: 1.6;
@@ -119,21 +120,6 @@ select {
   to {
     transform: rotate(360deg);
   }
-}
-
-.layout-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--ui-border);
-}
-
-.layout-header__actions {
-  display: flex;
-}
-
-.layout-header__button--loading .el-icon {
-  animation: action-dialog-spin 1s linear infinite;
 }
 
 .page-body {
@@ -263,7 +249,7 @@ select {
   height: 100%;
   min-height: 0;
   overflow: auto;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: light-dark(#cbd5e1, var(--ui-border-strong)) transparent;
 }
 
 .appium-tree .el-tree {
@@ -284,15 +270,15 @@ select {
   flex: 0 0 auto;
   padding: 0 5px;
   border-radius: 999px;
-  background: #f0f9eb;
-  color: #529b2e;
+  background: light-dark(#f0f9eb, var(--el-color-success-light-9));
+  color: light-dark(#529b2e, var(--ui-success));
   font-size: 11px;
   line-height: 18px;
 }
 
 .appium-tree-node__badge--duplicate {
-  background: #fdf6ec;
-  color: #b88230;
+  background: light-dark(#fdf6ec, var(--el-color-warning-light-9));
+  color: light-dark(#b88230, var(--ui-warning));
 }
 
 .appium-tree::-webkit-scrollbar {
@@ -307,7 +293,7 @@ select {
 
 .appium-tree::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background: #cbd5e1;
+  background: light-dark(#cbd5e1, var(--ui-border-strong));
 }
 
 .appium-tree-panel {
@@ -402,7 +388,7 @@ select {
 
 .appium-script-list__main span,
 .appium-script-list__main small {
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 12px;
 }
 
@@ -460,7 +446,7 @@ select {
   overflow-x: hidden;
   overflow-y: auto;
   padding-right: 4px;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: light-dark(#cbd5e1, var(--ui-border-strong)) transparent;
 }
 
 .appium-recorded-steps::-webkit-scrollbar {
@@ -473,7 +459,7 @@ select {
 
 .appium-recorded-steps::-webkit-scrollbar-thumb {
   border-radius: 3px;
-  background: #cbd5e1;
+  background: light-dark(#cbd5e1, var(--ui-border-strong));
 }
 
 .appium-step-item {
@@ -490,7 +476,7 @@ select {
   padding: 8px;
   border: 1px solid var(--ui-border);
   border-radius: 6px;
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
   min-height: var(--appium-step-row-height);
   min-width: 0;
   max-width: 100%;
@@ -499,7 +485,7 @@ select {
 
 .appium-step-row--delay {
   border-style: dashed;
-  background: #f8fafc;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
 }
 
 .appium-step-row__index {
@@ -508,8 +494,8 @@ select {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #eef2ff;
-  color: #475569;
+  background: light-dark(#eef2ff, var(--el-color-primary-light-9));
+  color: light-dark(#475569, var(--ui-text-secondary));
   font-size: 12px;
   font-weight: 700;
 }
@@ -533,7 +519,7 @@ select {
 .appium-step-row__main small {
   display: block;
   min-width: 0;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 12px;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -559,10 +545,10 @@ select {
   justify-content: center;
   gap: 4px;
   height: var(--appium-step-insert-height);
-  border: 1px dashed #d6dde8;
+  border: 1px dashed light-dark(#d6dde8, var(--ui-border-strong));
   border-radius: 6px;
-  background: #fff;
-  color: #64748b;
+  background: light-dark(#fff, var(--ui-surface));
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 12px;
   cursor: pointer;
 }
@@ -570,7 +556,7 @@ select {
 .appium-step-insert-delay:hover {
   border-color: var(--ui-primary);
   color: var(--ui-primary);
-  background: #f5f9ff;
+  background: light-dark(#f5f9ff, var(--el-color-primary-light-9));
 }
 
 .appium-step-insert-delay:disabled {
@@ -592,7 +578,7 @@ select {
 
 .appium-flow-toolbar__status {
   margin-right: 2px;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 12px;
 }
 
@@ -605,7 +591,7 @@ select {
   border-radius: 8px;
   background:
     radial-gradient(circle at 1px 1px, #e7edf6 1px, transparent 0) 0 0 / 18px 18px,
-    #fff;
+    light-dark(#fff, var(--ui-surface));
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -645,7 +631,7 @@ select {
   border-radius: 8px;
   background:
     radial-gradient(circle at 1px 1px, #e7edf6 1px, transparent 0) 0 0 / 18px 18px,
-    #fff;
+    light-dark(#fff, var(--ui-surface));
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -719,7 +705,7 @@ select {
   padding: 0 6px;
   border: 1px solid var(--ui-primary);
   border-radius: 8px;
-  background: #ecf5ff;
+  background: light-dark(#ecf5ff, var(--el-color-primary-light-9));
   color: var(--ui-primary-active);
   font-size: 12px;
   font-weight: 700;
@@ -762,9 +748,9 @@ select {
   width: 100%;
   min-width: 0;
   padding: 6px 8px;
-  border: 1px solid #d8e0ea;
+  border: 1px solid light-dark(#d8e0ea, var(--ui-border));
   border-radius: 8px;
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
   color: var(--ui-text);
   text-align: left;
   cursor: pointer;
@@ -795,12 +781,12 @@ select {
 
 .appium-flow-node--condition {
   border-color: #e6a23c;
-  background: #fffaf0;
+  background: light-dark(#fffaf0, var(--el-color-warning-light-9));
 }
 
 .appium-flow-node--assertion {
   border-color: #67c23a;
-  background: #f6fff3;
+  background: light-dark(#f6fff3, var(--el-color-success-light-9));
 }
 
 .appium-flow-node--expanded {
@@ -815,7 +801,7 @@ select {
 .appium-flow-node--selected {
   border-color: var(--ui-primary-active);
   box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.32);
-  background: #d9ecff;
+  background: light-dark(#d9ecff, var(--el-color-primary-light-9));
 }
 
 .appium-flow-node__body {
@@ -834,7 +820,7 @@ select {
 
 .appium-flow-node__meta {
   min-width: 0;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 11px;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -891,7 +877,7 @@ select {
   justify-self: center;
   background:
     radial-gradient(circle at 1px 1px, #e7edf6 1px, transparent 0) 0 0 / 18px 18px,
-    #fff;
+    light-dark(#fff, var(--ui-surface));
 }
 
 .appium-flow-nested-condition > .appium-flow-branches {
@@ -943,7 +929,7 @@ select {
   max-width: none;
   min-width: 420px;
   padding: 0;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 11px;
 }
 
@@ -979,9 +965,9 @@ select {
   justify-self: center;
   min-height: 24px;
   padding: 4px 10px;
-  border: 1px solid #d8e0ea;
+  border: 1px solid light-dark(#d8e0ea, var(--ui-border));
   border-radius: 999px;
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
   color: var(--ui-text);
   font-weight: 600;
   line-height: 1.4;
@@ -1025,9 +1011,9 @@ select {
   max-width: 420px;
   min-width: 0;
   padding: 6px 8px;
-  border: 1px solid #d8e0ea;
+  border: 1px solid light-dark(#d8e0ea, var(--ui-border));
   border-radius: 8px;
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
 }
 
 .appium-flow-branch__insert {
@@ -1054,7 +1040,7 @@ select {
 .appium-flow-branch:has(
   .appium-flow-branch-step-group:last-child > .appium-flow-nested-condition
 ) > .appium-flow-branch__actions {
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
   box-shadow: 0 -10px 0 #fff;
 }
 
@@ -1099,11 +1085,11 @@ select {
 }
 
 .appium-flow-branch--yes .appium-flow-branch-step:not(.appium-flow-node--selected) {
-  border-color: #b3e19d;
+  border-color: light-dark(#b3e19d, var(--el-color-success-light-7));
 }
 
 .appium-flow-branch--no .appium-flow-branch-step:not(.appium-flow-node--selected) {
-  border-color: #fab6b6;
+  border-color: light-dark(#fab6b6, var(--el-color-danger-light-7));
 }
 
 .appium-flow-editor {
@@ -1111,9 +1097,9 @@ select {
   z-index: 1;
   min-width: 0;
   padding: 10px;
-  border: 1px solid #dce7f5;
+  border: 1px solid light-dark(#dce7f5, var(--ui-border));
   border-radius: 8px;
-  background: #f8fbff;
+  background: light-dark(#f8fbff, var(--el-color-primary-light-9));
 }
 
 .appium-flow-editor__grid {
@@ -1169,10 +1155,10 @@ select {
   gap: 4px;
   margin-left: 0;
   padding: 3px 8px;
-  border: 1px dashed #d6dde8;
+  border: 1px dashed light-dark(#d6dde8, var(--ui-border-strong));
   border-radius: 999px;
-  background: #fff;
-  color: #64748b;
+  background: light-dark(#fff, var(--ui-surface));
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 12px;
   cursor: pointer;
 }
@@ -1180,7 +1166,7 @@ select {
 .appium-flow-insert:hover {
   border-color: var(--ui-primary);
   color: var(--ui-primary);
-  background: #f5f9ff;
+  background: light-dark(#f5f9ff, var(--el-color-primary-light-9));
 }
 
 .appium-flow-insert:disabled {
@@ -1224,7 +1210,7 @@ select {
   padding: 8px 10px;
   border: 1px solid var(--ui-border);
   border-radius: 6px;
-  background: #f7f8fa;
+  background: light-dark(#f7f8fa, var(--ui-bg-soft));
   color: var(--ui-text-secondary);
   font-family: inherit;
   line-height: 1.5;
@@ -1239,12 +1225,12 @@ select {
   display: grid;
   gap: 4px;
   margin-bottom: 10px;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 13px;
 }
 
 .appium-linked-script-preview-meta strong {
-  color: #1f2937;
+  color: light-dark(#1f2937, var(--ui-text));
 }
 
 .appium-linked-script-preview-canvas.appium-flow-canvas--vue {
@@ -1353,7 +1339,7 @@ select {
 .appium-navigation-dialog {
   display: grid;
   gap: 12px;
-  color: #475569;
+  color: light-dark(#475569, var(--ui-text-secondary));
   font-size: 13px;
 }
 
@@ -1375,7 +1361,7 @@ select {
 }
 
 .appium-navigation-dialog dt {
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-weight: 700;
 }
 
@@ -1582,9 +1568,9 @@ select {
   gap: 12px;
   min-height: 62px;
   padding: 10px 12px;
-  border: 1px solid #ebeef5;
+  border: 1px solid light-dark(#ebeef5, var(--ui-border));
   border-radius: 6px;
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
 }
 
 .app-preset-row__main {
@@ -1601,7 +1587,7 @@ select {
 }
 
 .app-preset-row__main span {
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 12px;
 }
 
@@ -1611,8 +1597,8 @@ select {
   margin: 0;
   padding: 14px;
   border-radius: 6px;
-  background: #f8fafc;
-  color: #334155;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
+  color: light-dark(#334155, var(--ui-text-secondary));
   font-size: 13px;
   line-height: 1.7;
   white-space: pre-wrap;
@@ -1620,7 +1606,7 @@ select {
 
 .method-guide {
   margin-bottom: 16px;
-  border: 1px solid #ebeef5;
+  border: 1px solid light-dark(#ebeef5, var(--ui-border));
   border-radius: 6px;
 }
 
@@ -1656,7 +1642,7 @@ select {
 }
 
 .method-guide__text code {
-  color: #1d4ed8;
+  color: light-dark(#1d4ed8, var(--ui-primary));
   font-size: 12px;
   white-space: pre-wrap;
 }
@@ -1727,20 +1713,20 @@ select {
 
 .step-item {
   padding: 16px;
-  border: 1px solid #ebeef5;
+  border: 1px solid light-dark(#ebeef5, var(--ui-border));
   border-radius: 6px;
 }
 
 .step-item--readonly {
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
 }
 
 .step-example-code {
   margin: 10px 0 0;
   padding: 10px;
   border-radius: 4px;
-  background: #f8fafc;
-  color: #1d4ed8;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
+  color: light-dark(#1d4ed8, var(--ui-primary));
   font-size: 12px;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -1893,8 +1879,8 @@ select {
   padding: 12px;
   border: 1px dashed var(--ui-border-strong);
   border-radius: 6px;
-  background: #f8fafc;
-  color: #909399;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
+  color: light-dark(#909399, var(--ui-text-muted));
   font-size: 13px;
 }
 
@@ -1902,7 +1888,7 @@ select {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #cbd5e1;
+  background: light-dark(#cbd5e1, var(--ui-border-strong));
 }
 
 .automation-layout {
@@ -2019,9 +2005,9 @@ select {
   justify-content: space-between;
   width: 100%;
   padding: 12px;
-  border: 1px solid #ebeef5;
+  border: 1px solid light-dark(#ebeef5, var(--ui-border));
   border-radius: 6px;
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
   text-align: left;
   cursor: pointer;
 }
@@ -2041,7 +2027,7 @@ select {
 
 .script-row__main span,
 .script-row__main small {
-  color: #909399;
+  color: light-dark(#909399, var(--ui-text-muted));
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2049,7 +2035,7 @@ select {
 }
 
 .script-row__main span {
-  color: #475569;
+  color: light-dark(#475569, var(--ui-text-secondary));
 }
 
 .script-row__actions {
@@ -2083,7 +2069,7 @@ select {
 .device-action-button {
   border: 0;
   background: transparent;
-  color: #3f4752;
+  color: light-dark(#3f4752, var(--ui-text-secondary));
   width: 30px;
   height: 30px;
   padding: 0;
@@ -2110,6 +2096,8 @@ select {
   color: inherit;
 }
 
+html.dark .device-action-button__icon { filter: invert(85%); }
+
 .device-action-button__icon[alt='任务'] {
   width: 14px;
   height: 14px;
@@ -2122,9 +2110,9 @@ select {
   transform: translateX(-50%);
   padding: 2px 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid #dbe3f0;
-  color: #475569;
+  background: var(--ui-surface);
+  border: 1px solid light-dark(#dbe3f0, var(--ui-border));
+  color: light-dark(#475569, var(--ui-text-secondary));
   font-size: 12px;
   line-height: 18px;
   white-space: nowrap;
@@ -2142,7 +2130,7 @@ select {
   content: '';
   width: 1px;
   height: 20px;
-  background: #d6dde8;
+  background: light-dark(#d6dde8, var(--ui-border-strong));
   order: 3;
   margin: 0 2px 0 4px;
 }
@@ -2177,8 +2165,8 @@ select {
 
 .device-preview--image {
   border-radius: 8px;
-  background: #f8fafc;
-  color: #334155;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
+  color: light-dark(#334155, var(--ui-text-secondary));
   border: 1px solid var(--ui-border);
 }
 
@@ -2214,7 +2202,7 @@ select {
   height: 100%;
   border: 0;
   display: block;
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
   pointer-events: none;
 }
 
@@ -2295,31 +2283,31 @@ select {
   padding: 12px;
   border: 1px solid var(--ui-border);
   border-radius: 6px;
-  background: #f8fafc;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
 }
 
 .run-result--success,
 .execution-output--success {
-  border-color: #b7ebc6;
-  background: #f6ffed;
+  border-color: light-dark(#b7ebc6, var(--el-color-success-light-7));
+  background: light-dark(#f6ffed, var(--el-color-success-light-9));
 }
 
 .run-result--error,
 .execution-output--error {
-  border-color: #fed7d7;
-  background: #fff5f5;
+  border-color: light-dark(#fed7d7, var(--el-color-danger-light-7));
+  background: light-dark(#fff5f5, var(--el-color-danger-light-9));
 }
 
 .run-result--running,
 .execution-output--running {
-  border-color: #fde68a;
-  background: #fffbeb;
+  border-color: light-dark(#fde68a, var(--el-color-warning-light-7));
+  background: light-dark(#fffbeb, var(--el-color-warning-light-9));
 }
 
 .run-result--stopped,
 .execution-output--stopped {
-  border-color: #fde68a;
-  background: #fffbeb;
+  border-color: light-dark(#fde68a, var(--el-color-warning-light-7));
+  background: light-dark(#fffbeb, var(--el-color-warning-light-9));
 }
 
 .run-result__header,
@@ -2342,7 +2330,7 @@ select {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #cbd5e1;
+  background: light-dark(#cbd5e1, var(--ui-border-strong));
 }
 
 .run-result--success .run-result__dot,
@@ -2369,7 +2357,7 @@ select {
 .execution-log__empty {
   display: block;
   margin-top: 8px;
-  color: #909399;
+  color: light-dark(#909399, var(--ui-text-muted));
   font-size: 12px;
 }
 
@@ -2381,8 +2369,8 @@ select {
   margin: 10px 0 0;
   padding: 10px;
   border-radius: 4px;
-  background: #fff;
-  color: #475569;
+  background: light-dark(#fff, var(--ui-surface));
+  color: light-dark(#475569, var(--ui-text-secondary));
   font-size: 12px;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -2437,13 +2425,13 @@ select {
   gap: 4px;
   min-width: 0;
   min-height: 24px;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 12px;
   font-weight: 600;
 }
 
 .execution-output-duration {
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-variant-numeric: tabular-nums;
   line-height: 24px;
 }
@@ -2496,7 +2484,7 @@ select {
   padding: 12px;
   border: 1px solid var(--ui-border);
   border-radius: 6px;
-  background: #f8fafc;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
 }
 
 .execution-step {
@@ -2511,8 +2499,8 @@ select {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #dbe3ee;
-  color: #475569;
+  background: light-dark(#dbe3ee, var(--ui-border-strong));
+  color: light-dark(#475569, var(--ui-text-secondary));
   font-size: 12px;
   font-weight: 700;
 }
@@ -2535,9 +2523,9 @@ select {
 .execution-step__body {
   min-width: 0;
   padding: 10px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid light-dark(#e2e8f0, var(--ui-border));
   border-radius: 6px;
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
 }
 
 .execution-step__top {
@@ -2550,7 +2538,7 @@ select {
 .execution-step__top strong {
   min-width: 0;
   overflow: hidden;
-  color: #1f2937;
+  color: light-dark(#1f2937, var(--ui-text));
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2558,14 +2546,14 @@ select {
 
 .execution-step__meta {
   margin-top: 4px;
-  color: #2563eb;
+  color: light-dark(#2563eb, var(--ui-primary));
   font-size: 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
 .execution-step p {
   margin: 6px 0 0;
-  color: #475569;
+  color: light-dark(#475569, var(--ui-text-secondary));
   font-size: 12px;
   line-height: 1.5;
 }
@@ -2574,7 +2562,7 @@ select {
 .execution-step__detail-text {
   display: block;
   margin-top: 8px;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font-size: 12px;
 }
 
@@ -2583,8 +2571,8 @@ select {
   overflow: auto;
   padding: 8px;
   border-radius: 4px;
-  background: #fff1f2;
-  color: #be123c;
+  background: light-dark(#fff1f2, var(--el-color-danger-light-9));
+  color: light-dark(#be123c, var(--ui-danger));
   white-space: pre-wrap;
 }
 
@@ -2660,7 +2648,7 @@ select {
   height: clamp(520px, calc(100vh - 300px), 780px);
   min-height: 520px;
   overflow: hidden;
-  border: 1px solid #e6edf5;
+  border: 1px solid light-dark(#e6edf5, var(--ui-border));
   border-radius: 12px;
   background: var(--flow-background, var(--ui-bg-soft));
 }
@@ -2802,8 +2790,8 @@ select {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: #e8f1ff;
-  color: #1677ff;
+  background: light-dark(#e8f1ff, var(--el-color-primary-light-9));
+  color: light-dark(#1677ff, var(--ui-primary));
   font-weight: 700;
   font-size: 13px;
 }
@@ -2872,7 +2860,7 @@ select {
   width: 34px;
   height: 34px;
   border: 0;
-  background: #1677ff;
+  background: light-dark(#1677ff, var(--ui-primary-solid));
   box-shadow: 0 8px 18px rgba(22, 119, 255, 0.25);
 }
 
@@ -2880,7 +2868,7 @@ select {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: #cbd5e1;
+  background: light-dark(#cbd5e1, var(--ui-border-strong));
   box-shadow: 0 0 0 4px rgba(203, 213, 225, 0.28);
 }
 
@@ -2915,7 +2903,7 @@ select {
 }
 
 .appium-flow-step-card:hover {
-  border-color: #a7c7f9;
+  border-color: light-dark(#a7c7f9, var(--el-color-primary-light-7));
   box-shadow: 0 10px 24px rgba(39, 111, 236, 0.12);
 }
 
@@ -3010,7 +2998,7 @@ select {
 
 .appium-action-dropdown__group {
   padding: 8px 14px 4px;
-  color: #94a3b8;
+  color: light-dark(#94a3b8, var(--ui-text-muted));
   font-weight: 600;
   font-size: 12px;
 }
@@ -3020,6 +3008,8 @@ select {
   --ui-primary: #1a73e8;
   --ui-primary-hover: #1557b0;
   --ui-primary-active: #174ea6;
+  --ui-primary-solid: var(--ui-primary);
+  --ui-primary-solid-hover: var(--ui-primary-hover);
   --ui-success: #059669;
   --ui-warning: #d97706;
   --ui-danger: #dc2626;
@@ -3088,6 +3078,68 @@ select {
   color: var(--ui-text);
 }
 
+html.dark {
+  --ui-primary: #a8b1ff;
+  --ui-primary-hover: #c1c7ff;
+  --ui-primary-active: #c1c7ff;
+  --ui-primary-solid: #3e63dd;
+  --ui-primary-solid-hover: #5c73e7;
+  --ui-success: #3dd68c;
+  --ui-warning: #f9b44e;
+  --ui-danger: #f66f81;
+  --ui-text: #dfdfd6;
+  --ui-text-secondary: #98989f;
+  --ui-text-muted: var(--ui-text-secondary);
+  --ui-border: #2e2e32;
+  --ui-border-strong: #3c3f44;
+  --ui-bg: #1b1b1f;
+  --ui-bg-soft: #202127;
+  --ui-surface: #202127;
+  --ui-shadow-card: 0 4px 14px rgb(0 0 0 / 22%);
+  --ui-shadow-control: 0 2px 6px rgb(0 0 0 / 24%);
+  --ui-shadow-inset: inset 0 1px 4px rgb(0 0 0 / 28%);
+  --ui-shadow-primary: 0 2px 8px rgb(0 0 0 / 30%);
+  --ui-shadow-popover: 0 8px 24px rgb(0 0 0 / 38%);
+  --el-bg-color: var(--ui-surface);
+  --el-bg-color-overlay: var(--ui-surface);
+  --el-bg-color-page: var(--ui-bg);
+  --el-text-color-regular: var(--ui-text);
+  --el-text-color-secondary: var(--ui-text-secondary);
+  --el-text-color-placeholder: var(--ui-text-muted);
+  --el-fill-color-blank: var(--ui-surface);
+  --el-fill-color: #32363f;
+  --el-fill-color-dark: #414853;
+  --el-fill-color-light: var(--ui-bg-soft);
+  --el-fill-color-lighter: var(--ui-bg);
+  --el-border-color: var(--ui-border-strong);
+  --el-border-color-light: var(--ui-border);
+  --el-border-color-lighter: var(--ui-border);
+  --el-color-primary: var(--ui-primary);
+  --el-color-primary-light-3: var(--ui-primary-solid-hover);
+  --el-color-primary-light-5: var(--ui-primary-solid);
+  --el-color-primary-light-7: #434983;
+  --el-color-primary-light-8: #373b69;
+  --el-color-primary-light-9: #646cff29;
+  --el-color-primary-dark-2: var(--ui-primary);
+  --el-color-success: var(--ui-success);
+  --el-color-success-dark-2: var(--ui-success);
+  --el-color-success-light-9: #10b98129;
+  --el-color-warning: var(--ui-warning);
+  --el-color-warning-dark-2: var(--ui-warning);
+  --el-color-warning-light-9: #eab30829;
+  --el-color-danger: var(--ui-danger);
+  --el-color-danger-dark-2: var(--ui-danger);
+  --el-color-danger-light-9: #f43f5e29;
+}
+
+html.dark .el-button--primary:not(.is-plain):not(.is-text):not(.is-link):not(.is-disabled) {
+  --el-button-bg-color: var(--ui-primary-solid);
+  --el-button-border-color: var(--ui-primary-solid);
+  --el-button-hover-bg-color: var(--ui-primary-solid-hover);
+  --el-button-hover-border-color: var(--ui-primary-solid-hover);
+  --el-button-active-bg-color: var(--ui-primary-solid);
+}
+
 body {
   background: var(--ui-bg);
   color: var(--ui-text);
@@ -3095,22 +3147,26 @@ body {
 }
 
 ::selection {
-  background: #e8f0fe;
+  background: light-dark(#e8f0fe, var(--el-color-primary-light-9));
   color: var(--ui-primary);
 }
 
 .layout {
-  grid-template-columns: 224px minmax(0, 1fr);
+  --sidebar-expanded-width: 224px;
+  --sidebar-collapsed-width: 64px;
+  grid-template-columns: var(--sidebar-expanded-width) minmax(0, 1fr);
   background: var(--ui-bg);
 }
 
 .layout-sidebar {
+  grid-area: 1 / 1;
+  width: var(--sidebar-expanded-width);
   border-right: 1px solid var(--ui-border);
-  background: rgb(255 255 255 / 78%);
 }
 
 .layout-sidebar__top {
   height: 56px;
+  flex: none;
   gap: 10px;
   padding: 0 16px;
   justify-content: flex-start;
@@ -3124,9 +3180,9 @@ body {
 }
 
 .layout-menu.el-menu {
-  --el-menu-bg-color: #fff;
-  --el-menu-text-color: #4b5563;
-  --el-menu-hover-bg-color: #f1f5f9;
+  --el-menu-bg-color: light-dark(#fff, var(--ui-surface));
+  --el-menu-text-color: light-dark(#4b5563, var(--ui-text-secondary));
+  --el-menu-hover-bg-color: light-dark(#f1f5f9, var(--ui-bg-soft));
   --el-menu-active-color: var(--ui-primary);
   padding: 10px 8px;
 }
@@ -3140,7 +3196,7 @@ body {
 }
 
 .layout-menu .el-menu-item.is-active {
-  background: #e8f0fe;
+  background: light-dark(#e8f0fe, var(--el-color-primary-light-9));
   box-shadow: none;
   font-weight: 600;
 }
@@ -3149,31 +3205,6 @@ body {
 .layout-menu .el-sub-menu .el-sub-menu > .el-sub-menu__title {
   min-width: 0;
   padding-left: 48px !important;
-}
-
-.layout-main {
-  grid-template-rows: 56px 40px minmax(0, 1fr);
-  min-width: 0;
-}
-
-.layout-header {
-  padding: 0 20px;
-  border-bottom-color: var(--ui-border);
-  background: rgba(255, 255, 255, 0.96);
-}
-
-.layout-header__title {
-  color: var(--ui-text);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.layout-header__actions {
-  align-items: center;
-  gap: 8px;
 }
 
 .page-body {
@@ -3233,9 +3264,9 @@ body {
 .layout-header .el-button--primary.is-disabled,
 .generator-page .el-button--primary.is-disabled,
 .appium-header-actions .el-button--primary.is-disabled {
-  --el-button-disabled-text-color: #9ca3af;
-  --el-button-disabled-bg-color: #f3f4f6;
-  --el-button-disabled-border-color: #e5e7eb;
+  --el-button-disabled-text-color: light-dark(#9ca3af, var(--el-disabled-text-color));
+  --el-button-disabled-bg-color: light-dark(#f3f4f6, var(--el-disabled-bg-color));
+  --el-button-disabled-border-color: light-dark(#e5e7eb, var(--ui-border));
 }
 
 .el-button--danger:not(.is-disabled) {
@@ -3257,7 +3288,7 @@ body {
 }
 
 .el-form-item__label {
-  color: #374151;
+  color: light-dark(#374151, var(--ui-text-secondary));
   font-size: 13px;
   font-weight: 500;
 }
@@ -3292,7 +3323,7 @@ body {
 }
 
 .el-dialog__headerbtn:hover {
-  background: #eff6ff;
+  background: light-dark(#eff6ff, var(--el-color-primary-light-9));
 }
 
 .el-dialog__title {
@@ -3309,7 +3340,7 @@ body {
 .el-dialog__footer {
   padding: 16px 20px;
   border-top: 1px solid var(--ui-border);
-  background: #f8fafc;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
 }
 
 .el-message-box {
@@ -3339,7 +3370,7 @@ body {
 }
 
 .el-message-box__headerbtn:hover {
-  background: #eff6ff;
+  background: light-dark(#eff6ff, var(--el-color-primary-light-9));
 }
 
 .el-message-box__title {
@@ -3376,7 +3407,7 @@ body {
   min-height: 68px;
   padding: 14px 20px;
   border-top: 1px solid var(--ui-border);
-  background: #f8fafc;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
 }
 
 .el-message-box__btns .el-button + .el-button {
@@ -3448,7 +3479,7 @@ body {
 
 .subnav__item--active {
   border: 0;
-  background: #e8f0fe;
+  background: light-dark(#e8f0fe, var(--el-color-primary-light-9));
   color: var(--ui-primary);
   box-shadow: none;
 }
@@ -3509,7 +3540,7 @@ body {
 
 .model-usage-chart__svg {
   border-color: var(--ui-border);
-  background: #fbfcfe;
+  background: light-dark(#fbfcfe, var(--ui-surface));
 }
 
 .model-usage-chart__record {
@@ -3518,13 +3549,13 @@ body {
 }
 
 .model-usage-chart__record:not(.model-usage-chart__record--head):hover {
-  border-color: #bfdbfe;
-  background: #eff6ff;
+  border-color: light-dark(#bfdbfe, var(--el-color-primary-light-7));
+  background: light-dark(#eff6ff, var(--el-color-primary-light-9));
 }
 
 .model-usage-chart__record--head {
-  background: #eef1f5;
-  color: #374151;
+  background: light-dark(#eef1f5, var(--ui-bg-soft));
+  color: light-dark(#374151, var(--ui-text-secondary));
 }
 
 .app-preset-row,
@@ -3536,17 +3567,17 @@ body {
 
 .app-preset-row:hover,
 .script-row:hover {
-  border-color: #bfdbfe;
-  background: #eff6ff;
+  border-color: light-dark(#bfdbfe, var(--el-color-primary-light-7));
+  background: light-dark(#eff6ff, var(--el-color-primary-light-9));
 }
 
 .method-guide {
-  border-color: #cce1fa;
-  background: #eff6ff;
+  border-color: light-dark(#cce1fa, var(--el-color-primary-light-7));
+  background: light-dark(#eff6ff, var(--el-color-primary-light-9));
 }
 
 .method-guide__summary {
-  color: #305a91;
+  color: light-dark(#305a91, var(--ui-primary));
 }
 
 .step-item {
@@ -3556,8 +3587,8 @@ body {
 .code-block,
 .terminal-block,
 .generator-code-editor .el-textarea__inner {
-  background: #f8fafc;
-  color: #334155;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
+  color: light-dark(#334155, var(--ui-text-secondary));
   border: 1px solid var(--ui-border);
 }
 
@@ -3611,8 +3642,8 @@ body {
 }
 
 .script-row--active {
-  border-color: #bfdbfe;
-  background: #e8f0fe;
+  border-color: light-dark(#bfdbfe, var(--el-color-primary-light-7));
+  background: light-dark(#e8f0fe, var(--el-color-primary-light-9));
 }
 
 .execution-output {
@@ -3623,8 +3654,8 @@ body {
 
 .execution-log__output {
   border-radius: var(--ui-radius-control);
-  background: #f8fafc;
-  color: #334155;
+  background: light-dark(#f8fafc, var(--ui-bg-soft));
+  color: light-dark(#334155, var(--ui-text-secondary));
   border: 1px solid var(--ui-border);
 }
 
@@ -3635,7 +3666,7 @@ body {
 
 .device-preview--empty {
   border: 1px dashed var(--ui-border-strong);
-  background: #fafafa;
+  background: light-dark(#fafafa, var(--ui-bg-soft));
 }
 
 .device-action-button {
@@ -3643,7 +3674,7 @@ body {
 }
 
 .device-action-button:hover {
-  background: #e6f0fd;
+  background: light-dark(#e6f0fd, var(--el-color-primary-light-9));
 }
 
 .appium-header-actions {
@@ -3681,17 +3712,17 @@ body {
 }
 
 .appium-tree .el-tree-node__content:hover {
-  background: #eff6ff;
+  background: light-dark(#eff6ff, var(--el-color-primary-light-9));
 }
 
 .appium-tree .el-tree-node.is-current > .el-tree-node__content {
-  background: #e8f0fe;
+  background: light-dark(#e8f0fe, var(--el-color-primary-light-9));
   color: var(--ui-primary);
 }
 
 .appium-current-activity {
   border-top-color: var(--ui-border);
-  background: #fbfcfe;
+  background: light-dark(#fbfcfe, var(--ui-surface));
 }
 
 .appium-current-activity > span {
@@ -3710,13 +3741,13 @@ body {
 }
 
 .appium-script-list__item:hover {
-  border-color: #bfdbfe;
-  background: #eff6ff;
+  border-color: light-dark(#bfdbfe, var(--el-color-primary-light-7));
+  background: light-dark(#eff6ff, var(--el-color-primary-light-9));
 }
 
 .appium-script-list__item--active {
-  border-color: #bfdbfe;
-  background: #e8f0fe;
+  border-color: light-dark(#bfdbfe, var(--el-color-primary-light-7));
+  background: light-dark(#e8f0fe, var(--el-color-primary-light-9));
 }
 
 .appium-replay-fab .el-button {
@@ -3738,7 +3769,7 @@ body {
 .el-button.recorder-panel-tool {
   --el-button-text-color: var(--ui-text-secondary);
   --el-button-border-color: var(--ui-border-strong);
-  --el-button-disabled-text-color: #a8abb2;
+  --el-button-disabled-text-color: light-dark(#a8abb2, var(--el-disabled-text-color));
   --el-button-disabled-border-color: var(--ui-border);
   width: 30px;
   min-width: 30px;
@@ -3804,12 +3835,12 @@ body {
   box-shadow:
     inset 0 4px 10px rgb(15 23 42 / 12%),
     inset 0 1px 2px rgb(15 23 42 / 10%),
-    inset 0 -2px 3px rgb(255 255 255 / 82%);
+    inset 0 -2px 3px light-dark(rgb(255 255 255 / 82%), rgb(255 255 255 / 8%));
 }
 
 .appium-recorded-steps-panel .el-button,
 .appium-flow-dialog .el-button {
-  --el-button-disabled-text-color: #a8abb2;
+  --el-button-disabled-text-color: light-dark(#a8abb2, var(--el-disabled-text-color));
   font-weight: 400;
 }
 
@@ -3842,7 +3873,8 @@ body {
   }
 }
 
-.layout--collapsed { grid-template-columns: 64px minmax(0, 1fr); }
+.layout--collapsed { grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr); }
+.layout-sidebar--collapsed { width: var(--sidebar-collapsed-width); }
 
 .layout-sidebar__brand { white-space: nowrap; font-size: 18px; font-weight: 650; letter-spacing: -0.4px; }
 
@@ -3850,13 +3882,7 @@ body {
 
 .layout-menu.el-menu--collapse { width: 63px; padding-inline: 4px; }
 
-.layout--collapsed .layout-sidebar__top { padding-inline: 16px; }
-
-.layout-header__breadcrumb { display: flex; gap: 12px; color: var(--ui-text-secondary); }
-
-.layout-header__breadcrumb > span { color: var(--ui-border-strong); }
-
-.layout-collapse.el-button { width: 32px; padding: 0; font-size: 18px; }
+.layout-sidebar--collapsed .layout-sidebar__top { justify-content: center; padding-inline: 0; }
 
 .layout-page-tabs { display: flex; align-items: center; gap: 6px; padding: 8px 20px; border-bottom: 1px solid var(--ui-border); background: var(--ui-surface); overflow-x: auto; }
 
@@ -3864,19 +3890,13 @@ body {
 
 .layout-page-tab:hover { background: var(--ui-bg); }
 
-.layout-page-tab.is-active { color: var(--ui-primary); background: #e8f0fe; }
-
 .page-body.page-body--config { padding: 0; overflow: hidden; scrollbar-gutter: auto; }
 
 button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2px; }
 
 /* Header controls participate in layout, including on narrow screens. */
 
-.layout-main { display: flex; flex-direction: column; min-height: 0; }
-
-.layout-header { flex: none; height: auto; min-height: 56px; flex-wrap: wrap; gap: 12px; padding-top: 10px; padding-bottom: 10px; }
-
-.layout-header__actions { min-width: 0; max-width: 100%; }
+.layout-main { grid-area: 1 / 2; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 
 .appium-header-actions { height: auto; flex-wrap: wrap; gap: 8px; }
 
@@ -3903,23 +3923,27 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
 .page-loading { padding: 40px; color: var(--ui-text-secondary); text-align: center; }
 
 @media (max-width: 1000px) {
-  .layout:not(.layout--collapsed) { grid-template-columns: 180px minmax(0, 1fr); }
+  .layout { --sidebar-expanded-width: 180px; }
   .layout-sidebar__brand { font-size: 16px; }
-  .layout-header__breadcrumb { display: none; }
   .appium-header-actions__script { width: 170px; }
+}
+
+@media (max-width: 600px) {
+  .layout { --sidebar-expanded-width: 136px; }
+  .layout-menu.el-menu:not(.el-menu--collapse) { padding-inline: 4px; --el-menu-base-level-padding: 10px; }
+  .layout-menu .el-sub-menu .el-menu-item { padding-left: 30px !important; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .layout { transition: grid-template-columns 180ms ease; }
+  .layout-sidebar { transition: width 180ms ease; }
 }
 
 /* Soft surfaces and pill controls. */
 .layout {
-  background: radial-gradient(ellipse at 55% 0, rgb(232 240 254 / 45%), transparent 55%), var(--ui-bg);
+  background: radial-gradient(ellipse at 55% 0, light-dark(rgb(232 240 254 / 45%), transparent), transparent 55%), var(--ui-bg);
 }
-.layout-header { background: rgb(255 255 255 / 76%); }
-.layout-page-tabs { background: rgb(255 255 255 / 60%); }
-.layout-page-tab.is-active {
-  background: var(--ui-primary);
-  color: #fff;
-  box-shadow: 0 2px 8px rgb(26 115 232 / 20%);
-}
+.layout-page-tabs { background: light-dark(var(--ui-surface), var(--ui-bg)); }
 .layout-page-tab.is-active .layout-page-tab__close:hover:not(:disabled) { background: rgb(255 255 255 / 20%); }
 .el-card, .el-card.is-never-shadow { box-shadow: var(--ui-shadow-card); }
 .el-card__header { background: transparent; }
@@ -3930,7 +3954,7 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
 }
 .el-tag { border-radius: var(--ui-radius-pill); }
 .el-input__wrapper, .el-select__wrapper, .el-textarea__inner { background: var(--ui-surface); }
-.el-table { --el-table-header-bg-color: #f8fafc; --el-table-row-hover-bg-color: #eff6ff; }
+.el-table { --el-table-header-bg-color: light-dark(#f8fafc, var(--ui-bg-soft)); --el-table-row-hover-bg-color: light-dark(#eff6ff, var(--el-color-primary-light-9)); }
 .el-table th.el-table__cell { color: var(--ui-text-secondary); font-weight: 600; }
 .el-tabs__nav-wrap::after { background-color: var(--ui-border); }
 .subnav__item--active { background: var(--ui-surface); box-shadow: var(--ui-shadow-card); }
@@ -3939,7 +3963,7 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
   box-shadow: var(--ui-shadow-card);
 }
 .appium-flow-editor, .appium-flow-dialog-canvas, .appium-flow-canvas { border-radius: var(--ui-radius); }
-.device-preview--empty { background: #f8fafc; }
+.device-preview--empty { background: light-dark(#f8fafc, var(--ui-bg-soft)); }
 .el-button.recorder-panel-tool { border-radius: 50%; }
 @media (prefers-reduced-motion: reduce) {
   .layout-menu .el-menu-item, .layout-page-tab, .el-button { transition: none; }
@@ -3969,7 +3993,7 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
 }
 
 /* Keep action gaps predictable instead of combining flex gaps with library margins. */
-:is(.layout-header__actions, .appium-header-actions, .panel-header__actions,
+:is(.appium-header-actions, .panel-header__actions,
     .prompt-template-actions, .appium-section-title__actions, .recorder-workspace__tools)
   > .el-button + .el-button { margin-left: 0; }
 .layout-sidebar__brand { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -3991,25 +4015,26 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
 
 /* One depth scale for raised surfaces, recessed fields and tactile controls. */
 .layout-sidebar {
-  background: linear-gradient(120deg, #fff, #f8fafc);
+  background: linear-gradient(120deg, light-dark(#fff, #161618), light-dark(#f8fafc, #161618));
   box-shadow: 4px 0 18px -10px rgb(15 23 42 / 18%);
   z-index: 1;
 }
 .layout-header { box-shadow: 0 2px 6px -3px rgb(15 23 42 / 12%); }
 .layout-page-tab.is-active {
-  background: linear-gradient(180deg, #3588f3, var(--ui-primary));
+  background: linear-gradient(180deg, light-dark(#3588f3, var(--ui-primary-solid)), light-dark(#1a73e8, var(--ui-primary-solid)));
+  color: #fff;
   box-shadow: var(--ui-shadow-primary);
 }
 .layout-menu .el-menu-item.is-active {
-  background: linear-gradient(180deg, #f3f7ff, #e8f0fe);
+  background: linear-gradient(180deg, light-dark(#f3f7ff, var(--el-color-primary-light-9)), light-dark(#e8f0fe, var(--el-color-primary-light-9)));
   box-shadow: var(--ui-shadow-control);
 }
 .layout .el-card, .layout .help-center-page, .layout .help-center__version-card {
   box-shadow: var(--ui-shadow-card);
 }
 .el-card__header {
-  background: linear-gradient(180deg, #fff, #f8fafc);
-  box-shadow: 0 1px 0 rgb(255 255 255 / 90%);
+  background: linear-gradient(180deg, light-dark(#fff, var(--ui-surface)), light-dark(#f8fafc, var(--ui-bg-soft)));
+  box-shadow: 0 1px 0 light-dark(rgb(255 255 255 / 90%), var(--ui-border));
 }
 :is(.layout, .el-dialog, .el-message-box) .el-button:not(.is-text):not(.is-link):not(.is-disabled) {
   background-image: linear-gradient(180deg, rgb(255 255 255 / 16%), rgb(15 23 42 / 3%));
@@ -4020,13 +4045,13 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
   box-shadow: var(--ui-shadow-primary);
 }
 :is(.layout, .el-dialog, .el-message-box) .el-button:not(.is-text):not(.is-link):not(.is-disabled):hover {
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 70%), 0 3px 6px rgb(26 115 232 / 12%), 0 6px 12px -4px rgb(15 23 42 / 16%);
+  box-shadow: inset 0 1px 0 light-dark(rgb(255 255 255 / 70%), rgb(255 255 255 / 8%)), 0 3px 6px rgb(26 115 232 / 12%), 0 6px 12px -4px rgb(15 23 42 / 16%);
 }
 :is(.layout, .el-dialog, .el-message-box) .el-button:not(.is-text):not(.is-link):not(.is-disabled):active {
   box-shadow: inset 0 2px 4px rgb(15 23 42 / 16%);
 }
 .el-input .el-input__wrapper, .el-select .el-select__wrapper, .el-textarea .el-textarea__inner {
-  background: linear-gradient(180deg, #f8fafc, #fff 12px);
+  background: linear-gradient(180deg, light-dark(#f8fafc, var(--ui-bg-soft)), light-dark(#fff, var(--ui-surface)) 12px);
   box-shadow: inset 0 0 0 1px var(--ui-border-strong), var(--ui-shadow-inset);
   transition: box-shadow 160ms ease;
 }
@@ -4127,14 +4152,14 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
   font-size: 12px;
 }
 .el-dialog, .el-message-box, .el-popper.is-light { box-shadow: var(--ui-shadow-popover); }
-.el-dialog__header, .el-message-box__header { background: linear-gradient(180deg, #fff, #f8fafc); }
+.el-dialog__header, .el-message-box__header { background: linear-gradient(180deg, light-dark(#fff, var(--ui-surface)), light-dark(#f8fafc, var(--ui-bg-soft))); }
 .el-table {
   border-radius: var(--ui-radius-control);
   box-shadow: 0 0 0 1px var(--ui-border), 0 3px 8px -4px rgb(15 23 42 / 12%);
 }
-.el-table th.el-table__cell { background: linear-gradient(180deg, #f8fafc, #eef2f6); }
+.el-table th.el-table__cell { background: linear-gradient(180deg, light-dark(#f8fafc, var(--ui-bg-soft)), light-dark(#eef2f6, var(--ui-bg-soft))); }
 .el-tag, .el-checkbox__inner, .el-radio__inner, .el-switch__core {
-  box-shadow: inset 0 1px 2px rgb(15 23 42 / 8%), 0 1px 0 rgb(255 255 255 / 90%);
+  box-shadow: var(--ui-shadow-inset);
 }
 .el-switch__action, .el-slider__button,
 .layout .metric-card__value .el-icon, .layout .help-center__version-label .el-icon,
@@ -4142,7 +4167,7 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
 .layout .appium-flow-step-card, .layout .appium-flow-start-card,
 .layout .execution-step__body { box-shadow: var(--ui-shadow-card); }
 .layout .appium-flow-step-card:hover {
-  box-shadow: inset 0 1px 0 #fff, 0 3px 6px rgb(26 115 232 / 10%), 0 10px 20px -6px rgb(26 115 232 / 20%);
+  box-shadow: inset 0 1px 0 light-dark(#fff, var(--ui-border)), 0 3px 6px rgb(26 115 232 / 10%), 0 10px 20px -6px rgb(26 115 232 / 20%);
 }
 .layout .appium-flow-step-shell--selected .appium-flow-step-card {
   box-shadow: 0 0 0 3px rgb(26 115 232 / 18%), var(--ui-shadow-card);
@@ -4162,15 +4187,15 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
   z-index: 4;
   border-radius: inherit;
   pointer-events: none;
-  box-shadow: inset 0 3px 8px rgb(15 23 42 / 10%), inset 0 1px 2px rgb(15 23 42 / 8%), inset 0 -2px 3px rgb(255 255 255 / 75%);
+  box-shadow: inset 0 3px 8px rgb(15 23 42 / 10%), inset 0 1px 2px rgb(15 23 42 / 8%), inset 0 -2px 3px light-dark(rgb(255 255 255 / 75%), rgb(255 255 255 / 8%));
 }
 .layout .app-preset-row, .layout .script-row {
-  background-image: linear-gradient(180deg, #fff, #f8fafc);
+  background-image: linear-gradient(180deg, light-dark(#fff, var(--ui-surface)), light-dark(#f8fafc, var(--ui-bg-soft)));
   box-shadow: var(--ui-shadow-control);
 }
 .layout .device-action-button:not(:disabled) {
   border-radius: var(--ui-radius-control);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 80%), rgb(241 245 249 / 60%));
+  background-image: linear-gradient(180deg, light-dark(rgb(255 255 255 / 80%), var(--ui-bg-soft)), light-dark(rgb(241 245 249 / 60%), var(--ui-surface)));
   box-shadow: var(--ui-shadow-control);
 }
 .layout .device-action-button:not(:disabled):active { box-shadow: var(--ui-shadow-inset); }

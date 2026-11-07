@@ -81,14 +81,14 @@ onScopeDispose(() => window.removeEventListener("resize", resizeDrawer));
 .task-history-item {
   display: flex;
   align-items: center;
-  border: 1px solid #e3e8f0;
+  border: 1px solid light-dark(#e3e8f0, var(--ui-border));
   border-radius: 16px;
   padding-right: 6px;
   margin-bottom: 12px;
 }
 .task-history-item.active {
-  border-color: #90b6f3;
-  background: #f8fbff;
+  border-color: light-dark(#90b6f3, var(--el-color-primary-light-7));
+  background: light-dark(#f8fbff, var(--el-color-primary-light-9));
 }
 .task-history-item__open {
   display: grid;
@@ -98,7 +98,7 @@ onScopeDispose(() => window.removeEventListener("resize", resizeDrawer));
   text-align: left;
   border: 0;
   background: transparent;
-  color: #334155;
+  color: light-dark(#334155, var(--ui-text-secondary));
   cursor: pointer;
   padding: 16px;
 }
@@ -113,16 +113,16 @@ onScopeDispose(() => window.removeEventListener("resize", resizeDrawer));
   align-items: center;
   gap: 8px;
   font-size: 11px;
-  color: #94a3b8;
+  color: light-dark(#94a3b8, var(--ui-text-muted));
 }
 .task-history-item__open > small {
-  color: #94a3b8;
+  color: light-dark(#94a3b8, var(--ui-text-muted));
   font-size: 11px;
 }
 .task-history-type {
   font-size: 10px;
-  color: #5981bb;
-  background: #edf4ff;
+  color: light-dark(#5981bb, var(--ui-primary));
+  background: light-dark(#edf4ff, var(--el-color-primary-light-9));
   border-radius: 6px;
   padding: 3px 6px;
   white-space: nowrap;

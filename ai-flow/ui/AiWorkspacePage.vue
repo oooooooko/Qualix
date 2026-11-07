@@ -408,11 +408,11 @@ async function sendMessage(text: string) {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  color: #172033;
+  color: light-dark(#172033, var(--ui-text));
   background:
-    radial-gradient(ellipse at 65% 30%, #ece9f550, transparent 55%),
-    radial-gradient(ellipse at 35% 45%, #fcf2e84d, transparent 50%), #f7f9fc;
-  border: 1px solid #e7ebf2;
+    radial-gradient(ellipse at 65% 30%, light-dark(#ece9f550, #646cff15), transparent 55%),
+    radial-gradient(ellipse at 35% 45%, light-dark(#fcf2e84d, transparent), transparent 50%), light-dark(#f7f9fc, var(--ui-bg));
+  border: 1px solid light-dark(#e7ebf2, var(--ui-border));
   border-radius: 20px;
   overflow: hidden;
   --ui-radius-panel: 20px;
@@ -428,8 +428,8 @@ async function sendMessage(text: string) {
 .task-center-nav > div[role="tablist"] {
   display: inline-flex;
   padding: 4px;
-  border: 1px solid #d9e1ec;
-  background: #ffffffbf;
+  border: 1px solid light-dark(#d9e1ec, var(--ui-border));
+  background: light-dark(#ffffffbf, var(--ui-surface));
   border-radius: 30px;
   box-shadow: 0 4px 14px #0f172a08;
 }
@@ -440,17 +440,17 @@ async function sendMessage(text: string) {
   padding: 9px 18px;
   border: 0;
   border-radius: 25px;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font: inherit;
   font-size: 13px;
   background: transparent;
   cursor: pointer;
 }
 .task-center-nav button[aria-selected="true"] {
-  background: #347bea;
+  background: light-dark(#347bea, var(--ui-primary-solid));
   box-shadow:
     0 3px 10px #347bea40,
-    inset 0 1px 2px #ffffff90;
+    inset 0 1px 2px light-dark(#ffffff90, #ffffff20);
   color: #fff;
 }
 .task-center-nav button:disabled {
@@ -465,7 +465,7 @@ async function sendMessage(text: string) {
 }
 .task-center-nav__actions .el-button {
   font-size: 12px;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   margin: 0;
 }
 .task-floating-preview {
@@ -480,10 +480,10 @@ async function sendMessage(text: string) {
   flex: 1;
   min-height: 0;
   margin: 14px 20px 20px;
-  border: 1px solid #dfe5eb;
+  border: 1px solid light-dark(#dfe5eb, var(--ui-border));
   border-radius: 16px;
   overflow: hidden;
-  background: #e2e5ea;
+  background: light-dark(#e2e5ea, var(--ui-bg-soft));
 }
 .task-workspace__heading {
   flex: none;
@@ -493,8 +493,8 @@ async function sendMessage(text: string) {
   gap: 16px;
   min-height: 54px;
   padding: 0 18px;
-  background: #f8fafb;
-  border-bottom: 1px solid #e2e8f0;
+  background: light-dark(#f8fafb, var(--ui-bg-soft));
+  border-bottom: 1px solid light-dark(#e2e8f0, var(--ui-border));
 }
 .task-workspace__identity {
   display: grid;
@@ -511,7 +511,7 @@ async function sendMessage(text: string) {
 }
 .task-workspace__identity span {
   font-size: 11px;
-  color: #94a3b8;
+  color: light-dark(#94a3b8, var(--ui-text-muted));
 }
 .workspace-tools {
   display: flex;
@@ -525,7 +525,7 @@ async function sendMessage(text: string) {
   align-items: center;
   gap: 7px;
   padding: 0 12px;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font: inherit;
   font-size: 12px;
   border: 0;
@@ -535,24 +535,24 @@ async function sendMessage(text: string) {
 }
 .workspace-tools button:hover,
 .workspace-tools button:focus-visible {
-  color: #2563eb;
-  background: #edf5ff;
+  color: light-dark(#2563eb, var(--ui-primary));
+  background: light-dark(#edf5ff, var(--el-color-primary-light-9));
   border-bottom-color: #8db8f4;
 }
 .workspace-surface {
   flex: 1;
   min-height: 0;
-  background: #e2e5ea;
+  background: light-dark(#e2e5ea, var(--ui-bg-soft));
 }
 .workspace-surface > :deep(.el-splitter-panel) {
   min-width: 0;
   overflow: hidden;
 }
 .workspace-surface > :deep(.el-splitter-panel:first-child) {
-  background: #f4fafb;
+  background: light-dark(#f4fafb, var(--ui-bg-soft));
 }
 .workspace-surface > :deep(.el-splitter-panel:last-of-type) {
-  background: #fff;
+  background: light-dark(#fff, var(--ui-surface));
 }
 .workspace-surface :deep(.el-splitter-bar__dragger-horizontal) {
   width: 12px !important;
@@ -563,12 +563,12 @@ async function sendMessage(text: string) {
   height: 40px;
   width: 3px;
   border-radius: 2px;
-  background: #b7c2cc;
+  background: light-dark(#b7c2cc, var(--ui-border-strong));
 }
 .workspace-surface :deep(.ai-orchestration-flow) {
   border: 0;
   border-radius: 0;
-  background: #f4fafb;
+  background: light-dark(#f4fafb, var(--ui-bg-soft));
 }
 .workspace-surface :deep(.ai-orchestration-flow__header) {
   padding: 18px 20px 12px;

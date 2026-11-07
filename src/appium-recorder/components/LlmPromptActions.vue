@@ -34,8 +34,8 @@ async function copyPrompt() {
 
 <style scoped>
 .llm-prompt-actions { display: inline-flex; align-items: center; white-space: nowrap; }
-.llm-prompt-actions__link { padding: 0; border: 0; background: none; box-shadow: none; color: #566b95; font-size: 14px; font-weight: 500; line-height: 24px; cursor: pointer; }
-.llm-prompt-actions__link:hover:not(:disabled) { color: #42577f; }
+.llm-prompt-actions__link { padding: 0; border: 0; background: none; box-shadow: none; color: light-dark(#566b95, var(--ui-primary)); font-size: 14px; font-weight: 500; line-height: 24px; cursor: pointer; }
+.llm-prompt-actions__link:hover:not(:disabled) { color: light-dark(#42577f, var(--ui-primary)); }
 .llm-prompt-actions__link:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 3px; }
 .llm-prompt-actions__link:disabled { cursor: not-allowed; }
 </style>

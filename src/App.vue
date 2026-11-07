@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Close, DataAnalysis, MagicStick, Monitor, InfoFilled, Fold, Expand, Setting } from '@element-plus/icons-vue';
+import { Close, DataAnalysis, MagicStick, Monitor, InfoFilled, Setting } from '@element-plus/icons-vue';
 import backIcon from './assets/device-actions/back.svg';
 import homeIcon from './assets/device-actions/home.svg';
 import powerIcon from './assets/device-actions/power.svg';
@@ -10,10 +10,13 @@ import volumeDownIcon from './assets/device-actions/volume-down.svg';
 import volumeUpIcon from './assets/device-actions/volume-up.svg';
 import { t } from './i18n';
 import * as api from './api';
-import type { AppPreset, MenuKey } from './types';
+import type { AppPreset, MenuKey, SidebarMode } from './types';
 import { useModelConfig } from './config/use-model-config';
 import { useDevicePreview } from './composables/use-device-preview';
+import AppHeader from './components/AppHeader.vue';
+import AppPreferences from './components/AppPreferences.vue';
 import AppSidebar from './components/AppSidebar.vue';
+import FlowAppearanceSettings from './components/config/FlowAppearanceSettings.vue';
 const NativeMidscenePage = defineAsyncComponent(() => import('./pages/NativeMidscenePage.vue'));
 const AppiumPage = defineAsyncComponent(() => import('./appium-recorder/AppiumPage.vue'));
 const AiOrchestrationPage = defineAsyncComponent(() => import('../ai-flow/ui/AiWorkspacePage.vue'));
@@ -35,7 +38,8 @@ const visitedMenus = reactive(new Set<MenuKey>([activeMenu.value]));
 const openMenus = ref<MenuKey[]>(menuItems.map(item => item.key));
 const visibleMenuItems = computed(() => openMenus.value.map(key => menuItems.find(item => item.key === key)!));
 const activeMenuLabel = computed(() => menuItems.find(item => item.key === activeMenu.value)!.label);
-const sidebarCollapsed = shallowRef(false);
+const sidebarMode = shallowRef<SidebarMode>('expanded');
+const sidebarCollapsed = computed(() => sidebarMode.value !== 'expanded');
 const aiOrchestrationBusy = shallowRef(false);
 const aiDevicePreviewVisible = shallowRef(false);
 const manualOrchestrationBusy = shallowRef(false);
@@ -86,15 +90,35 @@ const deviceActions = [
 
 <template>
   <div class="layout" :class="{ 'layout--collapsed': sidebarCollapsed }">
-    <AppSidebar :active-menu="activeMenu" :collapsed="sidebarCollapsed" @select="selectMenu" />
+    <AppSidebar v-model:mode="sidebarMode" :active-menu="activeMenu" @select="selectMenu" />
     <div class="layout-main">
-      <header class="layout-header">
-        <div class="layout-header__title">
-          <el-button text class="layout-collapse" :icon="sidebarCollapsed ? Expand : Fold" :aria-label="sidebarCollapsed ? t('展开导航') : t('收起导航')" :aria-expanded="!sidebarCollapsed" @click="sidebarCollapsed = !sidebarCollapsed" />
-          <span class="layout-header__breadcrumb">{{ t('工作空间') }} <span>/</span></span><span>{{ t(activeMenuLabel) }}</span>
-        </div>
-        <div class="layout-header__actions"><div id="appium-header-actions" v-show="activeMenu === 'appium'"></div></div>
-      </header>
+      <AppHeader
+        :page-label="t(activeMenuLabel)"
+        :sidebar-collapsed="sidebarCollapsed"
+        :show-appium-actions="activeMenu === 'appium'"
+        @toggle-sidebar="sidebarMode = sidebarCollapsed ? 'expanded' : 'collapsed'"
+      >
+        <template #preferences>
+          <AppPreferences
+            :ready="configReady"
+            :load-error="resourceError"
+            :save-status="appiumAutoSave.status.value"
+            :save-failed="appiumAutoSave.failed.value"
+            @retry-load="loadResources"
+            @retry-save="appiumAutoSave.retry"
+          >
+            <FlowAppearanceSettings
+              v-model="configForm.appium.flowBackgroundColor"
+              v-model:node-color="configForm.appium.flowNodeColor"
+              v-model:node-border-color="configForm.appium.flowNodeBorderColor"
+              v-model:line-color="configForm.appium.flowLineColor"
+              v-model:line-style="configForm.appium.flowLineStyle"
+              v-model:layout-direction="configForm.appium.flowLayoutDirection"
+              @apply-theme="Object.assign(configForm.appium, $event.colors)"
+            />
+          </AppPreferences>
+        </template>
+      </AppHeader>
       <nav class="layout-page-tabs" :aria-label="t('页面导航')">
         <div v-for="item in visibleMenuItems" :key="item.key" class="layout-page-tab" :class="{ 'is-active': activeMenu === item.key }">
           <button type="button" class="layout-page-tab__select" :aria-current="activeMenu === item.key ? 'page' : undefined" @click="selectMenu(item.key)"><el-icon><component :is="item.icon" /></el-icon>{{ t(item.label) }}</button>

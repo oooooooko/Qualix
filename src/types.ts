@@ -4,6 +4,7 @@ import type { AiRecognitionModel } from './appium-recorder/ai-recognition';
 import type { AiDeduplicationConfig } from './appium-recorder/ai-deduplication';
 
 export type MenuKey = 'analysis' | 'midscene' | 'config' | 'appium' | 'ai-orchestration' | 'about';
+export type SidebarMode = 'expanded' | 'collapsed' | 'hover';
 
 export type AppiumVersionInfo = {
   version: string | null;

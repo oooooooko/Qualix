@@ -3,7 +3,6 @@ import { t } from '../../i18n';
 import { shallowRef } from 'vue';
 import ReplayReportSummarySettings from './ReplayReportSummarySettings.vue';
 import type { ConfigForm } from '../../types';
-import FlowAppearanceSettings from './FlowAppearanceSettings.vue';
 import AiDeduplicationSettings from './AiDeduplicationSettings.vue';
 import AiPromptPresetsSettings from './AiPromptPresetsSettings.vue';
 import AppiumModelSettings from './AppiumModelSettings.vue';
@@ -81,18 +80,6 @@ const activeSection = shallowRef<'basic' | 'models'>('basic');
       </el-card>
     </section>
 
-    <section v-show="activeSection === 'basic'" class="appium-config-section" aria-labelledby="appium-editor-title">
-      <header class="appium-section-heading"><div><h2 id="appium-editor-title">{{ t("流程编辑器") }}</h2><p>{{ t("选择流程主题，调整画布、节点和连接线颜色，以及横纵布局。") }}</p></div></header>
-      <FlowAppearanceSettings
-        v-model="configForm.appium.flowBackgroundColor"
-        v-model:node-color="configForm.appium.flowNodeColor"
-        v-model:node-border-color="configForm.appium.flowNodeBorderColor"
-        v-model:line-color="configForm.appium.flowLineColor"
-        v-model:line-style="configForm.appium.flowLineStyle"
-        v-model:layout-direction="configForm.appium.flowLayoutDirection"
-        @apply-theme="Object.assign(configForm.appium, $event.colors)"
-      />
-    </section>
   </div>
 </template>
 

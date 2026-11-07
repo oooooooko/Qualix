@@ -44,9 +44,9 @@ const model = defineModel<TaskExperience | null>({ required: true });
   display: inline-flex;
   gap: 3px;
   padding: 4px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid light-dark(#e2e8f0, var(--ui-border));
   border-radius: 24px;
-  background: #f3f6fa;
+  background: light-dark(#f3f6fa, var(--ui-bg-soft));
 }
 .task-type-select button {
   display: flex;
@@ -57,15 +57,15 @@ const model = defineModel<TaskExperience | null>({ required: true });
   border-radius: 20px;
   background: transparent;
   padding: 8px 14px;
-  color: #64748b;
+  color: light-dark(#64748b, var(--ui-text-muted));
   font: inherit;
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
 }
 .task-type-select button[aria-pressed="true"] {
-  color: #2563eb;
-  background: #fff;
+  color: light-dark(#2563eb, var(--ui-primary));
+  background: light-dark(#fff, var(--ui-surface));
   box-shadow: 0 2px 6px #0f172a12;
 }
 .task-type-select button:disabled {

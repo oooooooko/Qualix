@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, onBeforeUnmount, shallowRef, watch } from 'vue';
-import { DEFAULT_FLOW_BACKGROUND, flowBackgroundKey, DEFAULT_FLOW_LINE_COLOR, flowLineColorKey, flowLayoutDirectionKey, normalizeFlowLayoutDirection, flowNodeColorKey, flowNodeBorderColorKey, normalizeFlowNodeColor, normalizeFlowNodeBorderColor, flowNodeTextColors } from '../flow-appearance';
+import { DEFAULT_FLOW_BACKGROUND, DEFAULT_FLOW_LINE_COLOR, DEFAULT_FLOW_NODE_BORDER_COLOR, DEFAULT_FLOW_NODE_COLOR, flowBackgroundKey, flowLineColorKey, flowLayoutDirectionKey, normalizeFlowLayoutDirection, flowNodeColorKey, flowNodeBorderColorKey, flowNodeTextColors } from '../flow-appearance';
+import { darkMode } from '../../theme';
 import { useVueFlow, VueFlow } from '@vue-flow/core';
 import FlowNodeCard from './FlowNodeCard.vue';
 import FlowRoundedEdge from './FlowRoundedEdge.vue';
@@ -16,31 +17,51 @@ import type { AppiumRecordedStep } from '../types';
 const flowBackground = inject(flowBackgroundKey, computed(() => DEFAULT_FLOW_BACKGROUND));
 const flowLineColor = inject(flowLineColorKey, computed(() => DEFAULT_FLOW_LINE_COLOR));
 const layoutDirection = inject(flowLayoutDirectionKey, computed(() => normalizeFlowLayoutDirection(undefined)));
-const nodeColor = inject(flowNodeColorKey, computed(() => normalizeFlowNodeColor(undefined)));
-const nodeBorderColor = inject(flowNodeBorderColorKey, computed(() => normalizeFlowNodeBorderColor(undefined)));
-const nodeText = computed(() => flowNodeTextColors(nodeColor.value));
+const nodeColor = inject(flowNodeColorKey, computed(() => DEFAULT_FLOW_NODE_COLOR));
+const nodeBorderColor = inject(flowNodeBorderColorKey, computed(() => DEFAULT_FLOW_NODE_BORDER_COLOR));
+const darkPalette = {
+  flowBackgroundColor: '#1b1b1f',
+  flowLineColor: '#a8b1ff',
+  flowNodeColor: '#202127',
+  flowNodeBorderColor: '#3c3f44',
+};
+const canvasColors = computed(() => {
+  const colors = {
+    flowBackgroundColor: flowBackground.value,
+    flowLineColor: flowLineColor.value,
+    flowNodeColor: nodeColor.value,
+    flowNodeBorderColor: nodeBorderColor.value,
+  };
+  const usesDefaultPalette = colors.flowBackgroundColor === DEFAULT_FLOW_BACKGROUND
+    && colors.flowLineColor === DEFAULT_FLOW_LINE_COLOR
+    && colors.flowNodeColor === DEFAULT_FLOW_NODE_COLOR
+    && colors.flowNodeBorderColor === DEFAULT_FLOW_NODE_BORDER_COLOR;
+  return darkMode.value && usesDefaultPalette ? darkPalette : colors;
+});
+const nodeText = computed(() => flowNodeTextColors(canvasColors.value.flowNodeColor));
 const canvasStyle = computed(() => {
-  const field = `color-mix(in srgb, ${nodeColor.value} 92%, ${nodeText.value.text})`;
+  const { flowBackgroundColor, flowLineColor, flowNodeColor, flowNodeBorderColor } = canvasColors.value;
+  const field = `color-mix(in srgb, ${flowNodeColor} 92%, ${nodeText.value.text})`;
   return {
-    '--flow-background': flowBackground.value,
-    '--appium-flow-line-color': flowLineColor.value,
-    '--ui-surface': nodeColor.value,
-    '--ui-border': nodeBorderColor.value,
+    '--flow-background': flowBackgroundColor,
+    '--appium-flow-line-color': flowLineColor,
+    '--ui-surface': flowNodeColor,
+    '--ui-border': flowNodeBorderColor,
     '--ui-text': nodeText.value.text,
     '--ui-text-secondary': nodeText.value.muted,
     '--ui-text-muted': nodeText.value.muted,
     '--ui-bg-soft': field,
-    '--el-bg-color': nodeColor.value,
-    '--el-fill-color-blank': nodeColor.value,
+    '--el-bg-color': flowNodeColor,
+    '--el-fill-color-blank': flowNodeColor,
     '--el-fill-color-light': field,
     '--el-fill-color-lighter': field,
     '--el-text-color-primary': nodeText.value.text,
     '--el-text-color-regular': nodeText.value.text,
     '--el-text-color-secondary': nodeText.value.muted,
     '--el-text-color-placeholder': nodeText.value.muted,
-    '--el-border-color': nodeBorderColor.value,
-    '--el-border-color-light': nodeBorderColor.value,
-    '--el-border-color-lighter': nodeBorderColor.value,
+    '--el-border-color': flowNodeBorderColor,
+    '--el-border-color-light': flowNodeBorderColor,
+    '--el-border-color-lighter': flowNodeBorderColor,
     '--el-disabled-bg-color': field,
     '--el-disabled-text-color': nodeText.value.muted,
   };

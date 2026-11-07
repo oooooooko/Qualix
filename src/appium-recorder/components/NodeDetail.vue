@@ -141,12 +141,12 @@ async function copyLocator(value: string) {
 .appium-node-summary__text strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .appium-node-summary__text span, .appium-node-summary__empty { color: var(--el-text-color-secondary); font-size: 12px; }
 :global(.appium-node-detail-drawer.el-drawer) { max-width: calc(100vw - 24px); border-left: 1px solid var(--ui-border); background: var(--ui-bg); box-shadow: -18px 0 48px rgb(15 23 42 / 18%); }
-:global(.appium-node-detail-drawer .el-drawer__header) { min-height: 56px; margin: 0; padding: 16px 20px; border-bottom: 1px solid var(--ui-border); background: linear-gradient(180deg, #fff, #f8fafc); color: var(--ui-text); }
+:global(.appium-node-detail-drawer .el-drawer__header) { min-height: 56px; margin: 0; padding: 16px 20px; border-bottom: 1px solid var(--ui-border); background: linear-gradient(180deg, light-dark(#fff, var(--ui-surface)), light-dark(#f8fafc, var(--ui-bg-soft))); color: var(--ui-text); }
 :global(.appium-node-detail-drawer .el-drawer__title) { font-size: 16px; font-weight: 650; }
 :global(.appium-node-detail-drawer .el-drawer__body) { padding: 20px; background: var(--ui-bg); }
-:global(.appium-node-detail-drawer .el-drawer__footer) { padding: 14px 20px; border-top: 1px solid var(--ui-border); background: #f8fafc; }
+:global(.appium-node-detail-drawer .el-drawer__footer) { padding: 14px 20px; border-top: 1px solid var(--ui-border); background: light-dark(#f8fafc, var(--ui-bg-soft)); }
 .appium-node-detail__content { display: grid; gap: 16px; }
-.appium-node-detail__summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 16px; border: 1px solid #dbeafe; border-radius: var(--ui-radius); background: linear-gradient(135deg, #f8fbff, #eff6ff); box-shadow: var(--ui-shadow-card); }
+.appium-node-detail__summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 16px; border: 1px solid light-dark(#dbeafe, var(--el-color-primary-light-7)); border-radius: var(--ui-radius); background: linear-gradient(135deg, light-dark(#f8fbff, var(--el-color-primary-light-9)), light-dark(#eff6ff, var(--el-color-primary-light-9))); box-shadow: var(--ui-shadow-card); }
 .appium-node-detail__summary > div:first-child { display: grid; min-width: 0; gap: 5px; }
 .appium-node-detail__summary span { color: var(--ui-text-muted); font-size: 12px; }
 .appium-node-detail__summary strong { color: var(--ui-text); font-size: 16px; overflow-wrap: anywhere; }
@@ -159,11 +159,11 @@ async function copyLocator(value: string) {
 .appium-node-detail__heading strong { color: var(--ui-text); font-size: 14px; }
 .appium-node-detail__heading span { color: var(--ui-text-muted); font-size: 12px; }
 .appium-node-locators { display: grid; gap: 7px; }
-.appium-node-locator-card { display: grid; gap: 6px; min-width: 0; padding: 9px 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: #fbfcfe; box-shadow: 0 2px 6px rgb(15 23 42 / 5%); }
-.appium-node-locator-card.is-recommended { border-color: #bfdbfe; background: linear-gradient(135deg, #f8fbff, #eff6ff); box-shadow: 0 0 0 2px rgb(26 115 232 / 8%), 0 4px 10px rgb(26 115 232 / 8%); }
+.appium-node-locator-card { display: grid; gap: 6px; min-width: 0; padding: 9px 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: light-dark(#fbfcfe, var(--ui-surface)); box-shadow: 0 2px 6px rgb(15 23 42 / 5%); }
+.appium-node-locator-card.is-recommended { border-color: light-dark(#bfdbfe, var(--el-color-primary-light-7)); background: linear-gradient(135deg, light-dark(#f8fbff, var(--el-color-primary-light-9)), light-dark(#eff6ff, var(--el-color-primary-light-9))); box-shadow: 0 0 0 2px rgb(26 115 232 / 8%), 0 4px 10px rgb(26 115 232 / 8%); }
 .appium-node-locator-card__header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .appium-node-locator-value { display: grid; grid-template-columns: minmax(0, 1fr) 28px; align-items: center; gap: 6px; }
-.appium-node-locator-value code { min-height: 26px; padding: 5px 8px; border: 1px solid rgb(203 213 225 / 65%); border-radius: 7px; background: #f1f5f9; color: var(--ui-text-secondary); font-size: 11px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; }
+.appium-node-locator-value code { min-height: 26px; padding: 5px 8px; border: 1px solid rgb(203 213 225 / 65%); border-radius: 7px; background: light-dark(#f1f5f9, var(--ui-bg-soft)); color: var(--ui-text-secondary); font-size: 11px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; }
 :deep(.el-descriptions__content) { overflow-wrap: anywhere; word-break: break-word; }
 .appium-node-properties :deep(.el-descriptions__table) { table-layout: fixed; width: 100%; }
 .appium-node-properties :deep(.el-descriptions__label) { width: 118px; overflow-wrap: anywhere; }

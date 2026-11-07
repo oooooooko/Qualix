@@ -1009,6 +1009,7 @@
   "点击“刷新组件树”重新抓取页面结构。": "Click \"Refresh Component Tree\" to re-crawl the page structure.",
   "回放期间组件树自动刷新会暂停，回放完成后会自动恢复。": "Automatic refresh of the component tree will be paused during playback, and will automatically resume after playback is completed.",
   "更新记录": "Update record",
+  "优化界面": "Improve the interface",
   "[Appium]复制流程前检查节点引用、分支归属和连接脚本，目标缺失或脚本循环连接时明确提示。": "[Appium] Check node references, branch ownership and connection scripts before copying the process, and clearly prompt when the target is missing or the script is connected in a loop.",
   "[Appium]计时节点的回放日志显示开始计时、记录时间点或结束计时操作，以及计时器名称和 ID，保留原有时间及耗时数据。": "[Appium] The playback log of the timing node displays the start timing, recording time point or end timing operation, as well as the timer name and ID, retaining the original time and time-consuming data.",
   "[Appium]搜索节点支持输入纯数字按显示序号精确定位，主画布与流程总览同步生效，保留名称、操作、定位内容和日志的文字搜索。": "[Appium] The search node supports inputting pure numbers to accurately locate according to the display sequence number. The main canvas and process overview take effect simultaneously, and text searches for names, operations, positioning content and logs are retained.",

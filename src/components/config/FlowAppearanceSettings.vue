@@ -59,10 +59,9 @@ const selectedTheme = computed(() => {
 </script>
 
 <template>
-  <el-card shadow="never" class="config-module-card config-appium-card flow-appearance-settings">
-    <template #header><div class="panel-header"><span>{{ t("流程外观") }}</span></div></template>
+  <div class="flow-appearance-settings">
     <section class="flow-theme-settings" :aria-label="t('预设流程主题')">
-      <div class="flow-theme-heading"><h3>{{ t("预设主题") }}</h3><span>{{ t("同时应用画布、节点和连接线配色，可继续单独调整。") }}</span></div>
+      <div class="flow-theme-heading"><h4>{{ t("预设主题") }}</h4><span>{{ t("同时应用画布、节点和连接线配色，可继续单独调整。") }}</span></div>
       <div class="flow-theme-presets">
         <button v-for="theme in FLOW_APPEARANCE_THEMES" :key="theme.id" type="button" class="flow-theme"
           :aria-label="t('应用{0}主题', { 0: t(theme.name) })" :aria-pressed="selectedTheme === theme.id" @click="emit('applyTheme', theme)">
@@ -94,7 +93,7 @@ const selectedTheme = computed(() => {
         </el-radio-group>
       </div>
     </div>
-    <el-form label-position="left" label-width="90px" class="flow-colors" :aria-label="t('自定义流程配色')">
+    <el-form label-position="left" label-width="132px" class="flow-colors" :aria-label="t('自定义流程配色')">
       <el-form-item v-for="panel in panels" :key="panel.key" :label="t(panel.title)" :error="t(panel.error)"
         class="flow-color-row" :class="{ 'flow-color-row--invalid': panel.error }">
         <div class="flow-color-input">
@@ -107,30 +106,29 @@ const selectedTheme = computed(() => {
         </div>
       </el-form-item>
     </el-form>
-  </el-card>
+  </div>
 </template>
 
 <style scoped>
 .flow-theme-settings { margin-bottom: 24px; }
 .flow-theme-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; }
-.flow-theme-heading h3 { margin: 0; color: var(--ui-text); font-size: 15px; }
+.flow-theme-heading h4 { margin: 0; color: var(--ui-text); font-size: 15px; }
 .flow-theme-heading span { color: var(--ui-text-muted); font-size: 12px; }
-.flow-theme-presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+.flow-theme-presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .flow-theme { min-width: 0; overflow: hidden; padding: 0; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-control); background: var(--ui-surface); color: var(--ui-text-secondary); cursor: pointer; }
 .flow-theme svg { display: block; width: 100%; border-bottom: 1px solid var(--ui-border); }
 .flow-theme span { display: block; padding: 8px; font-size: 13px; }
 .flow-theme:hover, .flow-theme[aria-pressed="true"] { border-color: var(--ui-primary); color: var(--ui-primary); }
 .flow-theme[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--el-color-primary-light-8); }
 .flow-theme:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 3px; }
-.flow-behavior-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 40px; margin-bottom: 20px; }
-.flow-behavior-setting { display: flex; align-items: center; gap: 14px; min-height: 36px; }
+.flow-behavior-settings { display: grid; gap: 12px; margin-bottom: 20px; }
+.flow-behavior-setting { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 36px; }
 .flow-behavior-setting > span { color: var(--ui-text-secondary); font-size: 13px; font-weight: 500; }
-.flow-colors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--ui-border); border-radius: var(--ui-radius-control); }
+.flow-colors { border: 1px solid var(--ui-border); border-radius: var(--ui-radius-control); }
 .flow-colors .flow-color-row { min-width: 0; margin: 0; padding: 12px 16px; align-items: center; }
-.flow-color-row:nth-child(even) { border-left: 1px solid var(--ui-border); }
-.flow-color-row:nth-child(-n+2) { border-bottom: 1px solid var(--ui-border); }
+.flow-color-row:not(:last-child) { border-bottom: 1px solid var(--ui-border); }
 .flow-colors .flow-color-row--invalid { padding-bottom: 28px; }
-.flow-colors :deep(.el-form-item__label) { align-items: center; margin: 0; font-size: 13px; color: var(--ui-text-secondary); }
+.flow-colors :deep(.el-form-item__label) { align-items: center; height: auto; margin: 0; color: var(--ui-text-secondary); font-size: 13px; line-height: 1.35; }
 .flow-colors :deep(.el-form-item__content) { min-width: 0; }
 .flow-color-input { display: flex; align-items: center; gap: 8px; width: 100%; }
 .flow-color-input .el-color-picker { flex-shrink: 0; }
@@ -138,14 +136,9 @@ const selectedTheme = computed(() => {
 .flow-color-input :deep(.el-input__wrapper) { min-height: 30px; }
 .flow-color-input :deep(.el-input__inner) { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
 .flow-color-input .el-button { flex-shrink: 0; width: 28px; height: 28px; margin: 0; color: var(--ui-text-muted); }
-@media (max-width: 900px) {
-  .flow-colors { grid-template-columns: minmax(0, 1fr); }
-  .flow-color-row:nth-child(even) { border-left: 0; }
-  .flow-color-row:not(:last-child) { border-bottom: 1px solid var(--ui-border); }
-}
 @media (max-width: 480px) {
   .flow-colors .flow-color-row { padding-left: 10px; padding-right: 10px; }
-  .flow-colors :deep(.el-form-item__label) { width: 78px !important; font-size: 12px; }
+  .flow-colors :deep(.el-form-item__label) { width: 108px !important; font-size: 12px; }
   .flow-color-input { gap: 6px; }
 }
 </style>
