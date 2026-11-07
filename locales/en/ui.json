@@ -1983,5 +1983,7 @@
   "Midscene 启动失败": "Failed to start Midscene",
   "Midscene 本地页面地址无效": "Invalid local Midscene page address",
   "Midscene 状态读取失败": "Failed to read Midscene status",
-  "观察计时器关联无效": "Invalid observation timer reference"
+  "观察计时器关联无效": "Invalid observation timer reference",
+  "导出当前页面 XML": "Export current page XML",
+  "导出组件 XML 失败": "Failed to export component XML"
 }

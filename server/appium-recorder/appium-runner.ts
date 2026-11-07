@@ -1566,8 +1566,8 @@ async function replayFlowSteps(
           index = traversal.branch(step, invalidResultFallback);
           continue;
         }
-        if (error instanceof ConditionTimeoutError && (step.timeoutBranch === 'yes' || step.timeoutBranch === 'no')) {
-          const branch = step.timeoutBranch;
+        const branch = step.timeoutBranch ?? 'no';
+        if (error instanceof ConditionTimeoutError && (branch === 'yes' || branch === 'no')) {
           const status = `判断超时，按配置进入${branch === 'yes' ? '左' : '右'}侧分支（${flowBranchLabel(step, branch)}）`;
           lines.push(`[节点 ${index + 1}] ${status}；${error.message}`);
           await captureReplayFrame(sessionId, frameStep, index + 1, options.scriptName || '', 'after', status);

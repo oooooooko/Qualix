@@ -235,7 +235,7 @@ export const commonNodeReference = `【通用属性规范】
 | selectorChain | AppiumSelector[]，可选 | 保存备用定位链，不能擅自删掉原有定位 |
 | fallback | AppiumSelector，可选或条件必填 | 支持备用坐标的点击/长按使用 bounds+centerX/centerY，不代表所有节点都支持坐标降级 |
 | timeoutMs | number，可选，单位 ms | 含义由节点类型决定；常规定位等待缺省 ${DEFAULT_NODE_TIMEOUT_MS}，延时缺省 1000，长按缺省 800，AI 需先启用超时 |
-| timeoutBranch | stop/yes/no，可选 | 判断超时处理，省略按 stop；不是任意异常的统一兜底 |
+| timeoutBranch | stop/yes/no，可选 | 判断超时处理，省略按 no（右侧分支）；不是任意异常的统一兜底 |
 | flow | object，可选或分支必填 | nodeKind、分支入口、成功/失败后继、分支归属及 textMatch，详见流程连接规则 |
 | flow.collapsed | boolean，可选 | 编辑器折叠显示状态，不影响运行 |
 | snapshot | {text,resourceId,contentDesc,className}，可选 | 录制组件摘要，辅助理解，不替代 selector |

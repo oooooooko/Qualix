@@ -346,7 +346,7 @@ The total time consumption of unified analysis is roughly composed of "observati
 
 Not enabling node timeout does not mean that any external connections will wait indefinitely; network, model services, and device screenshots themselves may still report errors. You can manually terminate playback when you need to stop waiting.
 
-When a branch is enabled and a timeout is enabled, you can configure "timeout post-processing": the default timeout terminates, or you can specify to enter a true or false branch. **Entering a branch due to timeout does not mean that the model is judged to be true or false**. The playback log will record the reason for the timeout. Model HTTP errors, incorrect formats, or cannot be determined will not automatically be regarded as "misses".
+When a branch is enabled and a timeout is enabled, you can configure "timeout post-processing": timeouts enter the right (false) branch by default, or you can choose to terminate the flow or enter the left (true) branch. **Entering a branch due to timeout does not mean that the model is judged to be true or false**. The playback log will record the reason for the timeout. Model HTTP errors, incorrect formats, or cannot be determined will not automatically be regarded as "misses".
 
 ## 11. Testing and troubleshooting
 
@@ -381,7 +381,7 @@ Launch the target app
 AI Recognition: Continuous Observation / End Early on Match
 Observe for up to 15000ms; sample every 1000ms
 Enable branching; start with the default pixelmatch settings
-Start with a 30000ms model timeout; terminate on timeout by default
+Start with a 30000ms model timeout; enter the right (false) branch on timeout by default
   ├─ true: Continue to a separate advertisement check or action node
   └─ false: Log No advertisement found during observation and follow the test case
 ```
@@ -437,7 +437,7 @@ The summary time is not included in the total equipment test time. The content s
 
 ## 16. Configure the appearance of the process editor
 
-Open **Preferences** on the right side of the header and adjust the appearance under **Flow Editor**.
+打开顶栏右侧的偏好设置，在流程编辑器中调整外观。
 
 The process background color and connection line color can be set separately. Each supports preselected colors, color picker, hex color input and restore to default. The color value supports `#RGB` or `#RRGGBB`. When the input is invalid, the page will display a verification prompt.
 

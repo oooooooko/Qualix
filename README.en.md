@@ -202,19 +202,19 @@ If it still fails:
 
 # Changelog
 
-## [2.0.6]
-- [国际化]更新文案。
+## [2.0.9]
+- [Appium]组件树新增“导出当前页面 XML”功能，导出时重新抓取当前页面的完整组件树并下载为 XML 文件，便于排查组件定位问题。
+
+## [2.0.8]
+- [Appium] Default timeout handling for branch nodes to the right branch in both the editor and replay. Preserve explicit choices to enter the left branch or terminate on timeout.
+
+## [2.0.7]
+- Improve the interface
 
 ## [2.0.5]
 - [Laboratory] Upgrade Midscene to v1.17.5 and load the original official Android Playground directly, removing the custom script generation, script list and settings pages.
 - [AI Orchestration] Redesign the task home and workspace with a choice of Flow Orchestration or Autonomous Tasks and Flash / Pro modes.
 - [AI Orchestration] Add an independent TypeScript flow generator that creates basic actions and linear flows from the actual device interface.
-
-## [2.0.4]
-- [Appium] Generate Copy for LLM flow instructions, node references and connection rules in the interface language, while preserving original script names, user notes, variables and locators.
-
-## [2.0.3]
-- [Release] npm package excludes all test files and test fixtures; synchronizes build scope adjustment to retain modules required for running.
 
 ## [2.0.2]
 - [Appium] Check node references, branch ownership and connection scripts before copying the process, and clearly prompt when the target is missing or the script is connected in a loop.

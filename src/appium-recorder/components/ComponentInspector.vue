@@ -1,16 +1,24 @@
 <script setup lang="ts">
 import { t } from '../../i18n';
-import { Refresh } from '@element-plus/icons-vue';
+import { Download, Refresh } from '@element-plus/icons-vue';
 import type { AppiumNode } from '../types';
 import ComponentTree from './ComponentTree.vue';
 import NodeDetail from './NodeDetail.vue';
 defineProps<{ tree: AppiumNode | null; node: AppiumNode | null; activity: string; loading: boolean; disabled: boolean; recording: boolean }>();
-defineEmits<{ refresh: []; select: [node: AppiumNode] }>();
+defineEmits<{ refresh: []; export: []; select: [node: AppiumNode] }>();
 </script>
 
 <template>
   <el-card shadow="never" class="appium-recorder-card component-inspector">
-    <template #header><div class="panel-header"><span>{{ t("App 组件树") }}</span><el-tooltip :content="t('刷新组件树')" placement="top" :show-after="200"><el-button class="recorder-panel-tool" :icon="Refresh" size="small" :aria-label="t('刷新组件树')" :loading="loading" :disabled="disabled" @click="$emit('refresh')" /></el-tooltip></div></template>
+    <template #header>
+      <div class="panel-header">
+        <span>{{ t("App 组件树") }}</span>
+        <div class="panel-header__actions">
+          <el-tooltip :content="t('导出当前页面 XML')" placement="top" :show-after="200"><el-button class="recorder-panel-tool" :icon="Download" size="small" :aria-label="t('导出当前页面 XML')" :disabled="disabled || loading || !tree" @click="$emit('export')" /></el-tooltip>
+          <el-tooltip :content="t('刷新组件树')" placement="top" :show-after="200"><el-button class="recorder-panel-tool" :icon="Refresh" size="small" :aria-label="t('刷新组件树')" :loading="loading" :disabled="disabled" @click="$emit('refresh')" /></el-tooltip>
+        </div>
+      </div>
+    </template>
     <ComponentTree :tree="tree" :selected-id="node?.id || ''" @select="$emit('select', $event)" />
     <NodeDetail :node="node" :current-activity="activity" :loading="recording" />
     <div class="component-inspector__activity">

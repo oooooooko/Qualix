@@ -1,6 +1,13 @@
 # Update record
 
 [简体中文](./CHANGELOG.md) | [English](./CHANGELOG.en.md)
+
+## [2.0.9]
+- [Appium]组件树新增“导出当前页面 XML”功能，导出时重新抓取当前页面的完整组件树并下载为 XML 文件，便于排查组件定位问题。
+
+## [2.0.8]
+- [Appium] Default timeout handling for branch nodes to the right branch in both the editor and replay. Preserve explicit choices to enter the left branch or terminate on timeout.
+
 ## [2.0.7]
 - Improve the interface
 

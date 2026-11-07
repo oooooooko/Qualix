@@ -8,7 +8,7 @@ defineEmits<{ update: [value: NonNullable<AppiumRecordedStep['timeoutBranch']>] 
 
 <template>
   <el-form-item :label="t('超时后处理')">
-    <el-select class="branch-timeout-select" size="small" popper-class="branch-timeout-popper" :model-value="step.timeoutBranch || 'stop'" :disabled="disabled" @update:model-value="$emit('update', $event)">
+    <el-select class="branch-timeout-select" size="small" popper-class="branch-timeout-popper" :model-value="step.timeoutBranch ?? 'no'" :disabled="disabled" @update:model-value="$emit('update', $event)">
       <el-option :label="t('未配置分支（超时终止）')" value="stop" />
       <el-option :label="t('进入左侧分支（{0}）', { 0: flowBranchLabel(step, 'yes') })" value="yes" />
       <el-option :label="t('进入右侧分支（{0}）', { 0: flowBranchLabel(step, 'no') })" value="no" />

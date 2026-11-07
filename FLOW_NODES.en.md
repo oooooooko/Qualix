@@ -27,7 +27,7 @@ Sensitive variables are desensitized in logs and reports, and sensitive values a
 ### Timeouts, branches and failures
 
 - The default timeout for regular waiting and condition is 3000ms; for existing nodes, the actual saved value shall prevail. 1000ms equals 1 second.
-- The "timeout post-processing" of the branch node can choose to terminate the process or enter the specified side branch, which is terminated by default. Normal condition results and timeout are not the same thing.
+- The "timeout post-processing" of the branch node can choose to terminate the process or enter the specified side branch, which enters the right branch by default. Normal condition results and timeout are not the same thing.
 - AI recognition only uses the configured time after checking "Enable Timeout". It waits for the model to complete by default and can still be terminated manually. Network errors or model service errors will not be covered by infinite waiting.
 - The duration of delay, long press, and sliding indicates the duration of the operation; image condition also has an independent observation duration. These parameters cannot be understood as search element timeout.
 - "If it exists..." If the component is not found, it can be skipped. However, if the device is disconnected, the request is incorrect, or the operation fails after being found, it is not the same as "not found".

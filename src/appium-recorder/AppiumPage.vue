@@ -997,6 +997,27 @@ async function refreshTree() {
   }
 }
 
+async function exportTreeXml() {
+  if (loadingTree.value || replaying.value || externalExecutionBusy.value || !selectedDeviceId.value) return;
+  loadingTree.value = true;
+  try {
+    const payload = await fetchTreePayload(true);
+    const blob = new Blob([payload.xml], { type: 'application/xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `app-components-${Date.now()}.xml`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    ElMessage.error(t(error instanceof Error ? error.message : t('导出组件 XML 失败')));
+  } finally {
+    loadingTree.value = false;
+  }
+}
+
 async function executeFlowStep(index: number) {
   const step = steps.value[index];
   if (step?.type === 'aiRecognition') {
@@ -2542,7 +2563,7 @@ watch(
       />
       </template>
       <template #tree>
-        <ComponentInspector :tree="tree" :node="selectedNode" :activity="currentActivity" :loading="loadingTree" :disabled="replaying || externalExecutionBusy" :recording="recordingTap" @refresh="refreshTree" @select="selectedNode = $event" />
+        <ComponentInspector :tree="tree" :node="selectedNode" :activity="currentActivity" :loading="loadingTree" :disabled="replaying || externalExecutionBusy || !selectedDeviceId" :recording="recordingTap" @refresh="refreshTree" @export="exportTreeXml" @select="selectedNode = $event" />
       </template>
 
       <el-card shadow="never" class="appium-recorder-card appium-recorder-card--workbench">

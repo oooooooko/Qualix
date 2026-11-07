@@ -313,7 +313,7 @@ function handlePointerCancel(event: PointerEvent) {
           <el-tooltip v-if="compact && !pointSelection" :content="enlarged ? t('退出设备放大') : t('放大设备预览')" placement="top" :show-after="200"><el-button class="recorder-panel-tool" size="small" :icon="enlarged ? Close : FullScreen" :aria-label="enlarged ? t('退出设备放大') : t('放大设备预览')" @click="enlarged = !enlarged" /></el-tooltip>
           <el-tooltip :content="t('刷新画面')" placement="top" :show-after="200">
           <el-button
-            :text="t(!compact)"
+            :text="!compact"
             :circle="!compact"
             :class="{ 'recorder-panel-tool': compact }"
             :size="compact ? 'small' : 'default'"
