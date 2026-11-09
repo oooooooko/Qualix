@@ -89,6 +89,7 @@ function transformNode(
   const className = attr(element, 'class') || element.tagName;
   const resourceId = attr(element, 'resource-id');
   const siblings = element.parentElement ? elementChildren(element.parentElement) : [element];
+  const drawingOrder = attr(element, 'drawing-order');
   const sameClassIndex = siblings
     .slice(0, index + 1)
     .filter((sibling) => (attr(sibling, 'class') || sibling.tagName) === className).length;
@@ -117,6 +118,7 @@ function transformNode(
     enabled: attr(element, 'enabled') !== 'false',
     xpath,
     bounds,
+    drawingOrder: /^\d+$/.test(drawingOrder) ? Number(drawingOrder) : undefined,
     selector,
     contextSelector,
     children,
@@ -156,21 +158,18 @@ export function flattenNodes(node: AppiumNode | null): AppiumNode[] {
   return [node, ...node.children.flatMap((child) => flattenNodes(child))];
 }
 
-export function findSmallestNodeAtPoint(node: AppiumNode | null, x: number, y: number) {
-  if (!node) return null;
-  let result: AppiumNode | null = null;
-  let resultArea = Number.POSITIVE_INFINITY;
+export function findTopmostNodeAtPoint(node: AppiumNode | null, x: number, y: number): AppiumNode | null {
+  if (!node || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+  const bounds = node.bounds;
+  if (bounds && (x < bounds.left || x >= bounds.right || y < bounds.top || y >= bounds.bottom)) return null;
 
-  for (const item of flattenNodes(node)) {
-    const bounds = item.bounds;
-    if (!bounds) continue;
-    if (x < bounds.left || x > bounds.right || y < bounds.top || y > bounds.bottom) continue;
-    const area = (bounds.right - bounds.left) * (bounds.bottom - bounds.top);
-    if (area <= resultArea) {
-      result = item;
-      resultArea = area;
-    }
+  // 绘制顺序只在兄弟节点间比较；缺失或相同时，后出现的节点位于上层。
+  // 先确定上层分支，再深入查找，不能让被遮挡的小组件胜过上层的大组件。
+  const children = node.children.map((child, index) => ({ child, index }))
+    .sort((a, b) => (b.child.drawingOrder ?? b.index) - (a.child.drawingOrder ?? a.index) || b.index - a.index);
+  for (const { child } of children) {
+    const hit = findTopmostNodeAtPoint(child, x, y);
+    if (hit) return hit;
   }
-
-  return result;
+  return bounds ? node : null;
 }

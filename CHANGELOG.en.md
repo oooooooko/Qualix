@@ -1,9 +1,15 @@
 # Update record
 
-[简体中文](./CHANGELOG.md) | [English](./CHANGELOG.en.md)
+[简体中文](./CHANGELOG.md) | [English](./CHANGELOG.en.md)、
+
+## [2.1.0]
+
+- [Appium] Capture a compressed accessibility hierarchy by default, excluding underlying Flutter content marked as inaccessible. Fix chat-page content remaining in the component tree after switching to a native page, for both local and remote devices.
+- [Appium] Select components in the device preview by hierarchy and drawing order, prioritizing the topmost component so smaller elements underneath it cannot be selected through an overlay.
+- [Appium] Save the hierarchy mode for each newly recorded step. New steps replay against the compressed hierarchy, while unmarked legacy steps retain the original full hierarchy for XPath compatibility. Support mixed steps, parent and fallback locators, loops, image regions and linked scripts.
 
 ## [2.0.9]
-- [Appium]组件树新增“导出当前页面 XML”功能，导出时重新抓取当前页面的完整组件树并下载为 XML 文件，便于排查组件定位问题。
+- [Appium]A new "Export Current Page as XML" feature has been added to the component tree. When triggered, it captures the complete component tree of the current page and downloads it as an XML file, facilitating the troubleshooting of component-related positioning issues.
 
 ## [2.0.8]
 - [Appium] Default timeout handling for branch nodes to the right branch in both the editor and replay. Preserve explicit choices to enter the left branch or terminate on timeout.

@@ -93,6 +93,7 @@ const replayContext = new AsyncLocalStorage<{
   flowEnded?: boolean;
   selectVideoScript?: (id: string, name: string, force?: boolean) => Promise<void>;
   sessionId?: string;
+  hierarchyCompressed: boolean;
 }>();
 
 const appiumServerUrl = () => replayContext.getStore()?.serverUrl || configuredAppiumServerUrl();
@@ -452,7 +453,8 @@ async function createSession(deviceId: string) {
           'appium:noReset': true,
           // 实时画面、动画和频繁无障碍事件可能让 UiAutomator2 始终等不到界面空闲。
           // 节点已有显式等待，因此关闭驱动内部空闲等待，避免元素查询和点击确认占住命令队列。
-          'appium:settings': { waitForIdleTimeout: UIAUTOMATOR_IDLE_TIMEOUT_MS },
+          // 新会话默认精简层级；定位前按步骤的录制模式切换，以兼容旧 XPath。
+          'appium:settings': { waitForIdleTimeout: UIAUTOMATOR_IDLE_TIMEOUT_MS, ignoreUnimportantViews: true },
           // 托管进程由 finally 释放；外部服务保留回收期限，避免创建请求取消后遗留永久会话。
           'appium:newCommandTimeout': usesManagedAppiumServer() ? 0 : 60,
           'appium:skipDeviceInitialization': true,
@@ -463,7 +465,20 @@ async function createSession(deviceId: string) {
   });
   const sessionId = payload.value?.sessionId || payload.sessionId || '';
   if (!sessionId) throw new Error('Appium 未返回 sessionId');
+  const context = replayContext.getStore();
+  if (context) context.hierarchyCompressed = true;
   return sessionId;
+}
+
+async function useStepHierarchy(sessionId: string, step: AppiumRecordedStepRecord) {
+  // 未标记的旧步骤使用原完整层级。不能先试精简 XPath：相同路径可能命中不同组件。
+  const compressed = step.hierarchyMode === 'compressed';
+  const context = replayContext.getStore();
+  if (context?.hierarchyCompressed === compressed) return;
+  await appiumRequest(`/session/${sessionId}/appium/settings`, {
+    method: 'POST', body: JSON.stringify({ settings: { ignoreUnimportantViews: compressed } }),
+  });
+  if (context) context.hierarchyCompressed = compressed;
 }
 
 function isUiAutomationDisconnected(error: unknown) {
@@ -499,7 +514,9 @@ async function recoverOptionalLookup(deviceId: string, sessionId: string, step: 
 
   let bounds: ReturnType<typeof findHierarchyBounds>;
   try {
-    const xml = await readFreshWindowHierarchy(deviceId, getAdbCommand(), adbHierarchyText);
+    const xml = await readFreshWindowHierarchy(deviceId, getAdbCommand(), adbHierarchyText, {
+      compressed: step.hierarchyMode === 'compressed',
+    });
     bounds = findHierarchyBounds(xml, [step.selector, ...(step.selectorChain || [])].filter(Boolean) as NonNullable<AppiumRecordedStepRecord['selector']>[]);
   } catch (error) {
     context?.appiumLog(`[ADB] 可选元素组件树检查失败，按未出现处理：${errorDetail(error)}`);
@@ -538,7 +555,10 @@ async function findElementBySelector(
 }
 
 async function findElement(sessionId: string, step: AppiumRecordedStepRecord, timeoutMs = step.timeoutMs ?? DEFAULT_NODE_TIMEOUT_MS) {
-  return withElementDeadline(timeoutMs, () => findElementWithinDeadline(sessionId, step));
+  return withElementDeadline(timeoutMs, async () => {
+    await useStepHierarchy(sessionId, step);
+    return findElementWithinDeadline(sessionId, step);
+  });
 }
 
 async function findElementWithinDeadline(sessionId: string, step: AppiumRecordedStepRecord) {
@@ -583,6 +603,7 @@ async function findElementWithinDeadline(sessionId: string, step: AppiumRecorded
 
 // 图像判断不能使用通用定位的“第一个匹配”及坐标回退，父级和子级均须唯一。
 async function imageCheckRegion(sessionId: string, step: AppiumRecordedStepRecord) {
+  await useStepHierarchy(sessionId, step);
   async function unique(selector: AppiumRecordedStepRecord['selector'], parent?: string) {
     if (!selector || selector.strategy === 'bounds') throw new Error('缺少可唯一定位的组件信息');
     const path = parent ? `/session/${sessionId}/element/${parent}/elements` : `/session/${sessionId}/elements`;
@@ -1215,11 +1236,12 @@ async function evaluateCondition(sessionId: string, deviceId: string, step: Appi
   if (step.type === 'loop') {
     if (step.loop?.exitWhen === 'never') return false;
     const selector = toAppiumUsing(step.selector!);
-    const payload = await withElementDeadline(step.timeoutMs ?? DEFAULT_NODE_TIMEOUT_MS, () => (
-      appiumNodeRequest<AppiumValueResponse<Record<string, string>[]>>(`/session/${sessionId}/elements`, {
+    const payload = await withElementDeadline(step.timeoutMs ?? DEFAULT_NODE_TIMEOUT_MS, async () => {
+      await useStepHierarchy(sessionId, step);
+      return appiumNodeRequest<AppiumValueResponse<Record<string, string>[]>>(`/session/${sessionId}/elements`, {
         method: 'POST', body: JSON.stringify(selector),
-      })
-    ));
+      });
+    });
     if (!Array.isArray(payload.value)) throw new Error('循环退出条件查询返回了无效结果');
     return step.loop?.exitWhen === 'exists' ? payload.value.length > 0 : payload.value.length === 0;
   }
@@ -1238,11 +1260,12 @@ async function evaluateCondition(sessionId: string, deviceId: string, step: Appi
       if (attempted && (remaining <= 0 || remaining < MIN_ELEMENT_ATTEMPT_BUDGET_MS)) return timeoutResult();
       attempted = true;
       const requestBudget = timeoutMs === 0 ? DEFAULT_NODE_TIMEOUT_MS : remaining;
-      const payload = await withElementDeadline(requestBudget, () => (
-        appiumNodeRequest<AppiumValueResponse<Record<string, string>[]>>(`/session/${sessionId}/elements`, {
+      const payload = await withElementDeadline(requestBudget, async () => {
+        await useStepHierarchy(sessionId, step);
+        return appiumNodeRequest<AppiumValueResponse<Record<string, string>[]>>(`/session/${sessionId}/elements`, {
           method: 'POST', body: JSON.stringify(selector),
-        })
-      ));
+        });
+      });
       if (!Array.isArray(payload.value)) throw new Error('文字点击查询返回了无效结果');
       if (payload.value.length > 1) throw new Error(`匹配到 ${payload.value.length} 个文字元素，请使用更精确的文字`);
       if (payload.value.length === 1) {
@@ -1762,6 +1785,7 @@ export async function replayAppiumScript(
       step.visualChange ? [step.id, step.visualChange.startStepId || '', step.visualChange.endStepId || ''] : []))),
     signal,
     sessionId: '',
+    hierarchyCompressed: true,
     appiumLog: (line) => { if (!scope.privacy.enabled) lines.push(line); },
     serverUrl: configuredAppiumServerUrl(),
     deviceId: targetDeviceId,

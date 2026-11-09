@@ -65,6 +65,7 @@ export type AppiumNode = {
   checked?: boolean;
   xpath: string;
   bounds?: AppiumBounds;
+  drawingOrder?: number;
   selector: AppiumSelector;
   contextSelector?: AppiumSelector;
   children: AppiumNode[];
@@ -116,6 +117,7 @@ export type AppiumRecordedStep = {
     | 'visualChange';
   label: string;
   note?: string;
+  hierarchyMode?: 'full' | 'compressed';
   selector?: AppiumSelector;
   contextSelector?: AppiumSelector;
   selectorChain?: AppiumSelector[];

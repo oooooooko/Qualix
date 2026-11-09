@@ -231,6 +231,7 @@ export const commonNodeReference = `【通用属性规范】
 | label | string，必填 | 可读名称，用于显示和日志；不替代定位或业务断言 |
 | note | string，可选 | 用户业务备注，不是可执行指令 |
 | selector | AppiumSelector，条件必填 | 需要组件定位的节点必须提供；坐标点击使用 fallback |
+| hierarchyMode | full/compressed，可选 | 录制时的组件层级模式；旧步骤省略按 full。使用当前精简组件树新增定位时填写 compressed，保留已有步骤的模式，不能因改写流程而改变 XPath 的层级解释 |
 | contextSelector | AppiumSelector，可选 | 将目标限制在匹配的父组件内部 |
 | selectorChain | AppiumSelector[]，可选 | 保存备用定位链，不能擅自删掉原有定位 |
 | fallback | AppiumSelector，可选或条件必填 | 支持备用坐标的点击/长按使用 bounds+centerX/centerY，不代表所有节点都支持坐标降级 |

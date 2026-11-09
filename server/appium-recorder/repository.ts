@@ -16,6 +16,7 @@ import { validateRandomValue, type RandomValueConfig } from '../../src/appium-re
 import { validateStopwatch, remapStopwatchIds, type StopwatchConfig } from '../../src/appium-recorder/stopwatch';
 
 export type AppiumRecordedStepRecord = {
+  hierarchyMode?: 'full' | 'compressed';
   mergeUndo?: import('../../src/appium-recorder/types').BranchMergeUndo;
   id: string;
   type:
@@ -389,6 +390,9 @@ export function saveAppiumRecordedScript(input: {
   if (input.variables !== undefined) validateVariables(input.variables);
   for (const step of steps) {
     // 读取旧脚本必须容错，让用户能打开并修正无效配置；仅在写入时校验。
+    if (step.hierarchyMode !== undefined && !['full', 'compressed'].includes(step.hierarchyMode)) {
+      throw new Error('组件层级模式必须为 full 或 compressed');
+    }
     if (step.type === 'aiRecognition') {
       validateAiObservation(step.aiObservation);
       validateAiInvalidResultBranch(step.aiInvalidResultBranch);

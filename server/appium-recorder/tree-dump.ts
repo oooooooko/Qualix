@@ -46,12 +46,13 @@ export function findHierarchyBounds(xml: string, selectors: HierarchySelector[])
   return undefined;
 }
 
-export async function readFreshWindowHierarchy(deviceId: string, adb: string, execText: ExecText) {
+export async function readFreshWindowHierarchy(deviceId: string, adb: string, execText: ExecText, options: { compressed?: boolean } = {}) {
   // dump 失败可能仍以 0 退出。每次独立文件，避免误读上一次成功抓取的树。
   const remotePath = `/data/local/tmp/midscene_uidump_${randomUUID()}.xml`;
   const run = (args: string[]) => execText(adb, ['-s', deviceId, ...args]);
   try {
-    const output = await run(['shell', 'uiautomator', 'dump', remotePath]);
+    // 默认尊重无障碍排除；旧脚本的 ADB 回放兜底显式使用录制时的完整层级。
+    const output = await run(['shell', 'uiautomator', 'dump', ...(options.compressed === false ? [] : ['--compressed']), remotePath]);
     if (/ERROR:|could not|failed/i.test(output)) throw new Error(output.trim());
     const xml = await run(['shell', 'cat', remotePath]);
     if (!xml.includes('<hierarchy') || !xml.includes('</hierarchy>')) {

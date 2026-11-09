@@ -69,7 +69,7 @@ import { nativeControlName, matchesNativeControl } from './native-control-state'
 import { normalizeLegacyNestedConditionBranches } from './flow-normalize';
 import { removeFlowStep } from './flow-remove';
 import type { FlowActionGroup, InsertAction } from './flow-graph';
-import { findSmallestNodeAtPoint, flattenNodes, parseWindowHierarchy } from './tree';
+import { findTopmostNodeAtPoint, flattenNodes, parseWindowHierarchy } from './tree';
 import {
   boundsToVisualRegion,
   createStepId,
@@ -571,6 +571,7 @@ function createStep(type: NodeStepType, node: AppiumNode): AppiumRecordedStep {
     id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     type,
     label: `${t(labelMap[type])} ${node.label}`,
+    hierarchyMode: 'compressed',
     selector: node.selector,
     contextSelector: node.contextSelector,
     selectorChain: node.xpath && node.selector.value !== node.xpath
@@ -618,6 +619,7 @@ function createNodeActionStep(
     id: `step_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     type,
     label: `${t(label)} ${node.label}`,
+    hierarchyMode: 'compressed',
     selector: node.selector,
     contextSelector: node.contextSelector,
     selectorChain: node.xpath && node.selector.value !== node.xpath
@@ -726,7 +728,7 @@ function useImageCheckElement() {
   if (!node?.bounds || !imageCheckDraft.value?.imageCheck) return;
   const located = createNodeActionStep('imageCheck', '图像判断', node);
   imageCheckDraft.value = { ...imageCheckDraft.value, selector: located.selector, contextSelector: located.contextSelector,
-    selectorChain: located.selectorChain, fallback: undefined,
+    selectorChain: located.selectorChain, hierarchyMode: located.hierarchyMode, fallback: undefined,
     imageCheck: { ...imageCheckDraft.value.imageCheck, target: 'element', region: boundsToVisualRegion(node.bounds) } };
 }
 
@@ -1084,7 +1086,7 @@ function selectNodeFromPoint(point: { x: number; y: number }) {
     coordinatePicker.select(point);
     return;
   }
-  const node = findSmallestNodeAtPoint(tree.value, point.x, point.y);
+  const node = findTopmostNodeAtPoint(tree.value, point.x, point.y);
   if (node) {
     selectedNode.value = node;
     workspaceRef.value?.showTree();
@@ -1462,6 +1464,7 @@ async function addAction(
   if (action === 'loop') {
     const step = reactive<AppiumRecordedStep>({
       id: createStepId(), type: 'loop', label: t("有界循环"), loop: defaultLoopConfig(),
+      hierarchyMode: 'compressed',
       selector: selectedNode.value?.selector ? { ...selectedNode.value.selector } : { strategy: 'id', value: '' },
       flow: { nodeKind: 'condition' },
     });
@@ -1529,7 +1532,7 @@ async function addAction(
     imageCheckBranch = branchTarget;
     imageCheckEditing = false;
     imageCheckPicking.value = false;
-    imageCheckDraft.value = { id: createStepId(), type: 'imageCheck', label: t("图像判断"), flow: { nodeKind: 'condition' },
+    imageCheckDraft.value = { id: createStepId(), type: 'imageCheck', label: t("图像判断"), hierarchyMode: 'compressed', flow: { nodeKind: 'condition' },
       imageCheck: { ...createImageCheckConfig(), region: defaultVisualChangeRegion(), screenWidth: props.deviceWidth || 0, screenHeight: props.deviceHeight || 0 } };
     if (selectedNode.value?.bounds) useImageCheckElement();
     return;
@@ -1560,6 +1563,7 @@ async function addAction(
   if (action === 'textClick') {
     const step = reactive<AppiumRecordedStep>({
       id: createStepId(), type: 'textClick', label: t("文字点击"), value: '', timeoutMs: DEFAULT_NODE_TIMEOUT_MS,
+      hierarchyMode: 'compressed',
       flow: { nodeKind: 'condition', textMatch: 'exact' },
     });
     const result = await ElMessageBox({
