@@ -4,7 +4,7 @@
 
 🌐 **English** | [中文](./README.md)
 
-A mobile app automation platform for Android and iOS, with manual orchestration, script replay and test analytics. Android also supports AI Flow Orchestration and Autonomous Tasks.
+A mobile app automation platform for Android and iOS, with manual orchestration, script replay and test analytics.
 
 ## Quick start
 
