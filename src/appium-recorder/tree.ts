@@ -1,6 +1,7 @@
 import type { AppiumBounds, AppiumNode, AppiumSelector } from './types';
 import { parseNativeBoolean } from './native-control-state';
 import { xpathStringLiteral } from './node-locators';
+import { parseIosHierarchy } from '../ios/tree';
 
 type SelectorCounts = {
   contentDesc: Map<string, number>;
@@ -127,6 +128,8 @@ function transformNode(
 
 export function parseWindowHierarchy(xml: string) {
   const doc = new DOMParser().parseFromString(xml, 'text/xml');
+  const ios = parseIosHierarchy(doc);
+  if (ios) return ios;
   const root = doc.querySelector('hierarchy > node') || doc.querySelector('node');
   if (!root) return null;
   const resourceIdCounts = new Map<string, number>();

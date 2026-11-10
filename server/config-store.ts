@@ -1,18 +1,14 @@
 import type { AppConfig } from './config';
+import type { AppPreset } from '../src/types';
 import { querySql, runSql, sqlString } from './storage/sqlite';
 
-export type AppPresetRecord = {
-  id: string;
-  name: string;
-  packageName: string;
-  createdAt: string;
-  updatedAt: string;
-};
+export type AppPresetRecord = AppPreset;
 
 type AppPresetRow = {
   id: string;
   name: string;
   package_name: string;
+  platform: AppPreset['platform'];
   created_at: string;
   updated_at: string;
 };
@@ -28,6 +24,7 @@ function rowToAppPreset(row: AppPresetRow): AppPresetRecord {
     id: row.id,
     name: row.name,
     packageName: row.package_name,
+    platform: row.platform,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -35,7 +32,6 @@ function rowToAppPreset(row: AppPresetRow): AppPresetRecord {
 
 function initConfigDb() {
   if (initialized) return;
-  initialized = true;
   runSql(`
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS app_config (
@@ -47,12 +43,17 @@ function initConfigDb() {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       package_name TEXT NOT NULL,
+      platform TEXT NOT NULL DEFAULT 'universal',
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       UNIQUE(name, package_name)
     );
     CREATE INDEX IF NOT EXISTS idx_app_presets_updated_at ON app_presets(updated_at DESC);
   `);
+  if (!querySql<{ name: string }>('PRAGMA table_info(app_presets);').some(column => column.name === 'platform')) {
+    runSql("ALTER TABLE app_presets ADD COLUMN platform TEXT NOT NULL DEFAULT 'universal';");
+  }
+  initialized = true;
 }
 
 export function loadModelConfigFromDb() {
@@ -82,20 +83,22 @@ export function saveModelConfigToDb(config: AppConfig) {
 export function listAppPresetRecords() {
   initConfigDb();
   return querySql<AppPresetRow>(`
-    SELECT id, name, package_name, created_at, updated_at
+    SELECT id, name, package_name, platform, created_at, updated_at
     FROM app_presets
     ORDER BY updated_at DESC;
   `).map(rowToAppPreset);
 }
 
-export function saveAppPresetRecord(input: { id?: string; name: string; packageName: string }) {
+export function saveAppPresetRecord(input: { id?: string; name: string; packageName: string; platform?: unknown }) {
   initConfigDb();
   const now = new Date().toISOString();
   const name = input.name.trim();
   const packageName = input.packageName.trim();
+  const platform = input.platform === undefined ? 'universal' : input.platform;
 
   if (!name) throw new Error('App 名称不能为空');
   if (!packageName) throw new Error('App 包名不能为空');
+  if (platform !== 'android' && platform !== 'ios' && platform !== 'universal') throw new Error('App 平台无效');
 
   const existing = querySql<{ id: string }>(`
     SELECT id
@@ -112,16 +115,17 @@ export function saveAppPresetRecord(input: { id?: string; name: string; packageN
   const id = input.id || createId();
 
   runSql(`
-    INSERT INTO app_presets (id, name, package_name, created_at, updated_at)
-    VALUES (${sqlString(id)}, ${sqlString(name)}, ${sqlString(packageName)}, ${sqlString(now)}, ${sqlString(now)})
+    INSERT INTO app_presets (id, name, package_name, platform, created_at, updated_at)
+    VALUES (${sqlString(id)}, ${sqlString(name)}, ${sqlString(packageName)}, ${sqlString(platform)}, ${sqlString(now)}, ${sqlString(now)})
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       package_name = excluded.package_name,
+      platform = excluded.platform,
       updated_at = excluded.updated_at;
   `);
 
   const row = querySql<AppPresetRow>(`
-    SELECT id, name, package_name, created_at, updated_at
+    SELECT id, name, package_name, platform, created_at, updated_at
     FROM app_presets
     WHERE id = ${sqlString(id)}
     LIMIT 1;

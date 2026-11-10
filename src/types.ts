@@ -25,12 +25,14 @@ export type AppPreset = {
   id: string;
   name: string;
   packageName: string;
+  platform: 'android' | 'ios' | 'universal';
   createdAt: string;
   updatedAt: string;
 };
 
 export type AndroidDevice = {
   id: string;
+  platform?: import('./appium-recorder/platform').ScriptPlatform;
   status: string;
   description: string;
 };

@@ -1,14 +1,17 @@
 # <img src="./assets/qualix-logo.png" width="64" height="64" alt="Qualix logo" /> Qualix
 
-[![npm version](https://img.shields.io/npm/v/qualix?color=2563eb&logo=npm)](https://www.npmjs.com/package/qualix) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](./LICENSE) [![Language: TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=white)](./src) [![Appium](https://img.shields.io/badge/Appium-662d91?logo=appium&logoColor=white)](https://www.npmjs.com/package/appium)
+[![npm version](https://img.shields.io/npm/v/qualix?color=2563eb&logo=npm)](https://www.npmjs.com/package/qualix) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](./LICENSE) [![Language: TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=white)](./src) [![Android](https://img.shields.io/badge/Android-34A853?logo=android&logoColor=white)](./USAGE.en.md) [![iOS](https://img.shields.io/badge/iOS-111827?logo=apple&logoColor=white)](./IOS_SETUP.en.md) [![Appium](https://img.shields.io/badge/Appium-662d91?logo=appium&logoColor=white)](https://www.npmjs.com/package/appium)
 
 🌐 **English** | [中文](./README.md)
 
-An Android app automation platform with manual orchestration, AI orchestration, script replay and test analytics.
+A mobile app automation platform for Android and iOS, with manual orchestration, script replay and test analytics. Android also supports AI Flow Orchestration and Autonomous Tasks.
 
 ## Quick start
 
-Install Node.js 20.19+ or 22.12+ and Android SDK Platform Tools. Connect an Android device with USB debugging enabled and authorized.
+Install Node.js 20.19+ or 22.12+, then prepare a device for your platform:
+
+- Android: install Android SDK Platform Tools and connect a device with USB debugging enabled and authorized.
+- iOS: use Xcode on a Mac to sign and start WebDriverAgent (WDA 7.0.0 or newer) for a physical device or simulator. Physical devices require computer trust, Developer Mode, UI Automation and USB port forwarding. See [Preparing an iOS connection](./IOS_SETUP.en.md).
 
 ```bash
 npx --yes qualix@latest
@@ -21,7 +24,7 @@ npm install
 npm run dev
 ```
 
-Manual orchestration and saved-script replay require Appium and its Android driver:
+Android manual orchestration and saved-script replay require Appium and the UiAutomator2 driver:
 
 ```bash
 npm install -g appium
@@ -29,17 +32,38 @@ appium driver install uiautomator2
 appium
 ```
 
+iOS manual orchestration and replay connect directly to a running WDA. See the connection steps below.
+
 ## Features
 
 | Navigation | Feature |
 | --- | --- |
-| Test Orchestration | Record and edit component-tree flows, save scripts and replay with Appium |
-| AI Orchestration Beta | Appium Flow Canvas / Autonomous Tasks, with Flash / Pro, independent histories, task queues, notes, plans and recording playback |
+| Test Orchestration | Android / iOS component-tree selection, action recording, flow editing, script saving and replay |
+| AI Orchestration Beta | Flow Orchestration / Autonomous Tasks on locally connected Android devices, with Flash / Pro, independent histories, task queues, notes, plans and recording playback |
 | Laboratory → Midscene | The original official v1.17.5 Android Playground for device connection, model settings and action results |
 | Overview → Analytics | Pass rates, duration and trends from orchestration scripts and replay records |
-| Settings | Device environment, model services, canvas appearance and reports |
+| Settings | Device environment, iOS connections, app platforms, model services, canvas appearance and reports |
 
 Ordinary recording and replay need no model. AI orchestration and recognition require a model supporting image input. Both modes share the configured orchestration model and validate it before execution.
+
+## iOS support
+
+Connect locally attached iOS devices or simulators through an existing WDA for live MJPEG preview, screenshot fallback and recovery, component-tree selection, manual recording and script replay. Variables, branches, loops, linked scripts, screenshot reports and AI recognition nodes are supported.
+
+1. Prepare Xcode and WDA on a Mac. On a physical device, trust the computer, enable Settings → Privacy & Security → Developer Mode, restart and confirm, then enable Settings → Developer → Enable UI Automation. Sign and start WDA, and keep the phone unlocked during testing.
+2. For USB-connected physical devices, install the forwarding tool and keep the forwarding process running. Simulators can use the WDA address directly:
+
+```bash
+brew install libimobiledevice
+iproxy 8100:8100 9100:9100
+```
+
+3. Open Settings → iOS Device Connections and select Connect Default Device. Qualix detects WDA at `localhost:8100` and MJPEG at `localhost:9100`. A single device needs no configuration; expand the settings for multiple devices or custom addresses.
+4. Add an app preset with the iOS or Universal platform and its Bundle ID. Select the iOS device in Test Orchestration, create a script, then record and replay it. App lists are filtered by device platform, Universal apps remain available, and linked scripts and replay are checked for matching platforms.
+
+Qualix connects to an already running WDA; install, sign and start WDA through Xcode. See [Preparing an iOS connection](./IOS_SETUP.en.md) for complete setup and troubleshooting steps.
+
+iOS currently does not support Android-only keys, Activity waits, clearing app data, the Android gallery, native checked-state checks, UiAutomator locators or replay video recording. AI flow generation, Autonomous Tasks, the Android Playground in Laboratory and remote agents currently support Android only.
 
 ## New AI workspace
 
@@ -72,6 +96,7 @@ Up to 20 tasks may be pending. Existing time and action budgets still apply. Sto
 ## Documentation and checks
 
 - [Usage](./USAGE.en.md)
+- [Preparing an iOS connection](./IOS_SETUP.en.md)
 - [AI orchestration](./ai-flow/README.md)
 - [Flow nodes](./FLOW_NODES.en.md)
 - [AI recognition](./AI_RECOGNITION.en.md)
@@ -202,8 +227,18 @@ If it still fails:
 
 # Changelog
 
+## [2.1.1]
+- [iOS] Add support for connecting locally attached devices through an existing WDA, including live MJPEG preview, screenshot fallback and recovery, component-tree selection, and script recording and execution.
+- [iOS] Use logical point coordinates and reject stale gestures after rotation. Make script execution and manual control mutually exclusive, distinguish internally created and external WDA sessions, and clean up preview connections automatically.
+- [App Settings] Add Android, iOS and Universal platforms, defaulting new and existing apps to Universal. Filter apps by the selected device in Test Orchestration and AI Orchestration, while keeping Universal apps available.
+
+## [2.1.0]
+- [Appium] Use a compressed accessibility hierarchy by default when collecting components, excluding underlying Flutter content hidden from accessibility. Fix dialog content remaining in the component tree after switching to a native screen. Apply these changes to both local and remote devices.
+- [Appium] Select components in the device preview by hierarchy and drawing order, prioritizing components on top to avoid selecting smaller components obscured beneath them.
+- [Appium] Save the component hierarchy mode for each step. Newly recorded steps use the compressed hierarchy, while unmarked legacy steps replay with the original full hierarchy to preserve existing XPath locators. Support mixed legacy and new steps, parent and fallback locators, loops, image regions and linked scripts.
+
 ## [2.0.9]
-- [Appium]组件树新增“导出当前页面 XML”功能，导出时重新抓取当前页面的完整组件树并下载为 XML 文件，便于排查组件定位问题。
+- [Appium] Add Export Current Page XML to the component tree. Fetch a fresh, complete component tree for the current page and download it as an XML file to help troubleshoot component locator issues.
 
 ## [2.0.8]
 - [Appium] Default timeout handling for branch nodes to the right branch in both the editor and replay. Preserve explicit choices to enter the left branch or terminate on timeout.

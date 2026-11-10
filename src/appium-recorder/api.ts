@@ -73,10 +73,10 @@ function postJson<T>(url: string, body?: unknown) {
 
 export async function getAppiumTree(deviceId: string) {
   const response = await fetch(`${APP_BASE}/api/appium-recorder/tree?deviceId=${encodeURIComponent(deviceId)}`, { cache: 'no-store' });
-  return readJson<{ deviceId: string; xml: string; activity: string; dumpedAt: string }>(response);
+  return readJson<{ deviceId: string; xml: string; activity: string; dumpedAt: string; geometry?: import('../ios/types').IosGeometry }>(response);
 }
 
-export function tapAppiumDevice(input: { deviceId: string; x: number; y: number }) {
+export function tapAppiumDevice(input: { deviceId: string; x: number; y: number; geometryRevision?: number }) {
   return postJson<{ success: boolean }>(`${APP_BASE}/api/appium-recorder/tap`, input);
 }
 
@@ -102,6 +102,7 @@ export function getAppiumLlmPrompt(draft: AppiumScriptDraft) {
 }
 
 export function saveAppiumScript(input: {
+  platform?: AppiumRecordedScript['platform'];
   variables?: import('./variables').TestVariable[];
   id?: string;
   name: string;

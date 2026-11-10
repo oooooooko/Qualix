@@ -10,12 +10,14 @@ import {
 } from "@element-plus/icons-vue";
 import AutonomousSettings from "../../ai-task/ui/AutonomousSettings.vue";
 import TaskTypeSelect from "./TaskTypeSelect.vue";
+import ScriptPlatformIcon from "../../src/appium-recorder/components/ScriptPlatformIcon.vue";
 import type {
   AiWorkspaceProps,
   TaskExperience,
   TaskLaunch,
 } from "./workspace-context";
 import { t } from "../../src/i18n";
+import { appPresetsForDevice } from "../../src/app-presets";
 const props = defineProps<AiWorkspaceProps & { busy: boolean }>();
 const emit = defineEmits<{
   launch: [input: TaskLaunch];
@@ -42,6 +44,11 @@ const goal = ref(""),
   recordVideo = ref(true),
   useScreenshot = ref(true);
 const section = ref<"settings" | "task">("task");
+const selectedDevice = computed(() => props.devices.find(device => device.id === props.deviceId));
+const appOptions = computed(() => appPresetsForDevice(props.appPresets, props.devices, props.deviceId));
+watch(appOptions, options => {
+  if (appPackage.value && !options.some(app => app.packageName === appPackage.value)) appPackage.value = "";
+});
 const canLaunch = computed(
   () =>
     !props.busy &&
@@ -49,7 +56,7 @@ const canLaunch = computed(
     !!goal.value.trim() &&
     !!props.deviceId &&
     props.modelConfigured &&
-    props.appPresets.some((app) => app.packageName === appPackage.value),
+    appOptions.value.some((app) => app.packageName === appPackage.value),
 );
 const recommendations: Array<{
   title: string;
@@ -156,13 +163,23 @@ function launch() {
             :placeholder="t('选择设备')"
             :aria-label="t('选择设备')"
             @update:model-value="emit('switchDevice', $event)"
-            ><el-option
+          >
+            <template v-if="selectedDevice" #prefix>
+              <ScriptPlatformIcon :platform="selectedDevice.platform" />
+            </template>
+            <el-option
               v-for="device in devices"
               :key="device.id"
               :value="device.id"
               :label="device.description || device.id"
               :disabled="device.status !== 'device'"
-          /></el-select>
+            >
+              <span class="task-device-option">
+                <ScriptPlatformIcon :platform="device.platform" />
+                <span>{{ device.description || device.id }}</span>
+              </span>
+            </el-option>
+          </el-select>
           <el-select
             ref="appSelect"
             v-model="appPackage"
@@ -171,7 +188,7 @@ function launch() {
             :placeholder="t('选择 App')"
             :aria-label="t('选择 App')"
             ><el-option
-              v-for="app in appPresets"
+              v-for="app in appOptions"
               :key="app.id"
               :value="app.packageName"
               :label="app.name"
@@ -383,6 +400,8 @@ function launch() {
 .home-composer__target > .el-select {
   width: 210px;
 }
+.task-device-option { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 34px; line-height: 20px; }
+.task-device-option > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .home-composer__target > .el-checkbox {
   margin-left: auto;
   margin-right: 0;

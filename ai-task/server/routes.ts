@@ -36,7 +36,7 @@ export function validateTaskInput(raw: Record<string, unknown>): TaskInput {
   };
   if (
     !/^[A-Za-z]\w*(?:\.\w+)+$/.test(input.appPackage) ||
-    isRemoteDeviceId(input.deviceId)
+    (isRemoteDeviceId(input.deviceId) || input.deviceId.startsWith('ios:'))
   )
     throw new RequestBodyError("请选择本机Android设备和有效App", 400);
   if (

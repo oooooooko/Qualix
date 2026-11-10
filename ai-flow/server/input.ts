@@ -21,7 +21,7 @@ export function validateGenerationInput(raw: Record<string, unknown>): Generatio
   }
   if (raw.mode !== undefined && !['flash', 'pro'].includes(String(raw.mode))) throw new RequestBodyError('执行模式无效', 400);
   input.mode = raw.mode === 'flash' ? 'flash' : 'pro';
-  if (isRemoteDeviceId(input.deviceId)) throw new RequestBodyError('AI 流程生成暂时只支持本机连接的 Android 设备', 400);
+  if (isRemoteDeviceId(input.deviceId) || input.deviceId.startsWith('ios:')) throw new RequestBodyError('AI 流程生成暂时只支持本机连接的 Android 设备', 400);
   return input;
 }
 

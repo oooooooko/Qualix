@@ -10,6 +10,7 @@ import { ElForm, ElFormItem, ElInputNumber, ElMessage, ElMessageBox, ElOption, E
 import { ArrowDown, Check, CircleClose, CopyDocument, Delete, Document, Download, Edit, FolderOpened, Loading, Plus, Refresh, Upload, VideoPlay, View, Clock } from '@element-plus/icons-vue';
 import RunHistoryDialog from './RunHistoryDialog.vue';
 import type { AndroidDevice, AppPreset, DeviceAction } from '../types';
+import { appPresetsForDevice } from '../app-presets';
 import DevicePreviewPanel from '../components/device/DevicePreviewPanel.vue';
 import LoopSettings from './components/LoopSettings.vue';
 import BreakLoopSettings from './components/BreakLoopSettings.vue';
@@ -51,6 +52,9 @@ import { defaultRandomValue, validateRandomValue } from './random-value';
 import { variablePresetKey, variablePresetOptions, type VariablePresetContext } from './variable-presets';
 import RecordedSteps from './components/RecordedSteps.vue';
 import NewScriptDialog from './components/NewScriptDialog.vue';
+import ScriptPlatformIcon from './components/ScriptPlatformIcon.vue';
+import { assertLinkedScriptPlatforms, assertScriptPlatform, scriptPlatform, type ScriptPlatform } from './platform';
+import { assertIosSteps, iosUnsupportedActions } from '../ios/capabilities';
 import LlmPromptActions from './components/LlmPromptActions.vue';
 import VisualChangeDialog from './components/VisualChangeDialog.vue';
 import ImageCheckDialog from './components/ImageCheckDialog.vue';
@@ -232,14 +236,30 @@ const pendingNavigation = shallowRef<{
 } | null>(null);
 type TreePayload = Awaited<ReturnType<typeof getAppiumTree>>;
 let treeRequest: Promise<TreePayload> | null = null;
+let treeGeometryRevision: number | undefined;
 let autoTreeRefreshTimer: number | null = null;
 let autoTreeRefreshInFlight = false;
 
 const form = reactive({
   name: '',
+  platform: 'android' as ScriptPlatform,
   appPackage: '',
   appActivity: '',
 });
+const appOptions = computed(() => appPresetsForDevice(props.appPresets, props.androidDevices, selectedDeviceId.value));
+const customAppOption = computed(() => {
+  const device = props.androidDevices.find(item => item.id === selectedDeviceId.value);
+  return form.appPackage && !props.appPresets.some(app => app.packageName === form.appPackage)
+    && (!device || form.platform === scriptPlatform(device.platform)) ? form.appPackage : '';
+});
+// Hide an incompatible saved selection without rewriting the script or its nodes.
+const selectedAppOption = computed({
+  get: () => appOptions.value.some(app => app.packageName === form.appPackage) ? form.appPackage : customAppOption.value,
+  set: (value: string) => { form.appPackage = value; },
+});
+watch(() => props.androidDevices.find(device => device.id === selectedDeviceId.value)?.platform, platform => {
+  if (!selectedScriptId.value && !steps.value.length) form.platform = scriptPlatform(platform);
+}, { immediate: true });
 const stopwatchTargets = computed(() => [
   ...scripts.value.filter(script => script.id !== selectedScriptId.value),
   { name: form.name || '当前脚本', steps: steps.value },
@@ -301,6 +321,7 @@ function resumeRandomValue() {
 const savedDraftSnapshot = shallowRef('');
 const currentDraftSnapshot = computed(() => JSON.stringify({
   name: form.name,
+  platform: form.platform,
   appPackage: form.appPackage,
   appActivity: form.appActivity,
   steps: steps.value,
@@ -340,8 +361,37 @@ const linkedScriptPreviewScript = computed(() => (
   scripts.value.find((script) => script.id === linkedScriptPreviewScriptId.value) || null
 ));
 const compatibleLinkableScripts = computed(() => linkableScripts.value.filter(
-  (script) => script.appPackage === form.appPackage,
+  (script) => {
+    if (script.appPackage !== form.appPackage) return false;
+    try {
+      assertScriptPlatform(script, form.platform);
+      assertLinkedScriptPlatforms(script, id => scripts.value.find(item => item.id === id));
+      return true;
+    } catch { return false; }
+  },
 ));
+const replayPlatformError = computed(() => {
+  if (!selectedScript.value) return '';
+  try {
+    const device = props.androidDevices.find(item => item.id === selectedDeviceId.value);
+    if (!device || device.status !== 'device') return '请选择在线设备后再回放';
+    // Legacy responses from the Android device inventory have no platform field.
+    const devicePlatform = scriptPlatform(device.platform);
+    const draft = { ...selectedScript.value, platform: form.platform, steps: steps.value };
+    assertScriptPlatform(draft, devicePlatform);
+    assertLinkedScriptPlatforms(draft, id => scripts.value.find(item => item.id === id));
+    if (devicePlatform === 'ios') {
+      assertIosSteps(steps.value);
+      for (const script of scripts.value) {
+        // Dependency platform validation above walks reachable scripts only;
+        // detailed capability checks are repeated by the server before dispatch.
+        if (steps.value.some(step => step.type === 'runScript' && step.value === script.id)) assertIosSteps(script.steps);
+      }
+      if (recordReplayVideo.value) return 'iOS 暂不支持回放录屏，请关闭录制回放视频';
+    }
+    return '';
+  } catch (error) { return error instanceof Error ? error.message : '脚本平台校验失败'; }
+});
 const hasSelectedAppPackage = computed(() => props.appPresets.some((app) => app.packageName === form.appPackage)
   || Boolean(form.appPackage && selectedScript.value?.appPackage === form.appPackage));
 const scriptActivityMismatch = computed(() => {
@@ -859,8 +909,10 @@ async function fetchTreePayload(forceFresh = false) {
 }
 
 function applyTreeSnapshot(payload: TreePayload, parsedTree: AppiumNode | null, clearSelection: boolean) {
+  if (payload.deviceId !== selectedDeviceId.value) return;
   const previousSelection = clearSelection ? null : selectedNode.value;
   rawXml.value = payload.xml;
+  treeGeometryRevision = payload.geometry?.revision;
   currentActivity.value = payload.activity || '';
   tree.value = parsedTree;
   selectedNode.value = previousSelection
@@ -893,6 +945,7 @@ function getSelectedNode() {
 
 async function loadTreeSnapshot(clearSelection = true, forceFresh = false) {
   const payload = await fetchTreePayload(forceFresh);
+  if (payload.deviceId !== selectedDeviceId.value) throw new Error('设备已切换，请重新刷新组件树');
   const parsedTree = parseWindowHierarchy(payload.xml);
   applyTreeSnapshot(payload, parsedTree, clearSelection);
   return {
@@ -1136,7 +1189,7 @@ async function recordTapStep(index?: number, branchTarget?: BranchTarget) {
   const inserted = insertStep(step, index, branchTarget);
   recordingTap.value = true;
   try {
-    await tapAppiumDevice({ deviceId: selectedDeviceId.value, x: bounds.centerX, y: bounds.centerY });
+    await tapAppiumDevice({ deviceId: selectedDeviceId.value, x: bounds.centerX, y: bounds.centerY, geometryRevision: treeGeometryRevision });
     await wait(1200);
     const after = await loadTreeSnapshot(true, true);
     steps.value = steps.value.map((item) => (
@@ -1168,16 +1221,7 @@ async function addStep(type: NodeStepType, index?: number, branchTarget?: Branch
     return recordTapStep(index, branchTarget);
   }
   const step = createStep(type, selectedNode.value);
-  if (type === 'input') {
-    const input = await ElMessageBox.prompt('', t('录制输入'), {
-      inputValue: '',
-      confirmButtonText: t('添加'),
-      cancelButtonText: t('取消'),
-      center: true,
-    }).catch(() => null);
-    if (!input) return;
-    step.value = input.value;
-  }
+  if (type === 'input') step.value = '';
   return insertStep(step, index, branchTarget);
 }
 
@@ -1276,7 +1320,7 @@ function openLinkedScriptDialog(index?: number, branchTarget?: BranchTarget) {
   linkedScriptBranchTarget.value = branchTarget || null;
   linkedScriptExpectedActivity.value = expectedActivityAfterStep(index);
   if (!compatibleLinkableScripts.value.length) {
-    ElMessage.warning(t("没有属于当前 App 的可连接脚本"));
+    ElMessage.warning(t("没有属于当前 App 且平台一致的可连接脚本"));
     linkedScriptExpectedActivity.value = '';
     linkedScriptBranchTarget.value = null;
     return;
@@ -1298,6 +1342,13 @@ function addLinkedScriptStep() {
   }
   if (script.appPackage !== form.appPackage) {
     ElMessage.error(t("连接脚本必须属于当前 App"));
+    return;
+  }
+  try {
+    assertScriptPlatform(script, form.platform);
+    assertLinkedScriptPlatforms(script, id => scripts.value.find(item => item.id === id));
+  } catch (error) {
+    ElMessage.error(t(error instanceof Error ? error.message : '脚本平台校验失败'));
     return;
   }
   const editingIndex = linkedScriptEditingId.value ? steps.value.findIndex(step => step.id === linkedScriptEditingId.value) : -1;
@@ -1439,6 +1490,7 @@ async function addAction(
   branchTarget?: BranchTarget,
 ) {
   if (recordingBusy.value) return;
+  if (form.platform === 'ios' && iosUnsupportedActions.has(action)) { ElMessage.warning(t('此操作仅支持 Android')); return; }
   if (!ensureAppPackageSelected()) return;
   if (action === 'clearAppData' && steps.value.some((step) => step.type === 'clearAppData')) {
     ElMessage.warning(t("清理 App 缓存节点只能添加一个"));
@@ -1802,15 +1854,8 @@ async function addAction(
     return insertStep(createNodeActionStep('tapIfExists', '存在则点击', node, { timeoutMs: DEFAULT_NODE_TIMEOUT_MS }), index, branchTarget);
   }
   if (action === 'inputIfExists') {
-    const input = await ElMessageBox.prompt('', t('存在则输入'), {
-      inputValue: '',
-      confirmButtonText: t('添加'),
-      cancelButtonText: t('取消'),
-      center: true,
-    }).catch(() => null);
-    if (!input) return;
     return insertStep(
-      createNodeActionStep('inputIfExists', '存在则输入', node, { timeoutMs: DEFAULT_NODE_TIMEOUT_MS, value: input.value }),
+      createNodeActionStep('inputIfExists', '存在则输入', node, { timeoutMs: DEFAULT_NODE_TIMEOUT_MS, value: '' }),
       index,
       branchTarget,
     );
@@ -1919,6 +1964,7 @@ async function saveOnActivityChange() {
     const payload = await saveAppiumScript({
       id: selectedScriptId.value || undefined,
       name: scriptName,
+      platform: form.platform,
       appPackage: form.appPackage,
       appActivity: form.appActivity || pending.beforeActivity,
       deviceId: selectedDeviceId.value,
@@ -2023,10 +2069,12 @@ function loadScript(script: AppiumRecordedScript) {
   flowClipboard.value = null;
   selectedScriptId.value = script.id;
   form.name = script.name;
+  form.platform = scriptPlatform(script.platform);
   form.appPackage = script.appPackage;
   form.appActivity = script.appActivity;
   scriptVariables.value = JSON.parse(JSON.stringify(script.variables || []));
-  if (script.deviceId && script.deviceId !== selectedDeviceId.value) {
+  const recordedDevice = props.androidDevices.find(device => device.id === script.deviceId);
+  if (recordedDevice && scriptPlatform(recordedDevice.platform) === form.platform && script.deviceId !== selectedDeviceId.value) {
     void switchDevice(script.deviceId);
   }
   steps.value = normalizeLegacyNestedConditionBranches((script.steps || []).map(normalizeLegacyFlowScope));
@@ -2049,6 +2097,7 @@ function resetCurrentScript() {
   flowClipboard.value = null;
   selectedScriptId.value = '';
   form.name = '';
+  form.platform = scriptPlatform(props.androidDevices.find(device => device.id === selectedDeviceId.value)?.platform);
   form.appActivity = '';
   steps.value = [];
   replayOutput.value = '';
@@ -2112,6 +2161,7 @@ async function duplicateScript(script: AppiumRecordedScript) {
   try {
     const payload = await saveAppiumScript({
       name: createDuplicateScriptName(script.name),
+      platform: scriptPlatform(script.platform),
       variables: script.variables || [],
       appPackage: script.appPackage,
       appActivity: script.appActivity,
@@ -2151,6 +2201,7 @@ async function renameScript(script: AppiumRecordedScript) {
     const payload = await saveAppiumScript({
       id: script.id,
       name: nextName,
+      platform: scriptPlatform(script.platform),
       appPackage: script.appPackage,
       appActivity: script.appActivity,
       deviceId: script.deviceId,
@@ -2296,6 +2347,7 @@ async function saveScript() {
     const payload = await saveAppiumScript({
       id: selectedScriptId.value || undefined,
       name: form.name,
+      platform: form.platform,
       appPackage: form.appPackage,
       appActivity: form.appActivity,
       deviceId: selectedDeviceId.value,
@@ -2320,6 +2372,10 @@ async function replayScript() {
   if (preparingReplay.value || replaying.value || externalExecutionBusy.value) return;
   if (!selectedScript.value) {
     ElMessage.warning(t("请选择已保存脚本"));
+    return;
+  }
+  if (replayPlatformError.value) {
+    ElMessage.warning(t(replayPlatformError.value));
     return;
   }
   if (hasUnsavedChanges.value) {
@@ -2352,6 +2408,12 @@ async function replayScript() {
       preparingReplay.value = false;
     }
   }
+  // Selection can change while saving or checking the report model.
+  if (replayPlatformError.value || !selectedScript.value) {
+    ElMessage.warning(t(replayPlatformError.value || '请选择已保存脚本'));
+    return;
+  }
+  const replayScriptId = selectedScript.value.id;
   replaying.value = true;
   stoppingReplay.value = false;
   activeReplayDeviceId.value = selectedDeviceId.value;
@@ -2360,7 +2422,7 @@ async function replayScript() {
     await pauseAutoTreeRefresh();
     const result = await replayAppiumScript(
       {
-        id: selectedScript.value.id,
+        id: replayScriptId,
         deviceId: activeReplayDeviceId.value,
         recordVideo: recordReplayVideo.value,
         reportSummaryEnabled,
@@ -2411,11 +2473,11 @@ let externalCanvasSnapshot = '';
 watch(() => [props.canvasDraft, props.canvasScriptId] as const, ([draft, scriptId]) => {
   if (!props.canvasOnly) return;
   selectedScriptId.value = scriptId || '';
-  const snapshot = JSON.stringify({ name: draft?.name || '', appPackage: draft?.appPackage || '', appActivity: draft?.appActivity || '',
+  const snapshot = JSON.stringify({ name: draft?.name || '', platform: scriptPlatform(draft?.platform), appPackage: draft?.appPackage || '', appActivity: draft?.appActivity || '',
     steps: draft?.steps || [], variables: draft?.variables || [] });
   if (snapshot === currentDraftSnapshot.value) { externalCanvasSnapshot = snapshot; return; }
   const data = JSON.parse(snapshot);
-  Object.assign(form, { name: data.name, appPackage: data.appPackage, appActivity: data.appActivity });
+  Object.assign(form, { name: data.name, platform: data.platform, appPackage: data.appPackage, appActivity: data.appActivity });
   steps.value = data.steps;
   scriptVariables.value = data.variables;
   externalCanvasSnapshot = currentDraftSnapshot.value;
@@ -2424,7 +2486,7 @@ watch(() => [props.canvasDraft, props.canvasScriptId] as const, ([draft, scriptI
 watch(currentDraftSnapshot, snapshot => {
   if (!props.canvasOnly || snapshot === externalCanvasSnapshot) return;
   externalCanvasSnapshot = snapshot;
-  emit('draftChange', { id: props.canvasDraft?.id || 'ai-editor-draft', name: form.name, appPackage: form.appPackage,
+  emit('draftChange', { id: props.canvasDraft?.id || 'ai-editor-draft', name: form.name, platform: form.platform, appPackage: form.appPackage,
     appActivity: form.appActivity, deviceId: selectedDeviceId.value, steps: steps.value, variables: scriptVariables.value });
 });
 defineExpose({ selectNodeFromPoint, applyVisualChangeRegion, swipePreview, cancelPointSelection: coordinatePicker.cancel,
@@ -2478,6 +2540,9 @@ watch(
   () => [props.active, props.playgroundDeviceId, externalExecutionBusy.value] as const,
   ([active, deviceId, generating]) => {
     stopAutoTreeRefresh();
+    tree.value = null;
+    selectedNode.value = null;
+    treeGeometryRevision = undefined;
     if (active && deviceId && !generating) {
       void refreshTree().finally(() => scheduleAutoTreeRefresh());
     }
@@ -2498,7 +2563,15 @@ watch(
         :disabled="externalExecutionBusy"
         @change="loadSelectedScript"
       >
-        <el-option v-for="script in scripts" :key="script.id" :label="script.name" :value="script.id" />
+        <template v-if="selectedScript" #prefix>
+          <ScriptPlatformIcon :platform="selectedScript.platform" />
+        </template>
+        <el-option v-for="script in scripts" :key="script.id" :label="script.name" :value="script.id">
+          <span class="appium-script-name">
+            <ScriptPlatformIcon :platform="script.platform" />
+            <span class="appium-script-name__text">{{ script.name }}</span>
+          </span>
+        </el-option>
       </el-select>
       <el-button :icon="Plus" :disabled="newScriptDisabled || newScriptDialogVisible" @click="requestNewScript">{{ t("新建") }}</el-button>
       <el-button :icon="Check" :loading="saving" :disabled="externalExecutionBusy" @click="saveScript">{{ t("保存") }}</el-button>
@@ -2507,7 +2580,8 @@ watch(
           type="primary"
           :icon="VideoPlay"
           :loading="replaying || preparingReplay"
-          :disabled="!selectedScript || externalExecutionBusy"
+          :disabled="!selectedScript || externalExecutionBusy || Boolean(replayPlatformError)"
+          :title="replayPlatformError ? t(replayPlatformError) : undefined"
           @click="replayScript"
         > {{ t("回放") }} </el-button>
         <el-popover trigger="click" placement="bottom" :width="320">
@@ -2587,34 +2661,33 @@ watch(
                   </div>
                   <div class="appium-section-title__actions">
                     <LlmPromptActions
-                      :draft="{ id: selectedScriptId || 'llm_draft', name: form.name.trim() || '当前录制流程', appPackage: form.appPackage, appActivity: form.appActivity, deviceId: '', steps, variables: scriptVariables }"
+                      :draft="{ id: selectedScriptId || 'llm_draft', name: form.name.trim() || '当前录制流程', platform: form.platform, appPackage: form.appPackage, appActivity: form.appActivity, deviceId: '', steps, variables: scriptVariables }"
                     />
                   </div>
                 </div>
                 <div class="appium-side-form">
                   <div class="script-context-field">
                     <label for="orchestration-script-name">{{ t('脚本名称') }}</label>
-                    <el-input id="orchestration-script-name" v-model="form.name" size="small" :disabled="externalExecutionBusy" :placeholder="t('脚本名称')" :aria-label="t('脚本名称')" :title="form.name" />
+                    <el-input id="orchestration-script-name" v-model="form.name" :disabled="externalExecutionBusy" :placeholder="t('脚本名称')" :aria-label="t('脚本名称')" :title="form.name" />
                   </div>
                   <div class="script-context-field">
                     <label for="orchestration-app">App</label>
                   <el-select
                     id="orchestration-app"
-                    v-model="form.appPackage"
+                    v-model="selectedAppOption"
                     :disabled="externalExecutionBusy"
-                    size="small"
                     filterable
                     :placeholder="t('选择 App')"
                     :aria-label="t('选择 App')"
-                    :title="form.appPackage"
+                    :title="selectedAppOption"
                   >
                     <el-option
-                      v-if="form.appPackage && !appPresets.some(app => app.packageName === form.appPackage)"
-                      :label="form.appPackage"
-                      :value="form.appPackage"
+                      v-if="customAppOption"
+                      :label="customAppOption"
+                      :value="customAppOption"
                     />
                     <el-option
-                      v-for="app in appPresets"
+                      v-for="app in appOptions"
                       :key="app.id"
                       :label="app.name"
                       :value="app.packageName"
@@ -2623,6 +2696,7 @@ watch(
                   </div>
                 </div>
 
+                <el-alert v-if="selectedScript && replayPlatformError" class="appium-platform-warning" :title="t(replayPlatformError)" type="warning" :closable="false" show-icon />
               </section>
 
               <section class="appium-workbench__section appium-workbench__flow">
@@ -2634,6 +2708,7 @@ watch(
                   :layout-revision="canvasRevision"
                   :ai-recognition-model-configured="aiRecognitionModelConfigured"
                   :steps="steps"
+                  :platform="form.platform"
                   :clipboard-count="flowClipboardCount"
                   :disabled="recordingLocked"
                   :remove-disabled="recordingLocked"
@@ -2725,7 +2800,10 @@ watch(
                 >
                   <input v-model="scriptListSelectedId" class="appium-script-list__radio" type="radio" name="appium-script-selection" :value="script.id" :aria-label="script.name">
                   <span class="appium-script-list__main">
-                    <strong>{{ script.name }}</strong>
+                    <strong class="appium-script-name">
+                      <ScriptPlatformIcon :platform="script.platform" />
+                      <span class="appium-script-name__text">{{ script.name }}</span>
+                    </strong>
                     <span>{{ script.appPackage }}</span>
                     <small>{{ script.steps.length }} {{ t("步 ·") }} {{ formatScriptTime(script.updatedAt) }}</small>
                   </span>
@@ -2826,12 +2904,20 @@ watch(
               :placeholder="t('选择要连接的脚本')"
               class="appium-linked-script-select"
             >
+              <template v-if="linkedScriptTarget" #prefix>
+                <ScriptPlatformIcon :platform="linkedScriptTarget.platform" />
+              </template>
               <el-option
                 v-for="script in compatibleLinkableScripts"
                 :key="script.id"
                 :label="t('{0} · {1} · {2} 步', { 0: script.name, 1: script.appActivity || '未绑定 Activity', 2: script.steps.length })"
                 :value="script.id"
-              />
+              >
+                <span class="appium-script-name">
+                  <ScriptPlatformIcon :platform="script.platform" />
+                  <span class="appium-script-name__text">{{ t('{0} · {1} · {2} 步', { 0: script.name, 1: script.appActivity || '未绑定 Activity', 2: script.steps.length }) }}</span>
+                </span>
+              </el-option>
             </el-select>
             <el-button
               :icon="View"
@@ -2963,6 +3049,9 @@ watch(
 .appium-report-progress { display: flex; align-items: center; gap: 12px; line-height: 1.6; }
 .random-value-return { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; color: var(--el-text-color-secondary); font-size: 13px; }
 .appium-script-icon { display: inline-flex; }
+.appium-script-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.appium-platform-warning { margin-top: 10px; }
+.appium-script-name__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; font: inherit; }
 .appium-script-icon .el-button { width: 30px; height: 30px; min-height: 30px; padding: 0; margin: 0; }
 :deep(.appium-recorder-card--workbench > .el-card__body) { overflow: hidden; }
 :deep(.appium-workbench-tabs > .el-tabs__content) { overflow: hidden; }
@@ -2974,10 +3063,8 @@ watch(
 .appium-side-form { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; max-width: 680px; margin-bottom: 0; }
 .script-context-field { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .script-context-field label { flex-shrink: 0; font-size: 12px; font-weight: 500; color: var(--el-text-color-secondary); white-space: nowrap; }
-.script-context-field :deep(.el-input), .script-context-field :deep(.el-select) { flex: 1; min-width: 0; }
-.script-context-field :deep(.el-input__wrapper), .script-context-field :deep(.el-select__wrapper) { min-height: 28px; border-radius: 5px; background: var(--ui-surface); box-shadow: inset 0 0 0 1px var(--ui-border-strong); }
-.script-context-field :deep(.el-input__wrapper:hover), .script-context-field :deep(.el-select__wrapper:hover) { box-shadow: inset 0 0 0 1px var(--el-color-primary-light-5); }
-.script-context-field :deep(.el-input__wrapper.is-focus), .script-context-field :deep(.el-select__wrapper.is-focused) { box-shadow: inset 0 0 0 1px var(--ui-primary); }
+.script-context-field :deep(.el-input), .script-context-field :deep(.el-select) { flex: 1; min-width: 0; --el-component-size: 32px; }
+.script-context-field :deep(.el-input__wrapper), .script-context-field :deep(.el-select__wrapper) { min-height: 32px; padding-inline: 12px; }
 .app-option-package { margin-left: 10px; color: var(--el-text-color-secondary); font-size: 12px; }
 .appium-workbench__flow { display: flex; flex-direction: column; min-height: 0; }
 .appium-workbench__flow h3 { margin-bottom: 6px; }

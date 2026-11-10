@@ -3,6 +3,7 @@ import archiver from 'archiver';
 import type { AppiumScriptDraft } from '../../src/appium-recorder/types';
 import { VariableScope } from './variables';
 import { sensitiveVariableName } from '../../src/appium-recorder/variables';
+import { scriptPlatform } from '../../src/appium-recorder/platform';
 
 function safeExportName(name: string) {
   const base = Array.from(name.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_'))
@@ -44,6 +45,7 @@ export function appiumScriptExportData(
     script: {
       id: script.id,
       name: script.name,
+      platform: scriptPlatform(script.platform),
       appPackage: script.appPackage,
       appActivity: script.appActivity,
       deviceId: script.deviceId,

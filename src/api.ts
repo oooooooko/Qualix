@@ -33,6 +33,24 @@ export async function getAppiumVersion() {
   return readJson<AppiumVersionInfo>(response);
 }
 
+export function createIosPreview(deviceId: string) {
+  return postJson<import('./ios/types').IosPreview>(`${APP_BASE}/api/ios/preview/sessions`, { deviceId });
+}
+export async function discoverIosDevices() {
+  return readJson<{ devices: AndroidDevice[]; defaultDeviceId: string }>(await fetch(`${APP_BASE}/api/ios/discovery`, { cache: 'no-store' }));
+}
+export async function getIosPreviewStatus(id: string) {
+  const response = await fetch(`${APP_BASE}/api/ios/preview/sessions/${encodeURIComponent(id)}/status`);
+  try { return await readJson<import('./ios/types').IosPreview>(response); }
+  catch (error) { throw Object.assign(error instanceof Error ? error : new Error(String(error)), { status: response.status }); }
+}
+export async function closeIosPreview(id: string) {
+  await fetch(`${APP_BASE}/api/ios/preview/sessions/${encodeURIComponent(id)}`, { method: 'DELETE', keepalive: true });
+}
+export function controlIos(action: 'tap' | 'swipe' | 'key', input: Record<string, unknown>) {
+  return postJson(`${APP_BASE}/api/ios/control/${action}`, input);
+}
+
 // 读取模型配置和脚本优化模型配置。
 export async function getConfig() {
   const response = await fetch(`${APP_BASE}/api/config`);
@@ -83,7 +101,7 @@ export async function getAppPresets() {
 }
 
 // 新增或更新预设 App；同名或同包名校验由后端负责。
-export function saveAppPreset(input: { id?: string; name: string; packageName: string }) {
+export function saveAppPreset(input: { id?: string; name: string; packageName: string; platform?: AppPreset['platform'] }) {
   return postJson<{ app?: AppPreset }>(`${APP_BASE}/api/save-app-preset`, input);
 }
 

@@ -4,6 +4,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vu
 import { Close, Cpu, FullScreen, Refresh } from '@element-plus/icons-vue';
 import type { AndroidDevice, DeviceAction } from '../../types';
 import DeviceInfoTooltip from './DeviceInfoTooltip.vue';
+import ScriptPlatformIcon from '../../appium-recorder/components/ScriptPlatformIcon.vue';
 
 type DeviceOverlayBounds = {
   id: string;
@@ -59,6 +60,22 @@ const emit = defineEmits<{
 }>();
 
 const imageSize = shallowRef({ width: 0, height: 0 });
+const ios = computed(() => props.devices.find(device => device.id === props.selectedDeviceId)?.platform === 'ios');
+const visibleActions = computed(() => ios.value ? props.actions?.filter(action => [3, 24, 25].includes(action.keyCode)) : props.actions);
+const resolvedImageUrl = shallowRef('');
+let imageRetry: ReturnType<typeof setTimeout> | undefined;
+let retryMs = 500;
+watch(() => props.imageUrl, value => { clearTimeout(imageRetry); retryMs = 500; resolvedImageUrl.value = value || ''; }, { immediate: true });
+watch(() => [props.selectedDeviceId, props.deviceWidth, props.deviceHeight], () => { pointerSession = null; draftRegion.value = null; });
+function imageError() {
+  emit('previewError');
+  if (!ios.value || !props.imageUrl || document.hidden) return;
+  clearTimeout(imageRetry);
+  imageRetry = setTimeout(() => {
+    resolvedImageUrl.value = `${props.imageUrl}${props.imageUrl?.includes('?') ? '&' : '?'}retry=${Date.now()}`;
+    retryMs = Math.min(5000, retryMs * 2);
+  }, retryMs);
+}
 const previewRef = ref<HTMLElement>();
 const previewSize = ref({ width: 0, height: 0 });
 const enlarged = ref(false);
@@ -72,7 +89,7 @@ onMounted(() => {
   if (previewRef.value) observer.observe(previewRef.value);
   window.addEventListener('keydown', closeOnEscape);
 });
-onBeforeUnmount(() => { observer?.disconnect(); window.removeEventListener('keydown', closeOnEscape); });
+onBeforeUnmount(() => { clearTimeout(imageRetry); observer?.disconnect(); window.removeEventListener('keydown', closeOnEscape); });
 let pointerSession: {
   mode: 'gesture' | 'region-draw' | 'region-move';
   pointerId: number;
@@ -107,6 +124,7 @@ watch(() => props.regionSelection, (enabled) => {
 });
 
 function updateImageSize(event: Event) {
+  retryMs = 500;
   const image = event.target as HTMLImageElement;
   imageSize.value = { width: image.naturalWidth, height: image.naturalHeight };
   emit('previewLoaded', imageSize.value);
@@ -134,11 +152,12 @@ function getDevicePoint(target: HTMLElement, clientX: number, clientY: number) {
     offsetY = (rect.height - drawHeight) / 2;
   }
 
+  if (ios.value && (clientX < rect.left + offsetX || clientX >= rect.left + offsetX + drawWidth || clientY < rect.top + offsetY || clientY >= rect.top + offsetY + drawHeight)) return;
   const localX = Math.max(0, Math.min(drawWidth, clientX - rect.left - offsetX));
   const localY = Math.max(0, Math.min(drawHeight, clientY - rect.top - offsetY));
   return {
-    x: Math.round((localX / drawWidth) * width),
-    y: Math.round((localY / drawHeight) * height),
+    x: Math.min(width - 1, Math.round((localX / drawWidth) * width)),
+    y: Math.min(height - 1, Math.round((localY / drawHeight) * height)),
   };
 }
 
@@ -209,6 +228,7 @@ function emitRegion(bounds: DeviceOverlayBounds) {
 }
 
 function handlePointerDown(event: PointerEvent) {
+  if (ios.value && props.previewError) return;
   if (props.interactionDisabled && !props.regionSelection) return;
   if (event.pointerType === 'mouse' && event.button !== 0) return;
   const target = event.currentTarget as HTMLElement;
@@ -323,7 +343,7 @@ function handlePointerCancel(event: PointerEvent) {
             @click="emit('refreshPreview')"
           />
           </el-tooltip>
-          <el-tag v-if="!compact" :type="available ? 'success' : 'info'">{{ available ? t("ADB 已连接") : t("未检测到设备") }}</el-tag>
+          <el-tag v-if="!ios && !compact" :type="previewError ? 'warning' : available ? 'success' : 'info'">{{ available ? t("ADB 已连接") : t("未检测到设备") }}</el-tag>
         </div>
       </div>
     </template>
@@ -338,15 +358,21 @@ function handlePointerCancel(event: PointerEvent) {
         <el-option
           v-for="device in devices"
           :key="device.id"
+          class="device-option"
           :label="t(`${device.id}${device.description ? ` · ${device.description}` : ''}`)"
           :value="device.id"
-        />
+        >
+          <span class="device-option__content">
+            <ScriptPlatformIcon :platform="device.platform" />
+            <span class="device-option__label">{{ device.description || device.id }}</span>
+          </span>
+        </el-option>
       </el-select>
     </div>
 
-    <div v-if="actions?.length" class="device-actions">
+    <div v-if="visibleActions?.length" class="device-actions">
       <button
-        v-for="action in actions"
+        v-for="action in visibleActions"
         :key="action.key"
         type="button"
         class="device-action-button"
@@ -395,11 +421,11 @@ function handlePointerCancel(event: PointerEvent) {
         />
         <img
           v-else
-          :src="imageUrl"
-          alt="Android Device Preview"
+          :src="resolvedImageUrl"
+          :alt="ios ? 'iOS Device Preview' : 'Android Device Preview'"
           class="device-preview__frame device-preview__image"
           @load="updateImageSize"
-          @error="emit('previewError')"
+          @error="imageError"
         />
         <svg
           v-if="overlayViewBox && (overlayBounds?.length || selectedBounds || selectedRegion || draftRegion)"
@@ -461,6 +487,8 @@ function handlePointerCancel(event: PointerEvent) {
 <style scoped>
 .device-point-selection { display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 12px; color: var(--el-color-primary); }
 .device-preview-title { display: flex; align-items: center; gap: 8px; }
+.device-option__content { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 34px; line-height: 20px; }
+.device-option__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .device-preview-card--compact { display: flex; flex-direction: column; min-height: 0; }
 .device-preview-card--compact :deep(> .el-card__body) { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; gap: 8px; }
 .device-preview-card--compact .panel-header { flex-wrap: wrap; gap: 8px; font-size: 14px; }

@@ -97,16 +97,16 @@ async function optimizePrompt() {
             <el-select :model-value="selectedScenario" :disabled="optimizingPrompt" filterable :placeholder="t('选择测试场景，或在下方输入')" :aria-label="t('选择报告测试场景')" @change="selectScenario">
               <el-option v-for="preset in promptPresets" :key="preset.name" :label="translateBuiltInPreset(preset, REPORT_SUMMARY_PROMPT_PRESETS).name" :value="preset.name" />
             </el-select>
-            <el-button :icon="Plus" :disabled="optimizingPrompt || !config.prompt.trim()" @click="addScenario">{{ t("新增场景") }}</el-button>
           </div>
         </el-form-item>
         <el-form-item :label="t('报告提示词')">
           <el-input v-model="config.prompt" type="textarea" :rows="14" maxlength="20000" show-word-limit :aria-label="t('报告提示词')" :disabled="optimizingPrompt" />
         </el-form-item>
-        <div class="report-summary-prompt-actions">
-          <el-button :loading="optimizingPrompt" :disabled="!config.prompt.trim()" @click="optimizePrompt">{{ t("优化提示词") }}</el-button>
-        </div>
     </el-form>
+    <template #footer>
+      <el-button type="primary" :icon="Plus" :disabled="optimizingPrompt || !config.prompt.trim()" @click="addScenario">{{ t("新增场景") }}</el-button>
+      <el-button type="primary" :loading="optimizingPrompt" :disabled="!config.prompt.trim()" @click="optimizePrompt">{{ t("优化提示词") }}</el-button>
+    </template>
   </el-card>
 </template>
 
@@ -115,5 +115,4 @@ async function optimizePrompt() {
 .report-summary-prompt { min-width: 0; }
 .report-summary-scenario { display: flex; width: 100%; gap: 10px; }
 .report-summary-scenario .el-select { flex: 1; min-width: 0; }
-.report-summary-prompt-actions { display: flex; justify-content: flex-end; }
 </style>

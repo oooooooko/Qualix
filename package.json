@@ -1,7 +1,7 @@
 {
   "name": "qualix",
-  "description": "Android 自动化测试平台，提供测试编排、双模式 AI 编排和 Midscene 原版 Playground。",
-  "version": "2.0.9",
+  "description": "Android/iOS 自动化测试平台，提供测试编排、双模式 AI 编排。",
+  "version": "2.1.1",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -30,6 +30,7 @@
     "README.md",
     "*.en.md",
     "USAGE.md",
+    "IOS_SETUP.md",
     "流程节点操作说明.md",
     "AI识别操作说明.md",
     "FAQ.md",

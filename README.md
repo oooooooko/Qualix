@@ -1,14 +1,17 @@
 # <img src="./assets/qualix-logo.png" width="64" height="64" alt="Qualix logo" /> Qualix
 
-[![npm version](https://img.shields.io/npm/v/qualix?color=2563eb&logo=npm)](https://www.npmjs.com/package/qualix) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](./LICENSE) [![Language: TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=white)](./src) [![Appium](https://img.shields.io/badge/Appium-662d91?logo=appium&logoColor=white)](https://www.npmjs.com/package/appium)
+[![npm version](https://img.shields.io/npm/v/qualix?color=2563eb&logo=npm)](https://www.npmjs.com/package/qualix) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](./LICENSE) [![Language: TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=white)](./src) [![Android](https://img.shields.io/badge/Android-34A853?logo=android&logoColor=white)](./USAGE.md) [![iOS](https://img.shields.io/badge/iOS-111827?logo=apple&logoColor=white)](./IOS_SETUP.md) [![Appium](https://img.shields.io/badge/Appium-662d91?logo=appium&logoColor=white)](https://www.npmjs.com/package/appium)
 
 🌐 [English](./README.en.md) | **中文**
 
-面向 Android 的移动应用自动化测试平台，支持手动编排、AI 编排、脚本回放与测试分析。
+面向 Android 与 iOS 的移动应用自动化测试平台，支持手动编排、脚本回放与测试分析；Android 另支持流程编排和自主任务两种 AI 编排方式。
 
 ## 快速启动
 
-准备 Node.js 20.19+ 或 22.12+、Android SDK Platform Tools，连接已开启 USB 调试并授权的 Android 设备。
+准备 Node.js 20.19+ 或 22.12+，并按平台准备设备：
+
+- Android：安装 Android SDK Platform Tools，连接已开启 USB 调试并授权的设备。
+- iOS：在 Mac 上使用 Xcode 签名并启动 WebDriverAgent（WDA 7.0.0 及以上），支持真机和模拟器；真机需完成电脑信任、开发者模式、UI 自动化和 USB 端口转发，详见 [iOS 连接准备](./IOS_SETUP.md)。
 
 ```bash
 npx --yes qualix@latest
@@ -21,7 +24,7 @@ npm install
 npm run dev
 ```
 
-手动编排和已保存脚本的回放需要运行 Appium 服务并安装 Android 驱动：
+Android 的手动编排和已保存脚本回放需要 Appium 与 UiAutomator2 驱动：
 
 ```bash
 npm install -g appium
@@ -29,17 +32,38 @@ appium driver install uiautomator2
 appium
 ```
 
+iOS 的手动编排与回放直接连接已启动的 WDA，连接方式见下文。
+
 ## 功能
 
 | 入口 | 功能 |
 | --- | --- |
-| 测试编排 | 录制、编辑组件树流程，保存脚本并使用 Appium 回放 |
-| AI 编排 Beta | Appium 流程画布 / 自主任务，支持 Flash / Pro、独立历史、任务队列、笔记与计划和录像播放 |
+| 测试编排 | Android / iOS 组件树选取、操作录制、流程编辑、脚本保存与回放 |
+| AI 编排 Beta | 本机 Android 的流程编排 / 自主任务，支持 Flash / Pro、独立历史、任务队列、笔记与计划和录像播放 |
 | 实验室 → Midscene | 官方 v1.17.5 Android Playground 原版页面，设备连接、模型配置和操作结果使用官方界面 |
 | 概览 → 分析页 | 根据脚本与回放记录统计测试编排的通过率、耗时和趋势 |
-| 参数配置 | 配置设备环境、模型服务、画布外观和报告 |
+| 参数配置 | 配置设备环境、iOS 连接、App 平台、模型服务、画布外观和报告 |
 
 普通录制与回放不需要模型。AI 编排和 AI 识别需要配置支持图片输入的模型；两种编排模式共用测试编排配置中的模型，并在任务开始前验证可用性。
+
+## iOS 支持
+
+通过已有 WDA 连接本机 iOS 真机或模拟器，支持 MJPEG 实时预览、截图兜底与恢复、组件树选取、手动录制和脚本回放，可使用变量、分支、循环、连接脚本、截图报告与 AI 识别节点。
+
+1. 在 Mac 上准备 Xcode 和 WDA。真机先在手机上信任电脑，开启“设置 → 隐私与安全性 → 开发者模式”，重启后确认开启，再打开“设置 → 开发者 → 启用 UI 自动化”。完成 WDA 签名并启动，测试时保持手机解锁。
+2. 真机通过 USB 连接时，安装转发工具并保持转发进程运行；模拟器可直接使用 WDA 地址：
+
+```bash
+brew install libimobiledevice
+iproxy 8100:8100 9100:9100
+```
+
+3. 打开“参数配置 → iOS 设备连接”，点击“连接默认设备”。默认探测 `localhost:8100` 的 WDA 和 `localhost:9100` 的 MJPEG；单设备无需填写参数，多设备或自定义地址可展开配置。
+4. 在预设 App 中选择 iOS 或通用平台并填写 Bundle ID，在测试编排中选择 iOS 设备、新建脚本后录制与回放。App 列表按设备平台筛选，通用 App 始终可选，连接脚本和回放均校验平台。
+
+Qualix 使用已经运行的 WDA，WDA 的安装、签名和启动在 Xcode 中完成。完整准备和排查步骤见 [iOS 连接准备](./IOS_SETUP.md)。
+
+iOS 当前不支持 Android 专属按键、Activity 等待、清除应用数据、Android 相册、原生勾选状态判断、UiAutomator 定位与回放录屏。AI 流程生成、自主任务、实验室中的 Android Playground 和远程代理目前仍仅支持 Android。
 
 ## 新版 AI 编排
 
@@ -72,6 +96,7 @@ Flash 快速观察并执行，适合单一目标；Pro 将目标拆为测试计�
 ## 文档与验证
 
 - [使用说明](./USAGE.md)
+- [iOS 连接准备](./IOS_SETUP.md)
 - [AI 编排说明](./ai-flow/README.md)
 - [节点操作说明](./流程节点操作说明.md)
 - [AI 识别说明](./AI识别操作说明.md)
@@ -201,6 +226,16 @@ Linux: ~/.local/share/android-midscene-automation
 4. 回放期间组件树自动刷新会暂停，回放完成后会自动恢复。
 
 # 项目更新记录
+
+## [2.1.1]
+- [iOS]接入已有 WDA 的本机设备连接，支持 MJPEG 实时预览、截图兜底与恢复、组件树选取、脚本录制及执行。
+- [iOS]统一逻辑点坐标，旋转后拦截旧手势；脚本执行与手动控制互斥，区分自建和外部 WDA 会话并自动清理预览连接。
+- [App 配置]新增 Android、iOS、通用平台，默认通用，已有 App 自动兼容为通用；测试编排与 AI 编排按所选设备筛选 App，通用 App 始终可选。
+
+## [2.1.0]
+- [Appium]组件采集默认使用精简无障碍层级，排除已屏蔽无障碍访问的底层 Flutter 内容，修复切到原生页面后组件树仍包含对话页内容的问题；本地与远程设备同步生效。
+- [Appium]设备预览中的组件选取改为按层级和绘制顺序优先命中上层组件，避免选中被遮挡但面积更小的底层组件。
+- [Appium]新增按步骤保存组件层级模式，新录制步骤使用精简层级，未标记的旧步骤按原完整层级回放，兼容旧 XPath；支持新旧步骤混用、父级及备用定位、循环、图像区域和连接子脚本。
 
 ## [2.0.9]
 - [Appium]组件树新增“导出当前页面 XML”功能，导出时重新抓取当前页面的完整组件树并下载为 XML 文件，便于排查组件定位问题。

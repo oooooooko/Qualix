@@ -50,6 +50,17 @@ Enter "Settings > Run Configuration" to set:
 
 The Android SDK is detected before playback starts. When the detection fails, an Appium session will not be created, and the playback output will directly display the SDK path that needs to be corrected.
 
+## iOS 预览、录制与执行
+
+1. 在 Mac 上为真机签名并启动 WebDriverAgent（WDA），完成设备信任、开发者模式及 USB 端口转发；模拟器也可使用。确认运行 Qualix 的主机可访问 WDA HTTP 地址（通常为 `http://127.0.0.1:8100`）及 MJPEG 地址（通常为 `http://127.0.0.1:9100`）。Qualix 连接已有 WDA，不负责安装、签名或启动 WDA。
+2. 默认自动探测本机 `localhost:8100` 的 WDA，预览自动尝试 `localhost:9100` 的 MJPEG。只有一台在线设备时会自动选中，无需登记设备 ID 和地址；也可以在「参数配置 → iOS 设备连接」点击「连接默认设备」。多设备或自定义地址时再展开高级配置。连接准备与排查说明直接展示在卡片内，并保存在本地 [iOS 连接说明](./IOS_SETUP.md)。只有本机页面可管理和使用这些连接。
+3. 默认由 Qualix 创建、共享和回收 WDA 会话。若填写外部 session ID，则复用并保留该会话；避免其他工具同时操作设备。修改连接前，请先切换设备或离开预览并停止脚本。
+4. 在预设 App 中填写目标 App 的 Bundle ID（例如 `com.example.demo`），在测试编排中选择 iOS 设备并新建脚本。预览优先使用原生 MJPEG，首帧检查失败或断流后回退为串行截图，恢复后自动重连。截图刷新率取决于 WDA 和设备性能。
+5. 选取组件后可录制点击、输入、清空输入、长按、等待与断言，也支持坐标、滑动及缩放；iOS 定位使用 Accessibility ID（WDA `name`）或 XPath。坐标和图像区域统一使用 WDA 逻辑点，旋转后应刷新画面和组件树。
+6. 保存后可回放，复用现有变量、分支、循环、连接脚本和截图报告。新建脚本的平台跟随所选设备，旧脚本仍默认为 Android；连接脚本和回放均检查平台。执行期间设备锁会拦截手动控制。
+
+iOS 暂不支持 Android 返回/最近任务/电源键、Activity 等待、清除应用数据、启动 Android 相册、Android 原生勾选状态判断、UiAutomator 定位和回放视频录制。Home 与音量键可用。AI 自动生成流程、自主任务、原版 Android Playground 和远程代理仍使用 Android；iOS 的手动编排与截图 AI 识别节点可用。
+
 ## Basic recording process
 
 1. Select a device.
@@ -83,7 +94,7 @@ The App package name is required and can only be selected from the "Default App 
 
 Note: Appium playback and component tree grabbing both consume Android UiAutomation. The system will execute serially according to the device and automatically retry after cleaning up the remaining processes when the connection is preempted.
 
-## Flow editing
+## 流程编辑
 
 Process Canvas supports the following operations:
 

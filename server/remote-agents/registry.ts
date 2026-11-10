@@ -111,6 +111,7 @@ export function listRemoteAndroidDevices(): RemoteAndroidDevice[] {
     .filter(isOnline)
     .flatMap((agent) => agent.devices.map((device) => ({
       id: makeRemoteDeviceId(agent.id, device.id),
+      platform: 'android' as const,
       status: device.status,
       description: [agent.name, device.model, device.description || device.status].filter(Boolean).join(' · '),
       source: 'remote' as const,

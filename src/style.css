@@ -3907,6 +3907,7 @@ button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2p
 .layout-page-tab__select, .layout-page-tab__close { border: 0; background: transparent; color: inherit; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 
 .layout-page-tab__select { gap: 8px; padding: 0 10px 0 14px; height: 100%; font: inherit; }
+.unread-update-label { display: inline-block; flex-shrink: 0; color: var(--el-color-danger); font-size: 11px; font-weight: 600; font-style: normal; line-height: 1; vertical-align: middle; }
 
 .layout-page-tab__close { width: 24px; height: 24px; border-radius: 50%; }
 

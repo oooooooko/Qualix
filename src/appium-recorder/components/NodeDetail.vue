@@ -33,7 +33,7 @@ const locatorItems = computed(() => {
   return available
     .map((locator, index) => ({
       ...locator,
-      description: descriptions[locator.name] || '',
+      description: locator.attribute === 'name' ? '使用 WDA name 定位 iOS 组件' : descriptions[locator.name] || '',
       recommended: index === preferredIndex,
     }))
     .sort((left, right) => Number(right.recommended) - Number(left.recommended));

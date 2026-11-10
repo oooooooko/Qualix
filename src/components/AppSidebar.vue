@@ -5,7 +5,7 @@ import qualixLogo from '../../assets/qualix-logo.png';
 import { DArrowLeft, DArrowRight, DataAnalysis, Grid, MagicStick, Monitor, InfoFilled, Setting } from '@element-plus/icons-vue';
 import type { MenuKey, SidebarMode } from '../types';
 
-defineProps<{ activeMenu: MenuKey }>();
+defineProps<{ activeMenu: MenuKey; hasUnreadChangelog?: boolean }>();
 defineEmits<{ select: [key: string] }>();
 
 const mode = defineModel<SidebarMode>('mode', { required: true });
@@ -44,7 +44,7 @@ watch(collapsed, value => {
         <el-menu-item index="analysis" :aria-label="t('分析页')"><el-icon><DataAnalysis /></el-icon><template #title>{{ t("分析页") }}</template></el-menu-item>
       </el-sub-menu>
       <el-menu-item index="config" :aria-label="t('参数配置')"><el-icon><Setting /></el-icon><template #title>{{ t("参数配置") }}</template></el-menu-item>
-      <el-menu-item index="about" :aria-label="t('关于')"><el-icon><InfoFilled /></el-icon><template #title>{{ t("关于") }}</template></el-menu-item>
+      <el-menu-item index="about" :aria-label="t('关于')"><el-icon><InfoFilled /><span v-if="collapsed && hasUnreadChangelog" class="unread-update-label layout-menu__update-label--collapsed" role="img" :aria-label="t('有新的更新说明')">new</span></el-icon><template #title>{{ t("关于") }}<span v-if="!collapsed && hasUnreadChangelog" class="unread-update-label layout-menu__update-label" role="img" :aria-label="t('有新的更新说明')">new</span></template></el-menu-item>
     </el-menu>
     <div class="layout-sidebar__controls">
       <button
@@ -77,6 +77,8 @@ watch(collapsed, value => {
 </template>
 
 <style scoped>
+.layout-menu__update-label { margin-left: 6px; }
+.layout-menu__update-label--collapsed { position: absolute; top: -7px; right: -13px; font-size: 9px; }
 .layout-sidebar__controls {
   display: flex;
   flex: none;

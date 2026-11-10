@@ -12,6 +12,7 @@ import { validateLoopSteps } from '../../src/appium-recorder/bounded-loop';
 import { adbScreenshotBase64 } from './screenshot';
 import { loadConfig } from '../config';
 import { timestampReplayLog } from './replay-log';
+import { assertLinkedScriptPlatforms, assertScriptPlatform } from '../../src/appium-recorder/platform';
 import { checkImage } from './image-check';
 import { recognizeDeviceScreen, resolveAiInvalidResultFallback } from './ai-recognition';
 import { IMAGE_CHECK_MODES, type ImageCheckResult } from '../../src/appium-recorder/image-check';
@@ -36,6 +37,10 @@ import { longPressMode, validateLongPress } from '../../src/appium-recorder/long
 import { defaultFlowKind, flowBranchLabel } from '../../src/appium-recorder/flow-labels';
 import { isNativeStateCondition, nativeControlName, matchesNativeControl, parseNativeBoolean } from '../../src/appium-recorder/native-control-state';
 import { findHierarchyBounds, readFreshWindowHierarchy } from './tree-dump';
+import { isIosDevice, iosDevice } from '../ios/devices';
+import { iosClient, WdaError, type WdaClient } from '../ios/wda-client';
+import { assertIosSteps } from '../../src/ios/capabilities';
+import { acquireDeviceLock, releaseDeviceLock } from '../device-locks/service';
 
 type AppiumSessionResponse = {
   value?: {
@@ -74,6 +79,7 @@ type PendingVisualChangeCheck = {
 };
 
 const replayContext = new AsyncLocalStorage<{
+  ios?: WdaClient;
   randomValues: RandomValueGenerator;
   stopwatches: ReplayStopwatches;
   signal?: AbortSignal;
@@ -150,6 +156,7 @@ function normalizeTextForContains(value: string) {
 
 function adbTap(deviceId: string, x: number, y: number) {
   throwIfReplayStopped();
+  if (isIosDevice(deviceId)) return iosClient(deviceId).tap(x, y, replayContext.getStore()?.signal);
   return new Promise<void>((resolve, reject) => {
     execFile(getAdbCommand(), ['-s', deviceId, 'shell', 'input', 'tap', String(Math.round(x)), String(Math.round(y))], { timeout: 10000, signal: replayContext.getStore()?.signal }, (error, _stdout, stderr) => {
       if (error) {
@@ -163,6 +170,7 @@ function adbTap(deviceId: string, x: number, y: number) {
 
 function adbKey(deviceId: string, keyCode: number) {
   throwIfReplayStopped();
+  if (isIosDevice(deviceId)) return iosClient(deviceId).key(keyCode, replayContext.getStore()?.signal);
   return new Promise<void>((resolve, reject) => {
     execFile(getAdbCommand(), ['-s', deviceId, 'shell', 'input', 'keyevent', String(Math.round(keyCode))], { timeout: 10000, signal: replayContext.getStore()?.signal }, (error, _stdout, stderr) => {
       if (error) {
@@ -176,6 +184,10 @@ function adbKey(deviceId: string, keyCode: number) {
 
 export function launchAppOnDevice(deviceId: string, packageName: string, signal = replayContext.getStore()?.signal) {
   signal?.throwIfAborted();
+  if (isIosDevice(deviceId)) {
+    if (replayContext.getStore()?.ios) return iosClient(deviceId).app('launch', packageName, signal);
+    return import('../ios/wda-client').then(({ withIosControl }) => withIosControl(deviceId, client => client.app('launch', packageName, signal)));
+  }
   if (!packageName) return Promise.reject(new Error('启动 APP 缺少包名'));
   if (!/^[A-Za-z][\w]*(?:\.[\w]+)+$/.test(packageName)) return Promise.reject(new Error('App 包名格式无效'));
   const run = (args: string[]) => new Promise<string>((resolve, reject) => {
@@ -202,6 +214,7 @@ export function launchAppOnDevice(deviceId: string, packageName: string, signal 
 
 export function clearAppDataOnDevice(deviceId: string, packageName: string, signal = replayContext.getStore()?.signal) {
   signal?.throwIfAborted();
+  if (isIosDevice(deviceId)) return Promise.reject(new Error('iOS 不支持通过 WDA 清理应用数据，请使用退出登录或应用内重置流程'));
   if (!packageName) return Promise.reject(new Error('清理 App 缓存缺少包名'));
   return new Promise<void>((resolve, reject) => {
     execFile(getAdbCommand(), [
@@ -224,6 +237,7 @@ export function clearAppDataOnDevice(deviceId: string, packageName: string, sign
 
 function adbSwipe(deviceId: string, step: Required<AppiumRecordedStepRecord>['swipe']) {
   throwIfReplayStopped();
+  if (isIosDevice(deviceId)) return iosClient(deviceId).swipe(step.startX, step.startY, step.endX, step.endY, step.duration, replayContext.getStore()?.signal);
   return new Promise<void>((resolve, reject) => {
     execFile(getAdbCommand(), [
       '-s',
@@ -256,6 +270,7 @@ function adbText(deviceId: string, args: string[], strict = false) {
 }
 
 async function getCurrentActivity(deviceId: string) {
+  if (isIosDevice(deviceId)) return iosClient(deviceId).activeApp(replayContext.getStore()?.signal);
   const output = await adbText(deviceId, ['shell', 'dumpsys', 'activity', 'activities'], true);
   const resumedLine = output
     .split(/\r?\n/)
@@ -312,6 +327,17 @@ async function appiumRequest<T>(
   options?: { ignoreAbort?: boolean; timeoutMs?: number },
 ) {
   const context = replayContext.getStore();
+  if (context?.ios) {
+    const endpoint = path.replace(/^\/session\/[^/]+/, '');
+    try {
+      const signal = options?.ignoreAbort ? undefined : context.signal && init?.signal ? AbortSignal.any([context.signal, init.signal]) : context.signal || init?.signal;
+      return await context.ios.request<T>(endpoint, { ...init, signal }, options?.timeoutMs);
+    } catch (error) {
+      throwIfReplayStopped(error);
+      if (error instanceof WdaError && ['no such element', 'stale element reference', 'invalid selector'].includes(error.code)) throw error;
+      throw new AppiumServiceError(`WDA 请求失败：${errorDetail(error)}`);
+    }
+  }
   const effectivePath = context?.sessionId
     ? path.replace(/^\/session\/[^/]+/, `/session/${context.sessionId}`)
     : path;
@@ -441,6 +467,10 @@ async function captureReplayFrame(
 }
 
 async function createSession(deviceId: string) {
+  if (replayContext.getStore()?.ios) {
+    const client = replayContext.getStore()!.ios!;
+    await client.ensure(); return client.sessionId;
+  }
   const payload = await appiumRequest<AppiumSessionResponse>('/session', {
     method: 'POST',
     body: JSON.stringify({
@@ -471,6 +501,7 @@ async function createSession(deviceId: string) {
 }
 
 async function useStepHierarchy(sessionId: string, step: AppiumRecordedStepRecord) {
+  if (replayContext.getStore()?.ios) return;
   // 未标记的旧步骤使用原完整层级。不能先试精简 XPath：相同路径可能命中不同组件。
   const compressed = step.hierarchyMode === 'compressed';
   const context = replayContext.getStore();
@@ -1008,10 +1039,11 @@ async function runStep(
       return `APP 已在前台，跳过启动 ${packageName}`;
     }
     await launchAppOnDevice(deviceId, packageName);
-    return `ADB 已启动 ${packageName}`;
+    return `${isIosDevice(deviceId) ? 'WDA' : 'ADB'} 已启动 ${packageName}`;
   }
 
   if (step.type === 'stopApp') {
+    if (isIosDevice(deviceId)) return iosClient(deviceId).app('terminate', step.value || '', replayContext.getStore()?.signal);
     return stopAppOnDevice(deviceId, step.value || '', replayContext.getStore()?.signal);
   }
 
@@ -1088,6 +1120,9 @@ async function runStep(
 
   if (step.type === 'pinch') {
     if (!step.pinch) throw new Error(`${step.label} 缺少缩放参数`);
+    if (replayContext.getStore()?.ios) {
+      return iosClient(deviceId).pinch(step.pinch.centerX, step.pinch.centerY, step.pinch.direction, step.pinch.percent, replayContext.getStore()?.signal);
+    }
     const size = Math.round(Math.min(500, Math.max(120, step.pinch.centerX, step.pinch.centerY)));
     await appiumNodeRequest(`/session/${sessionId}/execute/sync`, {
       method: 'POST',
@@ -1246,7 +1281,7 @@ async function evaluateCondition(sessionId: string, deviceId: string, step: Appi
     return step.loop?.exitWhen === 'exists' ? payload.value.length > 0 : payload.value.length === 0;
   }
   if (step.type === 'textClick') {
-    const selector = textClickSelector(step);
+    const selector = textClickSelector(step, replayContext.getStore()?.ios ? 'ios' : 'android');
     const timeoutMs = Math.max(0, step.timeoutMs ?? DEFAULT_NODE_TIMEOUT_MS);
     const deadline = Date.now() + timeoutMs;
     let attempted = false;
@@ -1732,10 +1767,18 @@ export async function replayAppiumScript(
 ) {
   const targetDeviceId = deviceId || script.deviceId;
   if (!targetDeviceId) throw new Error('未检测到可用设备');
+  const ios = isIosDevice(targetDeviceId) ? iosClient(targetDeviceId) : undefined;
+  assertScriptPlatform(script, ios ? 'ios' : 'android');
+  const scripts = new Map((runOptions.linkedScripts ?? linkedScriptSnapshot(script)).map(item => [item.id, item]));
+  scripts.set(script.id, script);
+  assertLinkedScriptPlatforms(script, id => scripts.get(id));
+  if (ios) {
+    [...scripts.values()].forEach(item => assertIosSteps(item.steps));
+    if (runOptions.recordVideo) throw new Error('iOS 暂不支持回放录屏，请关闭录制回放视频');
+  }
   if (!script.steps.length) throw new Error('脚本没有可回放步骤');
 
   const scope = new VariableScope(runOptions.globalVariables ?? getPresetVariables(), script.variables || []);
-  const scripts = new Map((runOptions.linkedScripts ?? linkedScriptSnapshot(script)).map(item => [item.id, item]));
   for (const item of validateVariables(runOptions.parameters)) scope.set(item);
   // 提前登记子脚本敏感预设，避免进入子脚本前的原始日志或截图泄露。
   const visited = new Set<string>();
@@ -1768,7 +1811,7 @@ export async function replayAppiumScript(
   });
   const reportSummaryModel = appiumConfig.promptOptimizer?.model;
   const startedAt = new Date();
-  const appVersion = await readAppVersion(targetDeviceId, script.appPackage).catch(() => '');
+  const appVersion = ios ? '' : await readAppVersion(targetDeviceId, script.appPackage).catch(() => '');
   const lines: string[] = [];
   const pushLine = lines.push.bind(lines);
   lines.push = (...items: string[]) => {
@@ -1778,6 +1821,7 @@ export async function replayAppiumScript(
     return length;
   };
   const context = {
+    ios,
     randomValues: new RandomValueGenerator(),
     stopwatches: new ReplayStopwatches(),
     screenshotReport: (runOptions.screenshotReport ?? loadConfig().appium.screenshotReport) === true,
@@ -1814,8 +1858,21 @@ export async function replayAppiumScript(
     let recording: Awaited<ReturnType<typeof startReplayVideo>> | undefined;
     let video: ReplayVideo | undefined;
     let managedAppium: Awaited<ReturnType<typeof startManagedAppiumServer>> | null = null;
+    let releaseIos: (() => void) | undefined;
+    const iosOwner = `ios-run:${crypto.randomUUID()}`;
+    let iosLockTimer: ReturnType<typeof setInterval> | undefined;
     try {
       validateLoopSteps(script.steps);
+      if (ios) {
+        acquireDeviceLock({ deviceId: targetDeviceId, ownerType: 'script_run', ownerId: iosOwner });
+        iosLockTimer = setInterval(() => {
+          try { acquireDeviceLock({ deviceId: targetDeviceId, ownerType: 'script_run', ownerId: iosOwner }); }
+          catch (error) { lines.push(`设备锁续期失败：${errorDetail(error)}`); }
+        }, 30000);
+        iosLockTimer.unref();
+        releaseIos = await ios.retain();
+        await ios.size(signal);
+      } else {
       lines.push('正在检测 Android SDK...');
       const androidSdk = ensureAndroidSdkAvailable();
       lines.push(`Android SDK 已就绪：${androidSdk.root}`);
@@ -1825,20 +1882,21 @@ export async function replayAppiumScript(
         managedAppium = await startManagedAppiumServer((line) => { if (!scope.privacy.enabled) lines.push(line); }, signal);
         context.serverUrl = managedAppium.serverUrl;
       }
-      lines.push(`Appium 服务：${appiumServerUrl()}`);
-      lines.push('正在创建 Appium session...');
+      }
+      lines.push(`${ios ? 'WDA' : 'Appium'} 服务：${ios ? ios.config.wdaBaseUrl : appiumServerUrl()}`);
+      lines.push(`正在创建 ${ios ? 'WDA' : 'Appium'} session...`);
       sessionCreationStarted = true;
       try {
         sessionId = await createSession(targetDeviceId);
       } catch (error) {
         throwIfReplayStopped(error);
-        if (!isUiAutomationDisconnected(error)) throw error;
+        if (ios || !isUiAutomationDisconnected(error)) throw error;
         lines.push('检测到 UiAutomation 连接冲突，正在清理残留进程并重试...');
         await resetUiAutomator2(targetDeviceId);
         sessionId = await createSession(targetDeviceId);
       }
       context.sessionId = sessionId;
-      if (!managedAppium) {
+      if (!managedAppium && !ios) {
         const heartbeatAbort = new AbortController();
         let heartbeatTask: Promise<unknown> | undefined;
         const timer = setInterval(() => {
@@ -1921,12 +1979,17 @@ export async function replayAppiumScript(
       if (signal?.aborted && managedAppium) {
         await managedAppium.stop();
         managedAppiumStopped = true;
-      } else if (sessionId) {
+      } else if (sessionId && !ios) {
         await appiumRequest(
           `/session/${sessionId}`,
           { method: 'DELETE' },
           { ignoreAbort: true, timeoutMs: 2000 },
         ).catch(error => { lines.push(`Appium 会话清理失败：${errorDetail(error)}${managedAppium ? '' : '；外部服务将在命令空闲 60 秒后回收会话'}`); });
+      }
+      if (ios) {
+        clearInterval(iosLockTimer);
+        releaseIos?.();
+        releaseDeviceLock(iosOwner);
       }
       if (managedAppium) {
         if (!managedAppiumStopped) await managedAppium.stop();

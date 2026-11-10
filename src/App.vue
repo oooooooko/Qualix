@@ -9,6 +9,7 @@ import tasksIcon from './assets/device-actions/tasks.svg';
 import volumeDownIcon from './assets/device-actions/volume-down.svg';
 import volumeUpIcon from './assets/device-actions/volume-up.svg';
 import { t } from './i18n';
+import changelog from '../CHANGELOG.md?raw';
 import * as api from './api';
 import type { AppPreset, MenuKey, SidebarMode } from './types';
 import { useModelConfig } from './config/use-model-config';
@@ -40,6 +41,14 @@ const visibleMenuItems = computed(() => openMenus.value.map(key => menuItems.fin
 const activeMenuLabel = computed(() => menuItems.find(item => item.key === activeMenu.value)!.label);
 const sidebarMode = shallowRef<SidebarMode>('expanded');
 const sidebarCollapsed = computed(() => sidebarMode.value !== 'expanded');
+const changelogRevision = changelog.split(/^## /m)[1]?.trim() || '';
+const readChangelogKey = 'qualix:read-changelog';
+const readChangelogRevision = shallowRef(localStorage.getItem(readChangelogKey));
+const hasUnreadChangelog = computed(() => Boolean(changelogRevision) && readChangelogRevision.value !== changelogRevision);
+function markChangelogRead() {
+  readChangelogRevision.value = changelogRevision;
+  try { localStorage.setItem(readChangelogKey, changelogRevision); } catch { /* Keep the current session read when storage is unavailable. */ }
+}
 const aiOrchestrationBusy = shallowRef(false);
 const aiDevicePreviewVisible = shallowRef(false);
 const manualOrchestrationBusy = shallowRef(false);
@@ -47,7 +56,7 @@ const midsceneBusy = shallowRef(false);
 const appiumScriptsRevision = shallowRef(0);
 const requestedAppiumScriptId = shallowRef('');
 const appPresets = ref<AppPreset[]>([]);
-const appPresetForm = reactive({ id: '', name: '', packageName: '' });
+const appPresetForm = reactive<Pick<AppPreset, 'id' | 'name' | 'packageName' | 'platform'>>({ id: '', name: '', packageName: '', platform: 'universal' });
 const isSavingAppPreset = shallowRef(false);
 const resourceError = shallowRef('');
 const { ready: configReady, configForm, appiumAutoSave, isSavingModelConfig, testingModelKey, modelTestStatus, aiRecognitionModelConfigured, loadConfig, saveModelConfig, testModel } = useModelConfig();
@@ -56,8 +65,8 @@ watch(activeMenu, key => { visitedMenus.add(key); if (!openMenus.value.includes(
 function selectMenu(key: string) { if (menuItems.some(item => item.key === key)) activeMenu.value = key as MenuKey; }
 function closeMenu(key: MenuKey) { if (openMenus.value.length < 2) return; const index = openMenus.value.indexOf(key); openMenus.value.splice(index, 1); if (activeMenu.value === key) activeMenu.value = openMenus.value[Math.max(0, index - 1)]; }
 function editAiScript(id: string) { requestedAppiumScriptId.value = id; activeMenu.value = 'appium'; }
-function resetAppPresetForm() { Object.assign(appPresetForm, { id: '', name: '', packageName: '' }); }
-function editAppPreset(app: AppPreset) { Object.assign(appPresetForm, { id: app.id, name: app.name, packageName: app.packageName }); }
+function resetAppPresetForm() { Object.assign(appPresetForm, { id: '', name: '', packageName: '', platform: 'universal' }); }
+function editAppPreset(app: AppPreset) { Object.assign(appPresetForm, { id: app.id, name: app.name, packageName: app.packageName, platform: app.platform || 'universal' }); }
 async function loadApps() { appPresets.value = (await api.getAppPresets()).apps || []; }
 async function saveAppPreset() {
   if (isSavingAppPreset.value) return;
@@ -90,7 +99,7 @@ const deviceActions = [
 
 <template>
   <div class="layout" :class="{ 'layout--collapsed': sidebarCollapsed }">
-    <AppSidebar v-model:mode="sidebarMode" :active-menu="activeMenu" @select="selectMenu" />
+    <AppSidebar v-model:mode="sidebarMode" :active-menu="activeMenu" :has-unread-changelog="hasUnreadChangelog" @select="selectMenu" />
     <div class="layout-main">
       <AppHeader
         :page-label="t(activeMenuLabel)"
@@ -121,7 +130,7 @@ const deviceActions = [
       </AppHeader>
       <nav class="layout-page-tabs" :aria-label="t('页面导航')">
         <div v-for="item in visibleMenuItems" :key="item.key" class="layout-page-tab" :class="{ 'is-active': activeMenu === item.key }">
-          <button type="button" class="layout-page-tab__select" :aria-current="activeMenu === item.key ? 'page' : undefined" @click="selectMenu(item.key)"><el-icon><component :is="item.icon" /></el-icon>{{ t(item.label) }}</button>
+          <button type="button" class="layout-page-tab__select" :aria-current="activeMenu === item.key ? 'page' : undefined" @click="selectMenu(item.key)"><el-icon><component :is="item.icon" /></el-icon>{{ t(item.label) }}<span v-if="item.key === 'about' && hasUnreadChangelog" class="unread-update-label" role="img" :aria-label="t('有新的更新说明')">new</span></button>
           <button type="button" class="layout-page-tab__close" :aria-label="t('关闭{0}页签', { 0: t(item.label) })" :disabled="openMenus.length === 1" @click="closeMenu(item.key)"><el-icon><Close /></el-icon></button>
         </div>
       </nav>
@@ -176,7 +185,7 @@ const deviceActions = [
           @tap="tapDevice($event.x, $event.y)" @swipe="swipeDevice($event.startX, $event.startY, $event.endX, $event.endY, $event.duration)" />
 
         <NativeMidscenePage v-if="visitedMenus.has('midscene')" v-show="activeMenu==='midscene'" :active="activeMenu==='midscene'" @busy-change="midsceneBusy=$event" />
-        <HelpCenter v-if="visitedMenus.has('about')" v-show="activeMenu === 'about'" :active="activeMenu === 'about'" />
+        <HelpCenter v-if="visitedMenus.has('about')" v-show="activeMenu === 'about'" :active="activeMenu === 'about'" :has-unread-changelog="hasUnreadChangelog" @read-changelog="markChangelogRead" />
       </main>
     </div>
   </div>

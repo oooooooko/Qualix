@@ -1,5 +1,5 @@
 import { normalizeLocale } from '../../locales';
-import { readBody, requestErrorStatus } from '../request-body';
+import { readBody, requestErrorStatus, RequestBodyError } from '../request-body';
 import type { AiObservationConfig } from '../../src/appium-recorder/ai-recognition';
 import { execFile } from 'node:child_process';
 import { sendReplayVideo } from './video-response';
@@ -33,6 +33,10 @@ import { createAppiumLlmPrompt } from './llm-prompt';
 import { resolveReportSummary } from '../../src/appium-recorder/report-summary';
 import { testModelConnection } from '../model-tester';
 import { isFlowGenerationRunning } from '../../ai-flow/server/tasks';
+import { assertLinkedScriptPlatforms, assertScriptPlatform, PlatformValidationError, type ScriptPlatform } from '../../src/appium-recorder/platform';
+import { isIosDevice, iosDevice } from '../ios/devices';
+import { iosClient, withIosControl } from '../ios/wda-client';
+import { assertIosSteps } from '../../src/ios/capabilities';
 
 const treeDumpTasks = new Map<string, Promise<string>>();
 const replayingDevices = new Set<string>();
@@ -63,6 +67,10 @@ function execFileText(command: string, args: string[] = []) {
 }
 
 async function dumpWindowHierarchy(deviceId: string) {
+  if (isIosDevice(deviceId)) {
+    const client = iosClient(deviceId); const release = await client.retain();
+    try { return await client.source(); } finally { release(); }
+  }
   const activeTask = treeDumpTasks.get(deviceId);
   if (activeTask) return activeTask;
 
@@ -76,6 +84,7 @@ async function dumpWindowHierarchy(deviceId: string) {
 }
 
 async function getCurrentActivity(deviceId: string) {
+  if (isIosDevice(deviceId)) return iosClient(deviceId).activeApp();
   const output = await execFileText(getAdbCommand(), ['-s', deviceId, 'shell', 'dumpsys', 'activity', 'activities']);
   const resumedLine = output
     .split(/\r?\n/)
@@ -83,7 +92,11 @@ async function getCurrentActivity(deviceId: string) {
   return resumedLine?.match(/\s([\w.$]+\/[\w.$]+)\s/)?.[1] || '';
 }
 
-async function tapDevice(deviceId: string, x: number, y: number) {
+async function tapDevice(deviceId: string, x: number, y: number, revision?: number) {
+  if (isIosDevice(deviceId)) return withIosControl(deviceId, async client => {
+    if ((await client.size()).revision !== revision) throw new RequestBodyError('设备画面尺寸已变化，请刷新组件树后重试', 409);
+    return client.tap(x, y);
+  });
   await execFileText(getAdbCommand(), [
     '-s',
     deviceId,
@@ -96,6 +109,7 @@ async function tapDevice(deviceId: string, x: number, y: number) {
 }
 
 async function pressDeviceKey(deviceId: string, keyCode: number) {
+  if (isIosDevice(deviceId)) return withIosControl(deviceId, client => client.key(keyCode));
   await execFileText(getAdbCommand(), [
     '-s',
     deviceId,
@@ -145,16 +159,29 @@ export async function handleAppiumRecorderRequest(
         });
         return true;
       }
+      if (isIosDevice(deviceId)) {
+        const client = iosClient(deviceId);
+        const release = await client.retain();
+        try {
+          const geometry = await client.size();
+          const xml = await client.source();
+          const after = await client.size();
+          if (after.revision !== geometry.revision) throw new RequestBodyError('设备画面尺寸已变化，请重新刷新组件树', 409);
+          sendJson(res, { deviceId, xml, activity: await client.activeApp(), geometry, dumpedAt: new Date().toISOString() });
+        } finally { release(); }
+        return true;
+      }
       const [xml, activity] = await Promise.all([
         dumpWindowHierarchy(deviceId),
         getCurrentActivity(deviceId).catch(() => ''),
       ]);
-      sendJson(res, { deviceId, xml, activity, dumpedAt: new Date().toISOString() });
+      const geometry = isIosDevice(deviceId) ? await iosClient(deviceId).size() : undefined;
+      sendJson(res, { deviceId, xml, activity, geometry, dumpedAt: new Date().toISOString() });
       return true;
     }
 
     if (pathname === '/api/appium-recorder/tap' && req.method === 'POST') {
-      const parsed = await readBody<{ deviceId?: string; x?: number; y?: number }>(req);
+      const parsed = await readBody<{ deviceId?: string; x?: number; y?: number; geometryRevision?: number }>(req);
       const deviceId = parsed.deviceId?.trim() || selectedDeviceId;
       if (!deviceId) throw new Error('未检测到可用设备');
       assertDeviceAllowed(deviceId);
@@ -164,7 +191,7 @@ export async function handleAppiumRecorderRequest(
         sendJson(res, { success: true });
         return true;
       }
-      await tapDevice(deviceId, Number(parsed.x), Number(parsed.y));
+      await tapDevice(deviceId, Number(parsed.x), Number(parsed.y), parsed.geometryRevision);
       sendJson(res, { success: true });
       return true;
     }
@@ -312,6 +339,7 @@ export async function handleAppiumRecorderRequest(
     if (pathname === '/api/appium-recorder/scripts' && req.method === 'POST') {
       const parsed = await readBody<{
         id?: string;
+        platform?: ScriptPlatform;
         name?: string;
         appPackage?: string;
         appActivity?: string;
@@ -321,6 +349,7 @@ export async function handleAppiumRecorderRequest(
       }>(req);
       const script = saveAppiumRecordedScript({
         id: parsed.id,
+        platform: parsed.platform,
         name: parsed.name || '',
         appPackage: parsed.appPackage || '',
         appActivity: parsed.appActivity || '',
@@ -339,6 +368,7 @@ export async function handleAppiumRecorderRequest(
           schemaVersion?: number;
           script?: {
             id?: string;
+            platform?: ScriptPlatform;
             name?: string;
             appPackage?: string;
             appActivity?: string;
@@ -349,6 +379,7 @@ export async function handleAppiumRecorderRequest(
         }>;
         script?: {
           id?: string;
+          platform?: ScriptPlatform;
           name?: string;
           appPackage?: string;
           appActivity?: string;
@@ -370,6 +401,7 @@ export async function handleAppiumRecorderRequest(
         if (invalidStep) throw new Error(`${prefix}包含无效节点`);
         return {
           sourceId: imported.id || '',
+          platform: imported.platform,
           name: imported.name || '',
           appPackage: imported.appPackage || '',
           appActivity: imported.appActivity || '',
@@ -454,6 +486,14 @@ export async function handleAppiumRecorderRequest(
       if (!script) throw new Error('测试编排脚本不存在');
       const deviceId = parsed.deviceId || selectedDeviceId;
       assertDeviceAllowed(deviceId);
+      // Platform comes from a registered adapter, never from the request body.
+      if (isIosDevice(deviceId)) iosDevice(deviceId);
+      assertScriptPlatform(script, isIosDevice(deviceId) ? 'ios' : 'android');
+      assertLinkedScriptPlatforms(script, getAppiumRecordedScript);
+      if (isIosDevice(deviceId)) {
+        linkedScriptSnapshot(script).forEach(item => assertIosSteps(item.steps));
+        if (parsed.recordVideo) throw new PlatformValidationError('iOS 暂不支持回放录屏，请关闭录制回放视频');
+      }
       const streamOutput = req.headers.accept?.includes('application/x-ndjson') === true;
       if (parsed.recordVideo === true && isRemoteDeviceId(deviceId)) throw new Error('远程设备暂不支持回放录屏，请在连接设备的主机本地运行');
       if (streamOutput) {
@@ -529,7 +569,7 @@ export async function handleAppiumRecorderRequest(
       sendStreamEvent(res, { type: 'error', message });
       res.end();
     } else {
-      sendJson(res, { message }, requestErrorStatus(error));
+      sendJson(res, { message }, requestErrorStatus(error, error instanceof PlatformValidationError ? 400 : 500));
     }
     return true;
   }

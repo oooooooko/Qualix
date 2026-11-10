@@ -14,6 +14,7 @@ import { getPresetVariables, savePresetVariables, deleteScriptVariables } from '
 import { validateImageCheck, type ImageCheckConfig } from '../../src/appium-recorder/image-check';
 import { validateRandomValue, type RandomValueConfig } from '../../src/appium-recorder/random-value';
 import { validateStopwatch, remapStopwatchIds, type StopwatchConfig } from '../../src/appium-recorder/stopwatch';
+import { assertLinkedScriptPlatforms, assertScriptPlatform, scriptPlatform, type ScriptPlatform } from '../../src/appium-recorder/platform';
 
 export type AppiumRecordedStepRecord = {
   hierarchyMode?: 'full' | 'compressed';
@@ -184,6 +185,7 @@ export type AppiumRecordedStepRecord = {
 
 export type AppiumRecordedScriptRecord = {
   id: string;
+  platform?: ScriptPlatform;
   name: string;
   appPackage: string;
   appActivity: string;
@@ -196,6 +198,7 @@ export type AppiumRecordedScriptRecord = {
 
 type AppiumRecordedScriptRow = {
   id: string;
+  platform: string;
   name: string;
   app_package: string;
   app_activity: string | null;
@@ -225,6 +228,7 @@ function createAppiumRecordedScriptsTable() {
     CREATE TABLE IF NOT EXISTS appium_recorded_scripts (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL UNIQUE,
+      platform TEXT NOT NULL DEFAULT 'android',
       app_package TEXT NOT NULL,
       app_activity TEXT,
       device_id TEXT,
@@ -265,6 +269,9 @@ function initDb() {
   if (columns.includes('steps_json') || !columns.includes('flow_json')) {
     runSql('DROP TABLE appium_recorded_scripts;');
     createAppiumRecordedScriptsTable();
+  }
+  if (!columns.includes('platform') && columns.includes('flow_json') && !columns.includes('steps_json')) {
+    runSql("ALTER TABLE appium_recorded_scripts ADD COLUMN platform TEXT NOT NULL DEFAULT 'android';");
   }
   const reportColumns = querySql<{ name: string }>('PRAGMA table_info(appium_replay_reports);')
     .map((column) => column.name);
@@ -314,6 +321,7 @@ function rowToRecord(row: AppiumRecordedScriptRow): AppiumRecordedScriptRecord {
   return {
     id: row.id,
     name: row.name,
+    platform: scriptPlatform(row.platform),
     appPackage: row.app_package,
     appActivity: normalizeScriptActivity(row.app_package, row.app_activity, steps),
     deviceId: row.device_id || '',
@@ -330,6 +338,7 @@ export function listAppiumRecordedScripts() {
     SELECT
       id,
       name,
+      platform,
       app_package,
       app_activity,
       device_id,
@@ -347,6 +356,7 @@ export function getAppiumRecordedScript(id: string) {
     SELECT
       id,
       name,
+      platform,
       app_package,
       app_activity,
       device_id,
@@ -373,6 +383,7 @@ export function linkedScriptSnapshot(root: AppiumRecordedScriptRecord) {
 }
 
 export function saveAppiumRecordedScript(input: {
+  platform?: ScriptPlatform;
   variables?: TestVariable[];
   id?: string;
   name: string;
@@ -386,6 +397,9 @@ export function saveAppiumRecordedScript(input: {
   const id = input.id || createId('appium_script');
   const name = input.name.trim();
   const appPackage = input.appPackage.trim();
+  const existingScripts = listAppiumRecordedScripts();
+  const existing = existingScripts.find(script => input.id ? script.id === input.id : script.name === name);
+  const platform = scriptPlatform(input.platform === undefined ? existing?.platform : input.platform);
   const steps = normalizeLegacyNestedConditionBranches(input.steps || []);
   if (input.variables !== undefined) validateVariables(input.variables);
   for (const step of steps) {
@@ -408,12 +422,20 @@ export function saveAppiumRecordedScript(input: {
 
   if (!name) throw new Error('脚本名称不能为空');
   if (!appPackage) throw new Error('App 包名不能为空');
+  const candidate = { id: input.id || existing?.id || id, name, platform, steps };
+  assertLinkedScriptPlatforms(candidate, linkedId => linkedId === candidate.id ? candidate : getAppiumRecordedScript(linkedId), true);
+  for (const parent of existingScripts) {
+    if (parent.id !== candidate.id && parent.steps.some(step => step.type === 'runScript' && step.value === candidate.id)) {
+      assertScriptPlatform(candidate, scriptPlatform(parent.platform));
+    }
+  }
 
   if (input.id) {
     runSql(`
       INSERT INTO appium_recorded_scripts (
         id,
         name,
+        platform,
         app_package,
         app_activity,
         device_id,
@@ -424,6 +446,7 @@ export function saveAppiumRecordedScript(input: {
       VALUES (
         ${sqlString(input.id)},
         ${sqlString(name)},
+        ${sqlString(platform)},
         ${sqlString(appPackage)},
         ${sqlNullableString(appActivity)},
         ${sqlNullableString(input.deviceId || '')},
@@ -433,6 +456,7 @@ export function saveAppiumRecordedScript(input: {
       )
       ON CONFLICT(id) DO UPDATE SET
         name = excluded.name,
+        platform = excluded.platform,
         app_package = excluded.app_package,
         app_activity = excluded.app_activity,
         device_id = excluded.device_id,
@@ -447,6 +471,7 @@ export function saveAppiumRecordedScript(input: {
     INSERT INTO appium_recorded_scripts (
       id,
       name,
+      platform,
       app_package,
       app_activity,
       device_id,
@@ -457,6 +482,7 @@ export function saveAppiumRecordedScript(input: {
     VALUES (
       ${sqlString(id)},
       ${sqlString(name)},
+      ${sqlString(platform)},
       ${sqlString(appPackage)},
       ${sqlNullableString(appActivity)},
       ${sqlNullableString(input.deviceId || '')},
@@ -465,6 +491,7 @@ export function saveAppiumRecordedScript(input: {
       ${sqlString(now)}
     )
     ON CONFLICT(name) DO UPDATE SET
+      platform = excluded.platform,
       app_package = excluded.app_package,
       app_activity = excluded.app_activity,
       device_id = excluded.device_id,
@@ -487,6 +514,7 @@ export function deleteAppiumRecordedScript(id: string) {
 }
 
 export function importAppiumRecordedScript(input: {
+  platform?: ScriptPlatform;
   sourceId?: string;
   variables?: TestVariable[];
   name: string;
@@ -499,6 +527,7 @@ export function importAppiumRecordedScript(input: {
 }
 
 export function importAppiumRecordedScripts(inputs: Array<{
+  platform?: ScriptPlatform;
   sourceId?: string;
   variables?: TestVariable[];
   name: string;
@@ -526,13 +555,20 @@ export function importAppiumRecordedScripts(inputs: Array<{
 
   const timerIds = new Map(planned.flatMap(input => input.steps.filter(step => step.stopwatch?.action === 'start' && step.stopwatch.timerId)
     .map(step => [step.stopwatch!.timerId, crypto.randomUUID()])));
-  return planned.map((input) => {
+  const prepared = planned.map((input) => {
     const steps = remapStopwatchIds(input.steps, timerIds).map(step => (
       step.type === 'runScript' && step.value && importedIds.has(step.value)
         ? { ...step, value: importedIds.get(step.value) }
         : step
     ));
-    const script = saveAppiumRecordedScript({ ...input, id: input.id, steps });
+    return { ...input, platform: scriptPlatform(input.platform), steps };
+  });
+  const importedScripts = new Map(prepared.map(script => [script.id, script]));
+  for (const script of prepared) {
+    assertLinkedScriptPlatforms(script, id => importedScripts.get(id) || getAppiumRecordedScript(id), true);
+  }
+  return prepared.map(input => {
+    const script = saveAppiumRecordedScript(input);
     if (!script) throw new Error(`脚本「${input.name}」导入失败`);
     return script;
   });

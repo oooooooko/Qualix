@@ -32,6 +32,7 @@ export type RemoteCommandResult = {
 
 export type RemoteAndroidDevice = {
   id: string;
+  platform: 'android';
   status: string;
   description: string;
   source: 'remote';

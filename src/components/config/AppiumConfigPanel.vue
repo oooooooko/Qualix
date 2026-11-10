@@ -32,7 +32,7 @@ const activeSection = shallowRef<'basic' | 'models'>('basic');
       </div>
       <div v-if="saveStatus || saveFailed" class="appium-config-save-state">
         <span v-if="saveStatus" class="config-save-status" role="status">{{ t(saveStatus) }}</span>
-        <el-button v-if="saveFailed" link type="primary" @click="$emit('retrySave')">{{ t("重试保存") }}</el-button>
+        <el-button v-if="saveFailed" type="primary" @click="$emit('retrySave')">{{ t("重试保存") }}</el-button>
       </div>
     </header>
     <section v-show="activeSection === 'models'" class="appium-config-section" aria-labelledby="appium-models-title">
@@ -57,10 +57,7 @@ const activeSection = shallowRef<'basic' | 'models'>('basic');
           <template #header><div class="panel-header"><span>{{ t("持续观察截图去重") }}</span></div></template>
           <el-form label-position="top"><AiDeduplicationSettings v-model="configForm.appium.aiDeduplication" /></el-form>
         </el-card>
-        <el-card shadow="never" class="config-module-card config-appium-card">
-          <template #header><div class="panel-header"><span>{{ t("AI 识别预设提示词") }}</span></div></template>
-          <AiPromptPresetsSettings v-model="configForm.appium.aiPromptPresets" />
-        </el-card>
+        <AiPromptPresetsSettings v-model="configForm.appium.aiPromptPresets" />
       </div>
       <ReplayReportSummarySettings v-if="configForm.appium.reportSummary" :config="configForm.appium.reportSummary" :testing-model-key="testingModelKey" />
     </section>

@@ -33,15 +33,14 @@ defineEmits<{ test: [] }>();
       <el-form-item label="Model Name"><el-input v-model="model.name" :placeholder="t(namePlaceholder)" /></el-form-item>
       <el-alert v-if="testStatus" class="appium-model-status" :title="t(testStatus)"
         :type="testStatus.startsWith('测试通过') ? 'success' : 'warning'" :closable="false" show-icon />
-      <div class="appium-model-actions">
-        <el-button type="primary" plain :loading="testingModelKey === modelKey" :disabled="!!testingModelKey && testingModelKey !== modelKey" @click="$emit('test')">{{ t("测试并保存") }}</el-button>
-      </div>
     </el-form>
+    <template #footer>
+      <el-button type="primary" :loading="testingModelKey === modelKey" :disabled="!!testingModelKey && testingModelKey !== modelKey" @click="$emit('test')">{{ t("测试并保存") }}</el-button>
+    </template>
   </el-card>
 </template>
 
 <style scoped>
 .appium-model-description { min-height: 40px; margin: 0 0 18px; color: var(--el-text-color-secondary); font-size: 13px; line-height: 1.6; }
 .appium-model-status { margin-bottom: 16px; }
-.appium-model-actions { display: flex; justify-content: flex-end; }
 </style>

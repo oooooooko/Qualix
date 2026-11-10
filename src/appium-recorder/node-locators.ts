@@ -16,6 +16,12 @@ function uiAutomatorLocator(node: AppiumNode) {
 }
 
 export function nodeLocators(node: AppiumNode) {
+  if (node.className.startsWith('XCUIElementType') || node.className === 'AppiumAUT') {
+    return [
+      { name: 'Accessibility ID', attribute: 'name', value: node.resourceId, warning: '' },
+      { name: 'XPath', attribute: '', value: node.xpath, warning: '' },
+    ];
+  }
   return [
     { name: 'Resource ID', attribute: 'resource-id', value: node.resourceId },
     { name: 'Accessibility ID', attribute: 'content-desc', value: node.contentDesc },

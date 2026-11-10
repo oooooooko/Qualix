@@ -12,8 +12,10 @@ import FlowNodeSearch from './FlowNodeSearch.vue';
 import { searchFlowNodes } from '../flow-search';
 import { labelFlowStep } from '../flow-labels';
 import type { FlowActionGroup, FlowBranch, InsertAction } from '../flow-graph';
+import { iosUnsupportedActions } from '../../ios/capabilities';
 
 const props = defineProps<{
+  platform?: 'android' | 'ios';
   aiRecognitionModelConfigured?: boolean;
   steps: AppiumRecordedStep[];
   canvasId?: string;
@@ -194,13 +196,6 @@ function handleNodeClick(index: number) {
     toggleCopySelection(index);
     return;
   }
-  const step = props.steps[index];
-  if (
-    expandedStepIndex.value !== index
-    && (step?.type === 'input' || step?.type === 'inputIfExists')
-  ) {
-    emit('editInput', index);
-  }
   expandedStepIndex.value = expandedStepIndex.value === index ? null : index;
 }
 
@@ -278,7 +273,7 @@ function canOpenInsertMenu() {
 }
 
 function isInsertActionDisabled(action: InsertAction) {
-  return Boolean(props.disabled && !props.allowedLockedActions?.includes(action));
+  return Boolean(props.platform === 'ios' && iosUnsupportedActions.has(action) || props.disabled && !props.allowedLockedActions?.includes(action));
 }
 
 function isStartActionDisabled(action: InsertAction) {
@@ -287,7 +282,7 @@ function isStartActionDisabled(action: InsertAction) {
 }
 
 function isAppExecutionDisabled(action: 'launchApp' | 'clearAppData') {
-  return Boolean(props.disabled && !props.allowedLockedActions?.includes(action));
+  return isInsertActionDisabled(action);
 }
 
 function updateStep(index: number, step: AppiumRecordedStep) {

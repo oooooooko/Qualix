@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { t, translateBuiltInPreset } from '../../i18n';
-import { computed, ref, shallowRef } from 'vue';
+import { computed, ref, shallowRef, useId } from 'vue';
 import { Check, Close, Delete, Edit, Plus } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { resolveAiPromptPresets, DEFAULT_AI_PROMPT_PRESETS, type AiPromptPreset } from '../../appium-recorder/ai-prompt-presets';
@@ -15,6 +15,7 @@ const sceneName = ref('');
 const editIndex = shallowRef<number | null>(null);
 const editSceneName = ref('');
 const editPrompt = ref('');
+const formId = useId();
 
 function addPreset() {
   try {
@@ -56,18 +57,17 @@ function saveEdit() {
 </script>
 
 <template>
-  <section class="ai-prompt-settings" aria-labelledby="ai-prompt-presets-title">
-    <h3 id="ai-prompt-presets-title" class="ai-prompt-visually-hidden">{{ t("AI 识别预设提示词") }}</h3>
+  <el-card shadow="never" class="config-module-card config-appium-card ai-prompt-settings" role="region" :aria-label="t('AI 识别预设提示词')">
+    <template #header><div class="panel-header"><span>{{ t("AI 识别预设提示词") }}</span></div></template>
     <p class="ai-prompt-description">{{ t("添加常用测试场景，录制 AI 识别节点时可以直接选择。删除预设不会修改已有节点。") }}</p>
     <div class="ai-prompt-layout">
-      <el-form label-position="top" @submit.prevent="addPreset">
+      <el-form :id="formId" label-position="top" @submit.prevent="addPreset">
         <el-form-item :label="t('测试场景')">
           <el-input v-model="sceneName" maxlength="80" :placeholder="t('例如：开屏广告检测')" />
         </el-form-item>
         <el-form-item :label="t('新增提示词')">
           <el-input v-model="draft" type="textarea" :rows="4" maxlength="4000" show-word-limit :placeholder="t('输入常用的识别内容，例如：当前画面是否出现广告弹窗？')" />
         </el-form-item>
-        <div class="ai-prompt-actions"><el-button native-type="submit" :icon="Plus">{{ t("添加提示词") }}</el-button></div>
       </el-form>
       <div class="ai-prompt-list" :aria-label="t('已添加的提示词')">
         <div v-for="(preset, index) in presets" :key="`${preset.name}-${index}`" class="ai-prompt-row" :class="{ 'ai-prompt-row--editing': editIndex === index }">
@@ -92,14 +92,15 @@ function saveEdit() {
         <el-empty v-if="!presets.length" :description="t('暂无预设提示词')" :image-size="60" />
       </div>
     </div>
-  </section>
+    <template #footer>
+      <el-button type="primary" native-type="submit" :form="formId" :icon="Plus">{{ t("添加提示词") }}</el-button>
+    </template>
+  </el-card>
 </template>
 
 <style scoped>
-.ai-prompt-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .ai-prompt-description { margin: 0 0 20px; color: var(--el-text-color-secondary); font-size: 12px; }
 .ai-prompt-layout { display: grid; gap: 20px; }
-.ai-prompt-actions { display: flex; justify-content: flex-end; }
 .ai-prompt-list { --ai-prompt-row-height: 76px; min-width: 0; height: calc(var(--ai-prompt-row-height) * 3 + 1px); overflow-y: auto; scrollbar-gutter: stable; border-top: 1px solid var(--ui-border); }
 .ai-prompt-row { display: flex; align-items: flex-start; gap: 12px; height: var(--ai-prompt-row-height); box-sizing: border-box; padding: 10px 0; }
 .ai-prompt-row--editing { height: auto; min-height: var(--ai-prompt-row-height); }

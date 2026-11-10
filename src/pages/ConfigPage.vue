@@ -8,7 +8,7 @@ import type { AppPreset, ConfigForm } from '../types';
 defineProps<{
   configForm: ConfigForm;
   appPresets: AppPreset[];
-  appPresetForm: Pick<AppPreset, 'id' | 'name' | 'packageName'>;
+  appPresetForm: Pick<AppPreset, 'id' | 'name' | 'packageName' | 'platform'>;
   testingModelKey: string;
   isSavingModelConfig: boolean;
   isSavingAppPreset: boolean;
@@ -134,8 +134,13 @@ function handleTabKeydown(event: KeyboardEvent, index: number) {
   box-shadow: var(--ui-shadow-control);
 }
 .config-page > [role="tabpanel"] { padding: 24px; }
-:deep(.config-module-card > .el-card__header) { padding: 18px 24px; font-size: 16px; font-weight: 600; }
-:deep(.config-module-card > .el-card__body) { padding: 24px; background: var(--ui-surface); }
+:deep(.config-module-card) { display: flex; flex-direction: column; border-radius: 12px; }
+:deep(.config-module-card > .el-card__header) { display: flex; align-items: center; min-height: 68px; box-sizing: border-box; padding: 18px 24px; font-size: 16px; font-weight: 600; }
+:deep(.config-module-card > .el-card__header > .panel-header) { width: 100%; flex-wrap: wrap; }
+:deep(.config-module-card .panel-header__title) { flex-wrap: wrap; }
+:deep(.config-module-card > .el-card__body) { flex: 1; min-width: 0; padding: 24px; background: var(--ui-surface); }
+:deep(.config-module-card > .el-card__footer) { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; padding: 16px 24px; background: var(--ui-surface); border-top: 1px solid var(--ui-border); }
+:deep(.config-module-card > .el-card__footer .el-button), :deep(.appium-config-save-state .el-button) { height: 36px; margin: 0; padding: 0 16px; border-radius: 8px; font-size: 13px; }
 :deep(.el-form-item) { margin-bottom: 22px; }
 :deep(.el-form-item__label) { margin-bottom: 8px; font-size: 13px; }
 :deep(.el-input__wrapper), :deep(.el-select__wrapper) { min-height: 36px; }
@@ -143,5 +148,10 @@ function handleTabKeydown(event: KeyboardEvent, index: number) {
 @media (max-width: 1000px) {
   :deep(.config-model-grid) { grid-template-columns: minmax(0, 1fr); }
   :deep(.config-model-grid > section + section) { padding: 24px 0 0; border-left: 0; border-top: 1px solid var(--ui-border); }
+}
+@media (max-width: 640px) {
+  .config-page > [role="tabpanel"] { padding: 16px; }
+  :deep(.config-module-card > .el-card__header), :deep(.config-module-card > .el-card__body), :deep(.config-module-card > .el-card__footer) { padding: 16px; }
+  :deep(.config-module-card > .el-card__footer .el-button) { max-width: 100%; }
 }
 </style>

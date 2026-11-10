@@ -35,6 +35,9 @@ import { handleRemoteAgentRequest } from './remote-agents/routes';
 import { isRemoteDeviceId, listRemoteAndroidDevices, sendRemoteCommand } from './remote-agents/registry';
 import { getAdbCommand } from './android-sdk';
 import { readAndroidDeviceInfo } from './android-device-info';
+import { handleIosRequest, listIosDevices } from './ios/routes';
+import { isIosDevice } from './ios/devices';
+import { iosClient, withIosControl } from './ios/wda-client';
 
 function execFileText(command: string, args: string[] = []) {
   return new Promise<string>((resolve, reject) => {
@@ -62,6 +65,7 @@ function execFileJson(command: string, args: string[] = []) {
 
 type AndroidDevice = {
   id: string;
+  platform: 'android';
   status: string;
   description: string;
 };
@@ -85,6 +89,7 @@ async function listAdbDevices() {
       const device = parts.find((part) => part.startsWith('device:'))?.slice(7) || '';
       return {
         id,
+        platform: 'android' as const,
         status,
         description: [model, device].filter(Boolean).join(' · ') || status,
       } satisfies AndroidDevice;
@@ -167,8 +172,12 @@ export function createApiMiddleware() {
   };
 
   const listVisibleAndroidDevices = async (req: IncomingMessage) => {
-    const localDevices = isLocalRequest(req) ? await listAdbDevices() : [];
-    return [...localDevices, ...listRemoteAndroidDevices()];
+    const ios = isLocalRequest(req) ? await listIosDevices() : [];
+    const localDevices = isLocalRequest(req) ? await listAdbDevices().catch(error => {
+      if (ios.length) return [];
+      throw error;
+    }) : [];
+    return [...localDevices, ...listRemoteAndroidDevices(), ...ios];
   };
 
   const handler: NextHandleFunction = async (req, res, next) => {
@@ -198,6 +207,8 @@ export function createApiMiddleware() {
     if (await handleAiFlowRequest(req, res, allowLocalDevice)) {
       return;
     }
+
+    if (await handleIosRequest(req, res, allowLocalDevice)) return;
 
     if (await handleAppiumRecorderRequest(req, res, selectedDeviceId, allowLocalDevice)) {
       return;
@@ -373,6 +384,12 @@ export function createApiMiddleware() {
         }
         assertDeviceAllowedForRequest(req, deviceId);
 
+        if (isIosDevice(deviceId)) {
+          const client = iosClient(deviceId); const release = await client.retain();
+          try { res.setHeader('Content-Type', 'image/png'); res.setHeader('Cache-Control', 'no-store'); res.end(await client.screenshot()); }
+          finally { release(); }
+          return;
+        }
         if (isRemoteDeviceId(deviceId)) {
           const data = await sendRemoteCommand(deviceId, 'screenshot') as { base64?: string };
           if (!data.base64) throw new Error('远程设备预览不可用');
@@ -414,6 +431,9 @@ export function createApiMiddleware() {
         if (!Number.isFinite(x) || !Number.isFinite(y)) {
           throw new Error('点击坐标无效');
         }
+        if (isIosDevice(deviceId)) {
+          throw new RequestBodyError('iOS 点击需要画面版本，请使用 iOS 控制接口', 400);
+        }
         if (isRemoteDeviceId(deviceId)) {
           const result = await sendRemoteCommand(deviceId, 'tap', { x, y });
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -443,6 +463,10 @@ export function createApiMiddleware() {
         if (!Number.isFinite(keyCode)) {
           throw new Error('按键无效');
         }
+        if (isIosDevice(deviceId)) {
+          await withIosControl(deviceId, client => client.key(keyCode));
+          res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ success: true })); return;
+        }
         if (isRemoteDeviceId(deviceId)) {
           const result = await sendRemoteCommand(deviceId, 'key', { keyCode });
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -465,7 +489,9 @@ export function createApiMiddleware() {
         const deviceId = getRequestedDeviceId(req) || selectedDeviceId;
         if (!deviceId) throw new Error('未检测到可用设备');
         assertDeviceAllowedForRequest(req, deviceId);
-        const details = isRemoteDeviceId(deviceId)
+        const details = isIosDevice(deviceId)
+          ? { name: iosClient(deviceId).config.name, brand: 'Apple', model: 'iOS', processor: '-', androidVersion: '-', physicalResolution: '-', resolution: '-' }
+          : isRemoteDeviceId(deviceId)
           ? await sendRemoteCommand(deviceId, 'deviceInfo')
           : await readAndroidDeviceInfo(deviceId, getAdbCommand());
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -485,6 +511,12 @@ export function createApiMiddleware() {
           throw new Error('未检测到可用设备');
         }
         assertDeviceAllowedForRequest(req, deviceId);
+        if (isIosDevice(deviceId)) {
+          const client = iosClient(deviceId); const release = await client.retain();
+          try { const size = await client.size(); res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ deviceId, ...size })); }
+          finally { release(); }
+          return;
+        }
         if (isRemoteDeviceId(deviceId)) {
           const displayInfo = await sendRemoteCommand(deviceId, 'displayInfo') as AndroidDisplayInfo;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -524,6 +556,9 @@ export function createApiMiddleware() {
         assertDeviceAllowedForRequest(req, deviceId);
         if (![startX, startY, endX, endY].every(Number.isFinite)) {
           throw new Error('滑动坐标无效');
+        }
+        if (isIosDevice(deviceId)) {
+          throw new RequestBodyError('iOS 滑动需要画面版本，请使用 iOS 控制接口', 400);
         }
         if (isRemoteDeviceId(deviceId)) {
           const result = await sendRemoteCommand(deviceId, 'swipe', { startX, startY, endX, endY, duration });
@@ -608,11 +643,12 @@ export function createApiMiddleware() {
 
     if (req.url === '/api/save-app-preset' && req.method === 'POST') {
       try {
-        const parsed = await readBody<{ id?: string; name?: string; packageName?: string }>(req);
+        const parsed = await readBody<{ id?: string; name?: string; packageName?: string; platform?: unknown }>(req);
         const app = saveAppPresetRecord({
           id: parsed.id,
           name: parsed.name || '',
           packageName: parsed.packageName || '',
+          platform: parsed.platform,
         });
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ app }));

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { shallowRef } from 'vue';
+import { shallowRef, watchPostEffect } from 'vue';
 import { Connection, Document, MagicStick } from '@element-plus/icons-vue';
 import { t } from '../../i18n';
 import changelog from '../../../CHANGELOG.md?raw';
@@ -7,8 +7,12 @@ import guide from '../../../USAGE.md?raw';
 import nodes from '../../../流程节点操作说明.md?raw';
 import aiGuide from '../../../ai-flow/README.md?raw';
 import MarkdownDocument from './MarkdownDocument.vue';
-defineProps<{ active: boolean }>();
-const tab = shallowRef('usage');
+const props = defineProps<{ active: boolean; hasUnreadChangelog?: boolean }>();
+const emit = defineEmits<{ readChangelog: [] }>();
+const tab = shallowRef('changelog');
+watchPostEffect(() => {
+  if (props.active && tab.value === 'changelog' && props.hasUnreadChangelog) emit('readChangelog');
+});
 const guides = [
   { name: 'manual', title: '测试编排', icon: Connection, content: guide },
   { name: 'ai', title: 'AI 编排', icon: MagicStick, content: aiGuide },
@@ -18,8 +22,10 @@ const guides = [
 <template>
   <section class="help-center">
     <el-tabs v-model="tab">
+      <el-tab-pane :label="t('更新日志')" name="changelog">
+        <template #label><span class="help-center__tab-label">{{ t('更新日志') }}<span v-if="hasUnreadChangelog" class="unread-update-label" role="img" :aria-label="t('有新的更新说明')">new</span></span></template>
+      </el-tab-pane>
       <el-tab-pane :label="t('使用说明')" name="usage" />
-      <el-tab-pane :label="t('更新日志')" name="changelog" />
     </el-tabs>
     <el-collapse v-show="tab === 'usage'" class="help-center__guides">
       <el-collapse-item v-for="item in guides" :key="item.name" :name="item.name">
@@ -37,6 +43,7 @@ const guides = [
 </template>
 <style scoped>
 .help-center { width: 100%; min-width: 0; margin: 0; text-align: left; }
+.help-center__tab-label { display: inline-flex; align-items: center; gap: 6px; }
 .help-center__guides {
   display: grid;
   gap: 12px;

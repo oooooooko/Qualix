@@ -193,6 +193,7 @@ export type BranchMergeUndo = {
 export type AppiumRecordedScript = {
   id: string;
   name: string;
+  platform?: import('./platform').ScriptPlatform;
   appPackage: string;
   appActivity: string;
   deviceId: string;

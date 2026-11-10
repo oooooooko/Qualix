@@ -1,8 +1,15 @@
 import { execFile } from 'node:child_process';
 import { getAdbCommand } from '../android-sdk';
+import { isIosDevice } from '../ios/devices';
+import { iosClient } from '../ios/wda-client';
 
 // 直接读取设备截图，不使用预览缓存，也不进入 Appium 命令队列。
 export function adbScreenshotBase64(deviceId: string, signal?: AbortSignal) {
+  if (isIosDevice(deviceId)) return (async () => {
+    const client = iosClient(deviceId); const release = await client.retain();
+    try { return (await client.screenshot(signal)).toString('base64'); }
+    finally { release(); }
+  })();
   return new Promise<string>((resolve, reject) => {
     execFile(
       getAdbCommand(),

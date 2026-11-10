@@ -1,15 +1,19 @@
 # Update record
 
-[简体中文](./CHANGELOG.md) | [English](./CHANGELOG.en.md)、
+[简体中文](./CHANGELOG.md) | [English](./CHANGELOG.en.md)
+
+## [2.1.1]
+- [iOS] Add support for connecting locally attached devices through an existing WDA, including live MJPEG preview, screenshot fallback and recovery, component-tree selection, and script recording and execution.
+- [iOS] Use logical point coordinates and reject stale gestures after rotation. Make script execution and manual control mutually exclusive, distinguish internally created and external WDA sessions, and clean up preview connections automatically.
+- [App Settings] Add Android, iOS and Universal platforms, defaulting new and existing apps to Universal. Filter apps by the selected device in Test Orchestration and AI Orchestration, while keeping Universal apps available.
 
 ## [2.1.0]
-
-- [Appium] Capture a compressed accessibility hierarchy by default, excluding underlying Flutter content marked as inaccessible. Fix chat-page content remaining in the component tree after switching to a native page, for both local and remote devices.
-- [Appium] Select components in the device preview by hierarchy and drawing order, prioritizing the topmost component so smaller elements underneath it cannot be selected through an overlay.
-- [Appium] Save the hierarchy mode for each newly recorded step. New steps replay against the compressed hierarchy, while unmarked legacy steps retain the original full hierarchy for XPath compatibility. Support mixed steps, parent and fallback locators, loops, image regions and linked scripts.
+- [Appium] Use a compressed accessibility hierarchy by default when collecting components, excluding underlying Flutter content hidden from accessibility. Fix dialog content remaining in the component tree after switching to a native screen. Apply these changes to both local and remote devices.
+- [Appium] Select components in the device preview by hierarchy and drawing order, prioritizing components on top to avoid selecting smaller components obscured beneath them.
+- [Appium] Save the component hierarchy mode for each step. Newly recorded steps use the compressed hierarchy, while unmarked legacy steps replay with the original full hierarchy to preserve existing XPath locators. Support mixed legacy and new steps, parent and fallback locators, loops, image regions and linked scripts.
 
 ## [2.0.9]
-- [Appium]A new "Export Current Page as XML" feature has been added to the component tree. When triggered, it captures the complete component tree of the current page and downloads it as an XML file, facilitating the troubleshooting of component-related positioning issues.
+- [Appium] Add Export Current Page XML to the component tree. Fetch a fresh, complete component tree for the current page and download it as an XML file to help troubleshoot component locator issues.
 
 ## [2.0.8]
 - [Appium] Default timeout handling for branch nodes to the right branch in both the editor and replay. Preserve explicit choices to enter the left branch or terminate on timeout.
