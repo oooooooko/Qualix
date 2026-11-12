@@ -6,6 +6,12 @@
 
 A mobile app automation platform for Android and iOS, with manual orchestration, script replay and test analytics.
 
+![](./screen/1.jpg)
+
+![](./screen/2.jpg)
+
+![](./screen/3.jpg)
+
 ## Quick start
 
 Install Node.js 20.19+ or 22.12+, then prepare a device for your platform:
