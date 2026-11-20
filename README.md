@@ -235,6 +235,10 @@ Linux: ~/.local/share/android-midscene-automation
 
 # 项目更新记录
 
+## [2.1.4]
+
+- [发布]接入 GitHub Actions 与 npm Trusted Publishing，推送版本标签后自动构建、发布并校验 npm 官方源中的版本和 latest 标签，无需保存 npm 发布令牌。
+
 ## [2.1.3]
 - [Appium]“定位失败后使用坐标兜底”开关文字改为单行显示，标签宽度随文字自适应，并调整开关对齐与间距。
 

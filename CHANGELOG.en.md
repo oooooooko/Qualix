@@ -2,6 +2,10 @@
 
 [简体中文](./CHANGELOG.md) | [English](./CHANGELOG.en.md)
 
+## [2.1.4]
+
+- [Publishing] Add GitHub Actions and npm Trusted Publishing to build and publish automatically when a version tag is pushed, then verify the version and latest tag on the official npm registry without storing an npm publishing token.
+
 ## [2.1.3]
 - [Appium] Keep the coordinate fallback switch label on one line, size the label to fit its text, and adjust switch alignment and spacing.
 
