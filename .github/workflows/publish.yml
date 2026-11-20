@@ -1,0 +1,67 @@
+name: Publish to npm
+
+on:
+  # Manual runs validate installation, build and packing without publishing.
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org/'
+          package-manager-cache: false
+      - name: Install npm with trusted publishing support
+        run: npm install --global npm@11.17.0 --ignore-scripts --no-audit --no-fund
+      - name: Check release tag
+        if: github.event_name == 'push'
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const { name, version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          if (name !== 'qualix' || !/^\d+\.\d+\.\d+$/.test(version) || process.env.GITHUB_REF_NAME !== `v${version}`) {
+            throw new Error('Release tag must be v<package.json version>, using a stable qualix version.');
+          }
+          JS
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - name: Check package contents
+        run: npm pack --dry-run
+      - name: Publish using OIDC
+        if: github.event_name == 'push'
+        run: npm publish --access public --tag latest --registry=https://registry.npmjs.org/
+      - name: Verify version and latest on the official registry
+        if: github.event_name == 'push'
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          for attempt in 1 2 3 4 5 6; do
+            PUBLISHED=$(npm view "qualix@$VERSION" version --registry=https://registry.npmjs.org/ --cache="$RUNNER_TEMP/npm-verify-$attempt" --prefer-online) || PUBLISHED=''
+            LATEST=$(npm view qualix dist-tags.latest --registry=https://registry.npmjs.org/ --cache="$RUNNER_TEMP/npm-verify-$attempt" --prefer-online) || LATEST=''
+            if [ "$PUBLISHED" = "$VERSION" ] && [ "$LATEST" = "$VERSION" ]; then
+              echo "Verified qualix@$VERSION and latest=$LATEST"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'Official registry verification failed.' >&2
+          exit 1
