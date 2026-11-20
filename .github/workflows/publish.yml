@@ -60,7 +60,7 @@ jobs:
     needs: publish
     if: always() && ((github.event_name == 'push' && needs.publish.result == 'success') || (github.event_name == 'workflow_dispatch' && inputs.verify_version != ''))
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       RELEASE_VERSION: ${{ inputs.verify_version || github.ref_name }}
     steps:
@@ -74,10 +74,10 @@ jobs:
           VERSION=${RELEASE_VERSION#v}
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Invalid release version' >&2; exit 1; }
           # npm can process new packages for several minutes after accepting a publish.
-          for attempt in $(seq 1 30); do
+          for attempt in $(seq 1 60); do
             PUBLISHED=$(npm view "qualix@$VERSION" version --registry=https://registry.npmjs.org/ --cache="$RUNNER_TEMP/npm-verify-$attempt" --prefer-online) || PUBLISHED=''
             LATEST=$(npm view qualix dist-tags.latest --registry=https://registry.npmjs.org/ --cache="$RUNNER_TEMP/npm-verify-$attempt" --prefer-online) || LATEST=''
-            if [ "$PUBLISHED" = "$VERSION" ] && [ "$LATEST" = "$VERSION" ]; then
+            if [ "$PUBLISHED" = "$VERSION" ] && [ "$LATEST" = "$VERSION" ] && npm pack "qualix@$VERSION" --registry=https://registry.npmjs.org/ --cache="$RUNNER_TEMP/npm-verify-$attempt" --prefer-online --pack-destination="$RUNNER_TEMP" --json > /dev/null; then
               echo "Verified qualix@$VERSION and latest=$LATEST"
               exit 0
             fi
