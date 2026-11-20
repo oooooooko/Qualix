@@ -2,6 +2,13 @@
 
 [简体中文](./CHANGELOG.md) | [English](./CHANGELOG.en.md)
 
+## [2.1.3]
+- [Appium] Keep the coordinate fallback switch label on one line, size the label to fit its text, and adjust switch alignment and spacing.
+
+## [2.1.2]
+
+- [Appium] Add a per-node coordinate fallback switch to Click and Click If Exists nodes, enabled by default for compatibility with existing scripts. Save the setting with each node; when disabled, fail if locating the component or reading its position fails instead of clicking recorded coordinates. Other nodes and scripts retain their existing behavior.
+
 ## [2.1.1]
 - [iOS] Add support for connecting locally attached devices through an existing WDA, including live MJPEG preview, screenshot fallback and recovery, component-tree selection, and script recording and execution.
 - [iOS] Use logical point coordinates and reject stale gestures after rotation. Make script execution and manual control mutually exclusive, distinguish internally created and external WDA sessions, and clean up preview connections automatically.

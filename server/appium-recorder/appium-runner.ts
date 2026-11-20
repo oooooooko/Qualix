@@ -686,8 +686,9 @@ async function tapLocatedElement(
     throwIfReplayStopped(error);
     // 普通点击的外层会重新定位一次，避免列表刷新后使用已失效元素的旧位置。
     if (isStaleElementError(error)) throw error;
+    if (step?.tapFallbackEnabled === false) throw error;
   }
-  if (step) {
+  if (step && step.tapFallbackEnabled !== false) {
     await tapFallback(deviceId, step);
     return;
   }
@@ -1212,6 +1213,7 @@ async function runStep(
           await wait(300);
           continue;
         }
+        if (step.tapFallbackEnabled === false) throw error;
         await tapFallback(deviceId, step);
         return;
       }

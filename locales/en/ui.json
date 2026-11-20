@@ -683,6 +683,7 @@
   "模糊匹配（包含）": "Fuzzy matching (included)",
   "精准匹配（完全一致）": "Exact match (exact match)",
   "坐标 X": "Coordinate X",
+  "定位失败后使用坐标兜底": "Use coordinate fallback when locating fails",
   "备用坐标 X": "Alternate coordinates X",
   "坐标 Y": "Coordinate Y",
   "备用坐标 Y": "Alternate coordinate Y",

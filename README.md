@@ -20,8 +20,10 @@
 - iOS：在 Mac 上使用 Xcode 签名并启动 WebDriverAgent（WDA 7.0.0 及以上），支持真机和模拟器；真机需完成电脑信任、开发者模式、UI 自动化和 USB 端口转发，详见 [iOS 连接准备](./IOS_SETUP.md)。
 
 ```bash
-npx --yes qualix@latest
+npx --yes --registry=https://registry.npmjs.org/ --prefer-online qualix@latest
 ```
+
+此命令指定 npm 官方源并优先联网检查更新，减少镜像同步延迟或本地缓存导致启动旧版本的情况。
 
 源码开发：
 
@@ -232,6 +234,13 @@ Linux: ~/.local/share/android-midscene-automation
 4. 回放期间组件树自动刷新会暂停，回放完成后会自动恢复。
 
 # 项目更新记录
+
+## [2.1.3]
+- [Appium]“定位失败后使用坐标兜底”开关文字改为单行显示，标签宽度随文字自适应，并调整开关对齐与间距。
+
+## [2.1.2]
+
+- [Appium]点击及“存在则点击”节点新增“定位失败后使用坐标兜底”开关，默认开启以兼容旧脚本；支持按节点关闭并保存，关闭后定位或读取组件位置失败时直接报错，避免点击录制时的旧坐标，不影响其他节点及脚本。
 
 ## [2.1.1]
 - [iOS]接入已有 WDA 的本机设备连接，支持 MJPEG 实时预览、截图兜底与恢复、组件树选取、脚本录制及执行。

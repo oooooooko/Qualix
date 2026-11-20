@@ -20,8 +20,8 @@ const nativeStateOperation = '读取原生组件 checked 状态，true 走 yes�
 // 用完整的节点类型映射约束参考资料；增加脚本节点类型时必须补齐属性、执行规则和示例。
 export const llmNodeReferences: Record<AppiumRecordedStep['type'], NodeReference> = {
   tap: {
-    attributes: `${elementAttributes} fallback：可选的 bounds 坐标，用于点击失败后的备用点击。`,
-    operation: '定位组件后点击；元素失效时可重新定位，常规定位或点击失败后有有效 fallback 时尝试坐标点击，否则失败。点击命令成功不代表业务页面已完成跳转，需要另加等待或校验。',
+    attributes: `${elementAttributes} fallback：可选的 bounds 坐标，用于点击失败后的备用点击。tapFallbackEnabled：可选 boolean，省略或 true 启用坐标兜底，false 禁用。`,
+    operation: '定位组件后点击；元素失效时可重新定位，常规定位或点击失败后仅在 tapFallbackEnabled 不为 false 且有有效 fallback 时尝试坐标点击，否则失败。点击命令成功不代表业务页面已完成跳转，需要另加等待或校验。',
     example: { selector, fallback: { strategy: 'bounds', centerX: 100, centerY: 200 } },
   },
   input: {
@@ -30,7 +30,7 @@ export const llmNodeReferences: Record<AppiumRecordedStep['type'], NodeReference
     example: { selector, value: '{{account}}' },
   },
   tapIfExists: {
-    attributes: elementAttributes,
+    attributes: `${elementAttributes} tapFallbackEnabled：可选 boolean，省略或 true 保留点击失败后的坐标兜底，false 禁用；未找到组件仍按原规则跳过。`,
     operation: '在超时预算内查找组件；找到后点击，未找到则跳过并继续。找到后的点击错误仍会失败，不应将所有设备或服务异常统一解释成组件不存在。',
     example: { selector, timeoutMs: DEFAULT_NODE_TIMEOUT_MS },
   },

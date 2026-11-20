@@ -4,7 +4,7 @@
 
 🌐 **English** | [中文](./README.md)
 
-A mobile app automation platform for Android and iOS, with manual orchestration, script replay and test analytics.
+面向 Android 与 iOS 的移动应用自动化测试平台，支持手动编排、脚本回放与测试分析。
 
 ![](./screen/1.jpg)
 
@@ -20,8 +20,10 @@ Install Node.js 20.19+ or 22.12+, then prepare a device for your platform:
 - iOS: use Xcode on a Mac to sign and start WebDriverAgent (WDA 7.0.0 or newer) for a physical device or simulator. Physical devices require computer trust, Developer Mode, UI Automation and USB port forwarding. See [Preparing an iOS connection](./IOS_SETUP.en.md).
 
 ```bash
-npx --yes qualix@latest
+npx --yes --registry=https://registry.npmjs.org/ --prefer-online qualix@latest
 ```
+
+This command uses the official npm registry and checks online for updates first, reducing the chance of launching an older version because of mirror synchronization delays or local cache.
 
 Develop from source:
 
@@ -232,6 +234,13 @@ If it still fails:
 4. Automatic refresh of the component tree will be paused during playback, and will automatically resume after playback is completed.
 
 # Changelog
+
+## [2.1.3]
+- [Appium] Keep the coordinate fallback switch label on one line, size the label to fit its text, and adjust switch alignment and spacing.
+
+## [2.1.2]
+
+- [Appium] Add a per-node coordinate fallback switch to Click and Click If Exists nodes, enabled by default for compatibility with existing scripts. Save the setting with each node; when disabled, fail if locating the component or reading its position fails instead of clicking recorded coordinates. Other nodes and scripts retain their existing behavior.
 
 ## [2.1.1]
 - [iOS] Add support for connecting locally attached devices through an existing WDA, including live MJPEG preview, screenshot fallback and recovery, component-tree selection, and script recording and execution.

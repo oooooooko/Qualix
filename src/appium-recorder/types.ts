@@ -122,6 +122,7 @@ export type AppiumRecordedStep = {
   contextSelector?: AppiumSelector;
   selectorChain?: AppiumSelector[];
   fallback?: AppiumSelector;
+  tapFallbackEnabled?: boolean;
   value?: string;
   logPrefix?: string;
   extractVariable?: VariableExtraction;

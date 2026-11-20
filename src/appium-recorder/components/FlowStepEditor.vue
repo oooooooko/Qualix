@@ -47,7 +47,7 @@ const visualChangeConfigDisabled = computed(() => Boolean(
 ));
 const showTapCoordinates = computed(() => (
   props.step.type === 'coordinateTap'
-  || (['tap', 'tapIfExists'].includes(props.step.type) && props.step.fallback?.strategy === 'bounds')
+  || (['tap', 'tapIfExists'].includes(props.step.type) && props.step.tapFallbackEnabled !== false && props.step.fallback?.strategy === 'bounds')
 ));
 const invalidTapCoordinates = computed(() => (
   showTapCoordinates.value
@@ -422,6 +422,9 @@ function patchSelector(patch: Partial<AppiumSelector>) {
           </el-select>
         </el-form-item>
       </div>
+      <el-form-item v-if="['tap', 'tapIfExists'].includes(step.type)" class="appium-flow-editor__tap-fallback" :label="t('定位失败后使用坐标兜底')">
+        <el-switch :model-value="step.tapFallbackEnabled !== false" :disabled="disabled" :aria-label="t('定位失败后使用坐标兜底')" @update:model-value="patchStep({ tapFallbackEnabled: $event === true })" />
+      </el-form-item>
       <section v-if="showTapCoordinates" class="appium-flow-editor__fallback">
         <div class="appium-flow-editor__grid">
           <el-form-item :label="step.type === 'coordinateTap' ? t('坐标 X') : t('备用坐标 X')">
@@ -502,6 +505,8 @@ function patchSelector(patch: Partial<AppiumSelector>) {
   overflow-wrap: anywhere;
 }
 .appium-flow-editor :deep(.el-form-item > .el-form-item__content) { min-width: 0; margin-left: 0 !important; }
+.appium-flow-editor :deep(.el-form-item.appium-flow-editor__tap-fallback) { grid-template-columns: max-content minmax(0, 1fr); align-items: center; }
+.appium-flow-editor :deep(.appium-flow-editor__tap-fallback > .el-form-item__label) { white-space: nowrap; }
 .appium-flow-editor :deep(.el-input-number),
 .appium-flow-editor :deep(.el-select) { width: 100%; }
 .appium-flow-editor :deep(.appium-flow-editor__grid),

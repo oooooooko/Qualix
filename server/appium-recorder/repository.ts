@@ -101,6 +101,7 @@ export type AppiumRecordedStepRecord = {
   };
   value?: string;
   logPrefix?: string;
+  tapFallbackEnabled?: boolean;
   imageCheck?: ImageCheckConfig;
   extractVariable?: VariableExtraction;
   randomValue?: RandomValueConfig;
@@ -403,6 +404,9 @@ export function saveAppiumRecordedScript(input: {
   const steps = normalizeLegacyNestedConditionBranches(input.steps || []);
   if (input.variables !== undefined) validateVariables(input.variables);
   for (const step of steps) {
+    if (step.tapFallbackEnabled !== undefined && typeof step.tapFallbackEnabled !== 'boolean') {
+      throw new Error('点击坐标兜底开关必须为 boolean');
+    }
     // 读取旧脚本必须容错，让用户能打开并修正无效配置；仅在写入时校验。
     if (step.hierarchyMode !== undefined && !['full', 'compressed'].includes(step.hierarchyMode)) {
       throw new Error('组件层级模式必须为 full 或 compressed');
