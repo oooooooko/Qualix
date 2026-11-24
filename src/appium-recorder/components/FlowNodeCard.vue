@@ -13,6 +13,7 @@ import {
 } from '../flow-graph';
 import FlowStepEditor from './FlowStepEditor.vue';
 import FlowActionMenu from './FlowActionMenu.vue';
+import { androidActivityName } from '../script-entry';
 
 const props = defineProps<{
   nodeId: string;
@@ -20,10 +21,15 @@ const props = defineProps<{
   steps: AppiumRecordedStep[];
   expanded: boolean;
   readonly?: boolean;
+  appActivity?: string;
+  appPackage?: string;
+  platform?: 'android' | 'ios';
+  disabled?: boolean;
   searchHighlighted?: boolean;
 }>();
 
 const emit = defineEmits<{
+  editEntry: [];
   nodeClick: [index: number];
   copy: [index: number];
   merge: [index: number];
@@ -38,6 +44,7 @@ const emit = defineEmits<{
 
 const layoutDirection = inject(flowLayoutDirectionKey, computed(() => normalizeFlowLayoutDirection(undefined)));
 const horizontal = computed(() => layoutDirection.value === 'horizontal');
+const entryActivity = computed(() => props.platform === 'ios' ? props.appActivity : androidActivityName(props.appActivity || ''));
 
 const rootRef = shallowRef<HTMLElement | null>(null);
 const cardRef = shallowRef<HTMLButtonElement | null>(null);
@@ -76,7 +83,7 @@ function handleStepClick() {
 }
 
 onMounted(() => {
-  if (!rootRef.value || props.data.kind !== 'step') return;
+  if (!rootRef.value || (props.data.kind !== 'step' && props.data.kind !== 'start')) return;
   resizeObserver = new ResizeObserver(([entry]) => {
     if (!entry) return;
     // 横向端点跟随卡片，展开的编辑区域不参与端点居中。
@@ -114,10 +121,27 @@ onBeforeUnmount(() => {
 
     <div v-if="data.kind === 'start'" class="appium-flow-start-card nodrag nopan">
       <span class="appium-flow-start-card__icon">S</span>
-      <span>
-        <strong>{{ t("开始") }}</strong>
-        <small>{{ t("当前脚本入口") }}</small>
+      <span class="appium-flow-start-card__label">
+        <strong :title="t('当前脚本入口')">{{ t("当前脚本入口") }}</strong>
+        <small>
+          {{ t('App 包名') }}
+          <span class="appium-flow-start-card__value appium-flow-start-card__package" :title="appPackage">{{ appPackage || t('未设置') }}</span>
+        </small>
+        <small>
+          {{ platform === 'ios' ? 'Bundle ID' : 'Activity' }}
+          <span class="appium-flow-start-card__value appium-flow-start-card__activity" :title="entryActivity">{{ entryActivity || t('未设置') }}</span>
+        </small>
       </span>
+      <el-button
+        v-if="!props.readonly && appActivity !== undefined"
+        text
+        size="small"
+        :icon="Edit"
+        :disabled="disabled"
+        :title="t('修改脚本入口')"
+        :aria-label="t('修改脚本入口')"
+        @click="emit('editEntry')"
+      />
     </div>
 
     <button
@@ -281,6 +305,27 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.appium-flow-start-card__label {
+  min-width: 0;
+  flex: 1;
+}
+.appium-flow-start-card__label strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.appium-flow-start-card__label small {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.appium-flow-start-card__value {
+  display: block;
+  color: var(--ui-text);
+}
+.appium-flow-start-card > .el-button {
+  flex-shrink: 0;
+  padding: 4px;
+}
 .appium-flow-step-shell--expanded {
   overflow: hidden;
   border: 1px solid var(--ui-border);

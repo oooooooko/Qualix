@@ -357,6 +357,10 @@ select {
   display: none;
 }
 
+.appium-script-load-button .el-icon {
+  font-size: 17px;
+}
+
 .appium-script-list__item {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr);
@@ -2711,7 +2715,7 @@ html.dark .device-action-button__icon { filter: invert(85%); }
 }
 
 .appium-flow-graph-node--start {
-  width: 180px;
+  width: 320px;
 }
 
 .appium-flow-graph-node--step {
@@ -2774,8 +2778,8 @@ html.dark .device-action-button__icon { filter: invert(85%); }
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 180px;
-  height: 62px;
+  width: 320px;
+  min-height: 62px;
   padding: 10px 14px;
   border: 1px solid var(--ui-border);
   border-radius: 8px;

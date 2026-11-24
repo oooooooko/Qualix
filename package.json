@@ -1,7 +1,7 @@
 {
   "name": "qualix",
   "description": "Android/iOS 自动化测试平台，提供测试编排、双模式 AI 编排。",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "license": "MIT",
   "repository": {
     "type": "git",

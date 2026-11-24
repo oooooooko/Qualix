@@ -235,15 +235,16 @@ If it still fails:
 
 # Changelog
 
-## [2.1.4]
+## [2.1.5]
+- [Appium]脚本入口支持分别编辑 App 包名和 Activity / Bundle ID；Android Activity 自动补充包名，兼容已有完整格式；iOS 入口 Bundle ID 改为选填，App 包名保持必填。
 
+## [2.1.4]
 - [Publishing] Add GitHub Actions and npm Trusted Publishing to build and publish automatically when a version tag is pushed, then verify the version and latest tag on the official npm registry without storing an npm publishing token.
 
 ## [2.1.3]
 - [Appium] Keep the coordinate fallback switch label on one line, size the label to fit its text, and adjust switch alignment and spacing.
 
 ## [2.1.2]
-
 - [Appium] Add a per-node coordinate fallback switch to Click and Click If Exists nodes, enabled by default for compatibility with existing scripts. Save the setting with each node; when disabled, fail if locating the component or reading its position fails instead of clicking recorded coordinates. Other nodes and scripts retain their existing behavior.
 
 ## [2.1.1]

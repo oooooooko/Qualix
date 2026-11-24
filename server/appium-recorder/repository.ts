@@ -15,6 +15,7 @@ import { validateImageCheck, type ImageCheckConfig } from '../../src/appium-reco
 import { validateRandomValue, type RandomValueConfig } from '../../src/appium-recorder/random-value';
 import { validateStopwatch, remapStopwatchIds, type StopwatchConfig } from '../../src/appium-recorder/stopwatch';
 import { assertLinkedScriptPlatforms, assertScriptPlatform, scriptPlatform, type ScriptPlatform } from '../../src/appium-recorder/platform';
+import { androidActivityComponent } from '../../src/appium-recorder/script-entry';
 
 export type AppiumRecordedStepRecord = {
   hierarchyMode?: 'full' | 'compressed';
@@ -303,15 +304,17 @@ function normalizeScriptActivity(
   appPackage: string,
   appActivity: string | null | undefined,
   steps: AppiumRecordedStepRecord[],
+  platform: ScriptPlatform,
 ) {
+  if (platform === 'ios') return appActivity?.trim() || '';
   const belongsToApp = (activity?: string) => {
     const value = activity?.trim() || '';
     return value && (!value.includes('/') || value.split('/')[0] === appPackage);
   };
-  if (belongsToApp(appActivity || '')) return appActivity?.trim() || '';
+  if (belongsToApp(appActivity || '')) return androidActivityComponent(appPackage, appActivity || '');
   for (const step of steps) {
     for (const activity of [step.pageBefore?.activity, step.pageAfter?.activity]) {
-      if (belongsToApp(activity)) return activity?.trim() || '';
+      if (belongsToApp(activity)) return androidActivityComponent(appPackage, activity || '');
     }
   }
   return '';
@@ -324,7 +327,7 @@ function rowToRecord(row: AppiumRecordedScriptRow): AppiumRecordedScriptRecord {
     name: row.name,
     platform: scriptPlatform(row.platform),
     appPackage: row.app_package,
-    appActivity: normalizeScriptActivity(row.app_package, row.app_activity, steps),
+    appActivity: normalizeScriptActivity(row.app_package, row.app_activity, steps, scriptPlatform(row.platform)),
     deviceId: row.device_id || '',
     variables: getPresetVariables(row.id),
     steps,
@@ -422,7 +425,7 @@ export function saveAppiumRecordedScript(input: {
     if (step.type === 'runScript') { validateVariables(step.parameters); validateReturns(step.returns); }
   }
   validateLoopSteps(steps);
-  const appActivity = normalizeScriptActivity(appPackage, input.appActivity, steps);
+  const appActivity = normalizeScriptActivity(appPackage, input.appActivity, steps, platform);
 
   if (!name) throw new Error('脚本名称不能为空');
   if (!appPackage) throw new Error('App 包名不能为空');

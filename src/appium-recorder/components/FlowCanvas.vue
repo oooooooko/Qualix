@@ -68,6 +68,9 @@ const canvasStyle = computed(() => {
 });
 
 const props = defineProps<{
+  appActivity?: string;
+  appPackage?: string;
+  platform?: 'android' | 'ios';
   aiRecognitionModelConfigured?: boolean;
   id: string;
   steps: AppiumRecordedStep[];
@@ -96,6 +99,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
+  editEntry: [];
   nodeClick: [index: number];
   merge: [index: number];
   copy: [indexes: number[]];
@@ -294,7 +298,7 @@ watch(flowStructureKey, () => {
   insertionNodeId = '';
   knownStepIds = nextIds;
   // 已有尺寸仍然有效，避免重新测量整张图时触发旧选中节点的聚焦。
-  const retained = Object.entries(measuredNodeHeights.value).filter(([id]) => nextIds.has(id.replace(/^step:/, '')));
+  const retained = Object.entries(measuredNodeHeights.value).filter(([id]) => id === 'start' || nextIds.has(id.replace(/^step:/, '')));
   if (retained.length !== Object.keys(measuredNodeHeights.value).length) {
     measuredNodeHeights.value = Object.fromEntries(retained);
   }
@@ -386,6 +390,11 @@ function handleInsert(payload: {
     >
       <template #node-flow-node="{ id: nodeId, data }">
         <FlowNodeCard
+          :app-package="appPackage"
+          :platform="platform"
+          :app-activity="appActivity"
+          :disabled="disabled"
+          @edit-entry="emit('editEntry')"
           :steps="steps"
           :node-id="nodeId"
           :data="data"

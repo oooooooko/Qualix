@@ -7,7 +7,7 @@ import { DEFAULT_NODE_TIMEOUT_MS } from './node-timeout';
 import { aiPromptPresetsKey, DEFAULT_AI_PROMPT_PRESETS, type AiPromptPreset } from './ai-prompt-presets';
 import AiRecognitionPromptInput from './components/AiRecognitionPromptInput.vue';
 import { ElForm, ElFormItem, ElInputNumber, ElMessage, ElMessageBox, ElOption, ElSelect } from 'element-plus';
-import { ArrowDown, Check, CircleClose, CopyDocument, Delete, Document, Download, Edit, FolderOpened, Loading, Plus, Refresh, Upload, VideoPlay, View, Clock } from '@element-plus/icons-vue';
+import { ArrowDown, CaretRight, Check, CircleClose, CopyDocument, Delete, Document, Download, Edit, Loading, Plus, Refresh, Upload, VideoPlay, View, Clock } from '@element-plus/icons-vue';
 import RunHistoryDialog from './RunHistoryDialog.vue';
 import type { AndroidDevice, AppPreset, DeviceAction } from '../types';
 import { appPresetsForDevice } from '../app-presets';
@@ -52,6 +52,8 @@ import { defaultRandomValue, validateRandomValue } from './random-value';
 import { variablePresetKey, variablePresetOptions, type VariablePresetContext } from './variable-presets';
 import RecordedSteps from './components/RecordedSteps.vue';
 import NewScriptDialog from './components/NewScriptDialog.vue';
+import ScriptEntryDialog from './components/ScriptEntryDialog.vue';
+import ScriptListItems from './components/ScriptListItems.vue';
 import ScriptPlatformIcon from './components/ScriptPlatformIcon.vue';
 import { assertLinkedScriptPlatforms, assertScriptPlatform, scriptPlatform, type ScriptPlatform } from './platform';
 import { assertIosSteps, iosUnsupportedActions } from '../ios/capabilities';
@@ -184,6 +186,7 @@ const scriptListSelectedId = shallowRef('');
 watch(selectedScriptId, id => { scriptListSelectedId.value = id; });
 const recordedStepsRef = useTemplateRef('recordedStepsRef');
 const newScriptDialogVisible = shallowRef(false);
+const scriptEntryDialogVisible = shallowRef(false);
 const newScriptRevision = shallowRef(0);
 const storedWorkbenchTab = props.canvasOnly ? null : window.localStorage.getItem(WORKBENCH_TAB_STORAGE_KEY);
 const activeWorkbenchTab = shallowRef<'recording' | 'scripts' | 'variables'>(storedWorkbenchTab === 'scripts' ? 'scripts' : storedWorkbenchTab === 'variables' ? 'variables' : 'recording');
@@ -392,10 +395,9 @@ const replayPlatformError = computed(() => {
     return '';
   } catch (error) { return error instanceof Error ? error.message : '脚本平台校验失败'; }
 });
-const hasSelectedAppPackage = computed(() => props.appPresets.some((app) => app.packageName === form.appPackage)
-  || Boolean(form.appPackage && selectedScript.value?.appPackage === form.appPackage));
+const hasSelectedAppPackage = computed(() => Boolean(form.appPackage.trim()));
 const scriptActivityMismatch = computed(() => {
-  const expectedActivity = selectedScript.value?.appActivity?.trim();
+  const expectedActivity = form.appActivity.trim();
   if (!expectedActivity) return false;
   return currentActivity.value !== expectedActivity;
 });
@@ -866,7 +868,7 @@ function linkedScriptExitActivity(script: AppiumRecordedScript) {
 }
 
 function expectedActivityAfterStep(index?: number) {
-  const scriptActivity = selectedScript.value?.appActivity || form.appActivity || currentActivity.value;
+  const scriptActivity = form.appActivity || currentActivity.value;
   if (typeof index !== 'number' || index < 0) return scriptActivity;
 
   const previousStep = steps.value[index];
@@ -933,7 +935,7 @@ function currentPageSnapshot(node = selectedNode.value) {
 
 function ensureAppPackageSelected() {
   if (hasSelectedAppPackage.value) return true;
-  ElMessage.warning(t("请先从预设 App 参数中选择 App 包名"));
+  ElMessage.warning(t("请先设置 App 包名"));
   return false;
 }
 
@@ -2128,12 +2130,6 @@ async function saveAndNewScript() {
   if (await saveScript()) startNewScript();
 }
 
-function formatScriptTime(value: string) {
-  if (!value) return '-';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString(locale.value);
-}
-
 function cloneScriptSteps(stepList: AppiumRecordedStep[]) {
   return JSON.parse(JSON.stringify(stepList || [])) as AppiumRecordedStep[];
 }
@@ -2335,6 +2331,17 @@ async function importScriptFile(event: Event) {
   } finally {
     importingScript.value = false;
   }
+}
+
+function editScriptEntry() {
+  if (newScriptDisabled.value) return;
+  scriptEntryDialogVisible.value = true;
+}
+
+function updateScriptEntry(entry: { appPackage: string; appActivity: string }) {
+  if (newScriptDisabled.value) return;
+  Object.assign(form, entry);
+  scriptEntryDialogVisible.value = false;
 }
 
 async function saveScript() {
@@ -2701,6 +2708,9 @@ watch(
 
               <section class="appium-workbench__section appium-workbench__flow">
                 <RecordedSteps
+                  :app-package="form.appPackage"
+                  :app-activity="form.appActivity"
+                  @edit-entry="editScriptEntry"
                   ref="recordedStepsRef"
                   :key="newScriptRevision"
                   :canvas-id="canvasOnly ? 'ai-orchestration-flow' : 'appium-flow'"
@@ -2741,7 +2751,7 @@ watch(
                   <el-button size="small" :icon="Clock" :aria-label="t('历史结果对比')" :disabled="!scriptListSelection" @click="scriptListSelection && (historyScript = { id: scriptListSelection.id, name: scriptListSelection.name })" />
                 </span></el-tooltip>
                 <el-tooltip :content="t('加载')" placement="top" :show-after="200"><span class="appium-script-icon">
-                  <el-button size="small" :icon="FolderOpened" :disabled="!scriptListSelection || scriptListBusy" :aria-label="t('加载')" @click="scriptListSelection && loadScript(scriptListSelection)" />
+                  <el-button class="appium-script-load-button" size="small" :icon="CaretRight" :disabled="!scriptListSelection || scriptListBusy" :aria-label="t('加载')" @click="scriptListSelection && loadScript(scriptListSelection)" />
                 </span></el-tooltip>
                 <el-tooltip :content="t('修改脚本名称')" placement="top" :show-after="200"><span class="appium-script-icon">
                   <el-button
@@ -2791,24 +2801,7 @@ watch(
                 >
               </div>
               <el-empty v-if="!scripts.length" :description="t('暂无录制脚本')" />
-              <template v-else>
-                <label
-                  v-for="script in scripts"
-                  :key="script.id"
-                  class="appium-script-list__item"
-                  :class="{ 'appium-script-list__item--active': script.id === scriptListSelectedId }"
-                >
-                  <input v-model="scriptListSelectedId" class="appium-script-list__radio" type="radio" name="appium-script-selection" :value="script.id" :aria-label="script.name">
-                  <span class="appium-script-list__main">
-                    <strong class="appium-script-name">
-                      <ScriptPlatformIcon :platform="script.platform" />
-                      <span class="appium-script-name__text">{{ script.name }}</span>
-                    </strong>
-                    <span>{{ script.appPackage }}</span>
-                    <small>{{ script.steps.length }} {{ t("步 ·") }} {{ formatScriptTime(script.updatedAt) }}</small>
-                  </span>
-                </label>
-              </template>
+              <ScriptListItems v-else v-model:selected-id="scriptListSelectedId" :scripts="scripts" :disabled="scriptListBusy" />
             </div>
           </el-tab-pane>
           <el-tab-pane :label="t('预设变量')" name="variables" lazy>
@@ -2823,6 +2816,8 @@ watch(
     </RecorderWorkspace>
 
     <RunHistoryDialog v-if="historyScript" :script-id="historyScript.id" :script-name="historyScript.name" @close="historyScript = null" />
+    <ScriptEntryDialog v-if="scriptEntryDialogVisible" :platform="form.platform" :app-package="form.appPackage"
+      :app-activity="form.appActivity" :disabled="newScriptDisabled" @confirm="updateScriptEntry" @cancel="scriptEntryDialogVisible = false" />
     <NewScriptDialog
       v-if="newScriptDialogVisible"
       :script-name="form.name"
@@ -2964,6 +2959,9 @@ watch(
           disabled
           remove-disabled
           :steps="linkedScriptPreviewScript.steps"
+          :app-activity="linkedScriptPreviewScript.appActivity"
+          :app-package="linkedScriptPreviewScript.appPackage"
+          :platform="linkedScriptPreviewScript.platform"
           :expanded-step-index="null"
           :copy-mode="false"
           :selected-copy-indexes="readonlyFlowSelectedIndexes"

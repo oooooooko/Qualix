@@ -15,6 +15,8 @@ import type { FlowActionGroup, FlowBranch, InsertAction } from '../flow-graph';
 import { iosUnsupportedActions } from '../../ios/capabilities';
 
 const props = defineProps<{
+  appActivity?: string;
+  appPackage?: string;
   platform?: 'android' | 'ios';
   aiRecognitionModelConfigured?: boolean;
   steps: AppiumRecordedStep[];
@@ -30,6 +32,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
+  editEntry: [];
   remove: [index: number];
   copy: [indexes: number[]];
   paste: [index: number, branch?: FlowBranch, beforeStepId?: string];
@@ -336,6 +339,10 @@ function updateStep(index: number, step: AppiumRecordedStep) {
     </div>
 
     <FlowCanvas
+      :app-package="appPackage"
+      :platform="platform"
+      :app-activity="appActivity"
+      @edit-entry="emit('editEntry')"
       :id="`${canvasId || 'appium-flow'}-main`"
       :search-target-id="searchTargetId"
       :search-focus-token="searchFocusToken"
@@ -420,6 +427,10 @@ function updateStep(index: number, step: AppiumRecordedStep) {
         </span></el-tooltip>
       </div>
       <FlowCanvas
+        :app-package="appPackage"
+        :platform="platform"
+        :app-activity="appActivity"
+        @edit-entry="emit('editEntry')"
         :id="`${canvasId || 'appium-flow'}-dialog`"
         :search-target-id="searchTargetId"
         :search-focus-token="searchFocusToken"

@@ -62,7 +62,7 @@ export const PASTE_COMMAND = '__paste_flow_nodes__';
 export const FLOW_STEP_NODE_WIDTH = 340;
 export const FLOW_STEP_NODE_HEIGHT = 78;
 export const FLOW_EXPANDED_NODE_HEIGHT = 336;
-export const FLOW_START_NODE_WIDTH = 180;
+export const FLOW_START_NODE_WIDTH = 320;
 export const FLOW_START_NODE_HEIGHT = 62;
 export const FLOW_INSERT_NODE_SIZE = 34;
 export const FLOW_BRANCH_NODE_WIDTH = 34;
@@ -525,7 +525,7 @@ export function buildFlowGraph(
     position: { x: 0, y: 0 },
     sourcePosition: Position.Bottom,
     width: FLOW_START_NODE_WIDTH,
-    height: FLOW_START_NODE_HEIGHT,
+    height: Math.max(FLOW_START_NODE_HEIGHT, options.measuredNodeHeights?.start || 0),
     selectable: false,
     draggable: false,
     connectable: false,
